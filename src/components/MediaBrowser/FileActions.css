@@ -1,0 +1,94 @@
+.file-actions {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 50;
+}
+
+.action-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background-color: #1976d2;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-button:hover {
+  background-color: #1565c0;
+}
+
+.action-button:active {
+  transform: scale(0.95);
+}
+
+.create-folder-button {
+  background-color: #388e3c;
+}
+
+.create-folder-button:hover {
+  background-color: #2e7d32;
+}
+
+.uploader-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+}
+
+.uploader-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.uploader-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-radius: 16px 16px 0 0;
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.uploader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.uploader-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
