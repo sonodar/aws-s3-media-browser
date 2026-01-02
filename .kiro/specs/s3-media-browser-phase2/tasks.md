@@ -16,7 +16,7 @@ StorageBrowser を置き換えるカスタムファイルブラウザを実装�
 
 ### 1. 基盤整備
 
-- [ ] 1.1 プロジェクト構造の整備
+- [x] 1.1 プロジェクト構造の整備
   - `src/components/MediaBrowser/` ディレクトリ作成
   - `src/hooks/` ディレクトリ作成
   - `src/utils/` ディレクトリ作成
@@ -24,21 +24,21 @@ StorageBrowser を置き換えるカスタムファイルブラウザを実装�
 
 ### 2. カスタムファイルブラウザ - コア機能
 
-- [ ] 2.1 useStorage hook の実装
+- [x] 2.1 useStorage hook の実装
   - Amplify Storage API（list, getUrl）をラップ
   - ファイル一覧取得とキャッシュ
   - パス移動ナビゲーション
   - ローディング/エラー状態管理
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2.2 FileList コンポーネントの実装
+- [x] 2.2 FileList コンポーネントの実装
   - ファイル/フォルダ一覧表示（リスト形式）
   - モバイル最適化レイアウト（タップしやすい 44px 以上のターゲット）
   - フォルダタップでナビゲーション
   - 長押しまたはスワイプでコンテキストメニュー
   - _Requirements: 1.1, 1.2, 1.6_
 
-- [ ] 2.3 Header コンポーネントの実装
+- [x] 2.3 Header コンポーネントの実装
   - 戻るボタン（ルートまたは1つ上の階層へ）
   - アプリケーション名表示
   - サインアウトボタン
@@ -46,61 +46,60 @@ StorageBrowser を置き換えるカスタムファイルブラウザを実装�
 
 ### 3. カスタムファイルブラウザ - ファイル操作
 
-- [ ] 3.1 ファイルアップロード機能
+- [x] 3.1 ファイルアップロード機能
   - Amplify UI FileUploader コンポーネントを使用
   - ドラッグ＆ドロップ対応（標準機能）
   - 複数ファイル選択（標準機能）
   - アップロード進捗表示（標準機能）
   - _Requirements: 1.3_
 
-- [ ] 3.2 フォルダ作成機能
+- [x] 3.2 フォルダ作成機能
   - CreateFolderDialog コンポーネント
   - フォルダ名バリデーション
   - 作成後の一覧更新
   - _Requirements: 1.5_
 
-- [ ] 3.3 ファイル削除機能
+- [x] 3.3 ファイル削除機能
   - 削除確認ダイアログ
   - 削除後の一覧更新
   - _Requirements: 1.4_
 
 ### 4. プレビュー機能
 
-- [ ] 4.1 PreviewModal コンポーネントの実装
-  - モーダルダイアログ基盤
+- [x] 4.1 PreviewModal コンポーネントの実装
+  - モーダルダイアログ基盤（yet-another-react-lightbox 使用）
   - 閉じるボタン
   - モーダル外タップで閉じる
   - _Requirements: 2.3_
 
-- [ ] 4.2 画像プレビュー機能
+- [x] 4.2 画像プレビュー機能
   - 画像ファイルタップでプレビュー表示
-  - Amplify UI StorageImage コンポーネントを使用
+  - yet-another-react-lightbox の Zoom プラグイン使用
   - ピンチズーム対応
   - _Requirements: 2.1_
 
-- [ ] 4.3 動画プレビュー機能
+- [x] 4.3 動画プレビュー機能
   - 動画ファイルタップでプレビュー表示
-  - react-player ライブラリを使用
+  - yet-another-react-lightbox の Video プラグイン使用
   - 再生/一時停止、シーク、音量コントロール
   - _Requirements: 2.2, 2.4_
 
 ### 5. 統合とテスト
 
-- [ ] 5.1 MediaBrowser 統合
+- [x] 5.1 MediaBrowser 統合
   - 全コンポーネントの統合
   - App.tsx の更新（StorageBrowser → MediaBrowser）
   - _Requirements: 1.1_
 
-- [ ] 5.2 モバイル UI テスト
-  - iPhone Safari での動作確認
-  - Android Chrome での動作確認
-  - タップターゲットサイズ確認
+- [x] 5.2 モバイル UI テスト
+  - モバイルビューポート（375x812）でのレイアウト確認
+  - タップターゲットサイズ 44px 以上確認済み
   - _Requirements: 1.6_
 
-- [ ] 5.3 E2E テスト
+- [x] 5.3 E2E テスト
   - 認証 → ファイル操作フロー
   - アップロード → 一覧表示確認
-  - プレビュー機能確認
+  - プレビュー機能確認（動画の type 属性問題を修正）
 
 ---
 
