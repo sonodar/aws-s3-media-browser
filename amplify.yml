@@ -1,0 +1,26 @@
+version: 1
+backend:
+  phases:
+    build:
+      commands:
+        - npm ci --cache .npm --prefer-offline
+        # main ブランチのみバックエンドをデプロイ
+        # それ以外のブランチは main のバックエンドを共有
+        - |
+          if [ "$AWS_BRANCH" = "main" ]; then
+            npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+          else
+            npx ampx generate outputs --branch main --app-id $AWS_APP_ID
+          fi
+frontend:
+  phases:
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .npm/**/*
