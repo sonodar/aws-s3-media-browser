@@ -16,29 +16,29 @@
 
 ## Tasks
 
-- [ ] 1. プロジェクト初期化とAmplify Gen2 セットアップ
+- [x] 1. プロジェクト初期化とAmplify Gen2 セットアップ
 
-- [ ] 1.1 React + TypeScript プロジェクトの作成
+- [x] 1.1 React + TypeScript プロジェクトの作成
   - Vite を使用して React 18 + TypeScript プロジェクトを初期化
   - 必要な依存関係（aws-amplify、@aws-amplify/ui-react、@aws-amplify/ui-react-storage）をインストール
   - プロジェクト構造の確認と動作検証
   - _Requirements: 5.1_
 
-- [ ] 1.2 Amplify Gen2 バックエンドの初期化
+- [x] 1.2 Amplify Gen2 バックエンドの初期化
   - `npm create amplify@latest` コマンドでAmplify バックエンドを初期化
   - amplify/ ディレクトリ構造が正しく生成されたことを確認
   - Amplify CLI が生成した設定ファイルの内容を確認
   - _Requirements: 1.1, 1.3_
 
-- [ ] 2. 認証機能のセットアップ
+- [x] 2. 認証機能のセットアップ
 
-- [ ] 2.1 Cognito 認証リソースの設定
+- [x] 2.1 Cognito 認証リソースの設定
   - Amplify CLI が生成した `amplify/auth/resource.ts` で Email ベース認証を有効化
   - User Pool の設定を確認（サインイン方法、パスワードポリシー等）
   - `npx ampx sandbox` でサンドボックス環境にデプロイして動作確認
   - _Requirements: 1.1, 1.4, 1.6_
 
-- [ ] 2.2 Authenticator コンポーネントの統合
+- [x] 2.2 Authenticator コンポーネントの統合
   - Amplify 設定を `amplify_outputs.json` から読み込み `Amplify.configure()` で初期化
   - Authenticator コンポーネントでアプリケーションをラップ
   - サインイン/サインアウト機能の動作確認
@@ -46,24 +46,24 @@
   - 認証エラー時のメッセージ表示を確認
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-- [ ] 3. ストレージ機能のセットアップ
+- [x] 3. ストレージ機能のセットアップ
 
-- [ ] 3.1 S3 ストレージリソースの設定
+- [x] 3.1 S3 ストレージリソースの設定
   - Amplify CLI が生成した `amplify/storage/resource.ts` でストレージを設定
   - `media/*` パスに対する認証済みユーザーの read/write/delete 権限を設定
   - `npx ampx sandbox` でサンドボックス環境にデプロイ
   - S3 バケットが正しく作成されたことを確認
   - _Requirements: 2.1, 3.1, 4.1_
 
-- [ ] 3.2 (P) バックエンド統合の完成
+- [x] 3.2 (P) バックエンド統合の完成
   - `amplify/backend.ts` で auth と storage を統合
   - バックエンド全体の動作確認
   - amplify_outputs.json が正しく生成されていることを確認
   - _Requirements: 1.1, 2.1_
 
-- [ ] 4. StorageBrowser コンポーネントの統合
+- [x] 4. StorageBrowser コンポーネントの統合
 
-- [ ] 4.1 StorageBrowser の初期設定
+- [x] 4.1 StorageBrowser の初期設定
   - `createAmplifyAuthAdapter` と `createStorageBrowser` を使用して StorageBrowser を構築
   - StorageBrowser スタイルシートのインポート
   - 認証済み状態で StorageBrowser が表示されることを確認
@@ -93,9 +93,9 @@
   - 削除/作成エラー時のメッセージ表示を確認
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 5. アプリケーション統合とUI調整
+- [x] 5. アプリケーション統合とUI調整
 
-- [ ] 5.1 アプリケーション全体の統合
+- [x] 5.1 アプリケーション全体の統合
   - App.tsx で Authenticator と StorageBrowser を統合
   - main.tsx で Amplify 設定と React アプリケーションを初期化
   - 認証 → ファイルブラウザ表示の一連のフローを確認
