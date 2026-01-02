@@ -1,11 +1,14 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
-import { data } from './data/resource';
+import { storage } from './storage/resource';
 
-/**
- * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
- */
-defineBackend({
+const backend = defineBackend({
   auth,
-  data,
+  storage,
 });
+
+// セルフサインアップを無効化（管理者のみがユーザーを作成可能）
+const { cfnUserPool } = backend.auth.resources.cfnResources;
+cfnUserPool.adminCreateUserConfig = {
+  allowAdminCreateUserOnly: true,
+};
