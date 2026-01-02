@@ -19,16 +19,19 @@
 
 ### Goals
 - Cognito 認証による安全なアクセス制御
+- **セルフサインアップ無効化**（管理者のみがユーザーを作成）
+- **ユーザー分離ストレージ**（各ユーザーは自分のファイルのみアクセス可能）
 - **StorageBrowser コンポーネント**による S3 ファイル操作（一覧、アップロード、ダウンロード、削除）
 - レスポンシブで直感的な UI（Amplify UI テーマ適用）
 
 ### Non-Goals（Phase 1）
 - ファイルプレビュー機能（Phase 2 で対応予定）
-- ファイル共有機能（マルチユーザー対応含む）
+- ファイル共有機能
 - ファイル検索機能
 - オフラインサポート
 - ファイル編集機能
 - カスタム UI コンポーネント開発
+- StorageBrowser の UI カスタマイズ（パンくずリスト、タイトル等）
 
 ## Architecture
 
@@ -129,11 +132,13 @@ sequenceDiagram
 | Requirement | Summary | Components | Notes |
 |-------------|---------|------------|-------|
 | 1.1 | サインイン実行 | Authenticator | Amplify 提供 |
-| 1.2 | サインアウト | Authenticator | Amplify 提供 |
+| 1.2 | サインアウト | Authenticator + カスタムボタン | ヘッダーにサインアウトボタン配置 |
 | 1.3 | 未認証時ブロック | Authenticator | Amplify 提供 |
 | 1.4 | セッション維持 | Authenticator | Amplify 提供 |
 | 1.5 | 認証エラー表示 | Authenticator | Amplify 提供 |
 | 1.6 | 認証 UI 提供 | Authenticator | Amplify 提供 |
+| 1.7 | セルフサインアップ無効化 | cfnUserPool 設定 | バックエンドで制御 |
+| 1.8 | サインアップフォーム非表示 | Authenticator (hideSignUp) | フロントエンドで制御 |
 | 2.1 | ルート一覧表示 | StorageBrowser | Amplify 提供 |
 | 2.2 | フォルダ内表示 | StorageBrowser | Amplify 提供 |
 | 2.3 | 親フォルダ戻る | StorageBrowser | Amplify 提供（Breadcrumb 内蔵） |
@@ -160,6 +165,9 @@ sequenceDiagram
 | 5.4 | ローディング状態 | StorageBrowser | Amplify 提供 |
 | 5.5 | エラーメッセージ | StorageBrowser | Amplify 提供 |
 | 5.6 | 表示切替 | - | StorageBrowser 標準表示のみ |
+| 6.1 | ユーザー専用パス保存 | Storage 設定 | `media/{entity_id}/*` |
+| 6.2 | 自分のファイルのみ表示 | Storage 設定 | `allow.entity('identity')` |
+| 6.3 | Cognito Identity ID 使用 | Storage 設定 | 自動分離 |
 
 ## Components and Interfaces
 
@@ -183,8 +191,18 @@ import '@aws-amplify/ui-react/styles.css';
 
 function App() {
   return (
-    <Authenticator>
-      <StorageBrowser />
+    <Authenticator hideSignUp>
+      {({ signOut }) => (
+        <div>
+          <header style={{ padding: '1rem', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h1 style={{ margin: 0, fontSize: '1.5rem' }}>S3 Media Browser</h1>
+            <button onClick={signOut} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>
+              Sign out
+            </button>
+          </header>
+          <StorageBrowser />
+        </div>
+      )}
     </Authenticator>
   );
 }
@@ -196,15 +214,24 @@ export default App;
 
 ```typescript
 // src/StorageBrowser.tsx
+import { useMemo } from 'react';
 import {
   createAmplifyAuthAdapter,
   createStorageBrowser,
 } from '@aws-amplify/ui-react-storage/browser';
 import '@aws-amplify/ui-react-storage/styles.css';
 
-export const { StorageBrowser } = createStorageBrowser({
-  config: createAmplifyAuthAdapter(),
-});
+export function StorageBrowser() {
+  const { StorageBrowser: Browser } = useMemo(
+    () =>
+      createStorageBrowser({
+        config: createAmplifyAuthAdapter(),
+      }),
+    []
+  );
+
+  return <Browser />;
+}
 ```
 
 #### main.tsx
@@ -250,12 +277,17 @@ import { defineStorage } from '@aws-amplify/backend';
 export const storage = defineStorage({
   name: 'mediaBucket',
   access: (allow) => ({
-    'media/*': [
-      allow.authenticated.to(['read', 'write', 'delete'])
+    'media/{entity_id}/*': [
+      allow.entity('identity').to(['read', 'write', 'delete'])
     ]
   })
 });
 ```
+
+**ユーザー分離の仕組み**:
+- `{entity_id}` は Cognito Identity ID に自動的に置換される
+- `allow.entity('identity')` により、各ユーザーは自分の `entity_id` ディレクトリのみアクセス可能
+- 例: `media/ap-northeast-1:abc123-def456/photos/image.jpg`
 
 #### Backend Definition
 
@@ -265,11 +297,22 @@ import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { storage } from './storage/resource';
 
-export const backend = defineBackend({
+const backend = defineBackend({
   auth,
-  storage
+  storage,
 });
+
+// セルフサインアップを無効化（管理者のみがユーザーを作成可能）
+const { cfnUserPool } = backend.auth.resources.cfnResources;
+cfnUserPool.adminCreateUserConfig = {
+  allowAdminCreateUserOnly: true,
+};
 ```
+
+**セルフサインアップ無効化の仕組み**:
+- `allowAdminCreateUserOnly: true` により、ユーザーは自己登録不可
+- AWS CLI または AWS Console から管理者がユーザーを作成
+- フロントエンドでは `hideSignUp` prop によりサインアップフォームを非表示
 
 ## Data Models
 
@@ -277,18 +320,23 @@ export const backend = defineBackend({
 
 StorageBrowser が内部的に管理するため、自前でのデータモデル定義は不要。
 
-**S3 パス構造**:
+**S3 パス構造**（ユーザー分離）:
 ```
 media/
-  ├── photos/
-  │   ├── 2024/
-  │   │   ├── image001.jpg
-  │   │   └── image002.png
-  │   └── vacation/
-  │       └── beach.jpg
-  └── videos/
-      └── clip001.mp4
+  ├── {user_a_identity_id}/
+  │   ├── photos/
+  │   │   └── image001.jpg
+  │   └── videos/
+  │       └── clip001.mp4
+  └── {user_b_identity_id}/
+      ├── photos/
+      │   └── image002.png
+      └── documents/
+          └── file.pdf
 ```
+
+- 各ユーザーは自分の `{entity_id}` ディレクトリ配下のみアクセス可能
+- `entity_id` は Cognito Identity ID（例: `ap-northeast-1:d1d8c878-8d70-c9e6-dbe8-aa1d55862fa6`）
 
 ## Error Handling
 
@@ -323,6 +371,8 @@ StorageBrowser が内部的にエラーハンドリングを実装している�
 - Cognito User Pool でユーザー認証（Authenticator が処理）
 - Identity Pool で AWS 認証情報取得（StorageBrowser が処理）
 - S3 バケットポリシーで認証済みユーザーのみアクセス許可（defineStorage で設定）
+- **ユーザー分離**: 各ユーザーは自分の `entity_id` ディレクトリのみアクセス可能
+- **セルフサインアップ無効化**: 管理者のみがユーザーを作成可能
 
 **データ保護**:
 - HTTPS 通信必須（Amplify Hosting で自動）
