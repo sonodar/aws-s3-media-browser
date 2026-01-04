@@ -22,7 +22,12 @@ export interface UseStorageReturn {
   createFolder: (name: string) => Promise<void>;
   refresh: () => void;
   getFileUrl: (key: string) => Promise<string>;
+  /** Keys of recently uploaded files (for delayed thumbnail fetch) */
+  recentlyUploadedKeys: string[];
 }
+
+/** Delay in ms before fetching thumbnails for newly uploaded files */
+const THUMBNAIL_FETCH_DELAY = 3000;
 
 export function useStorage(): UseStorageReturn {
   const [items, setItems] = useState<StorageItem[]>([]);
@@ -30,6 +35,7 @@ export function useStorage(): UseStorageReturn {
   const [error, setError] = useState<Error | null>(null);
   const [currentPath, setCurrentPath] = useState('');
   const [identityId, setIdentityId] = useState<string | null>(null);
+  const [recentlyUploadedKeys, setRecentlyUploadedKeys] = useState<string[]>([]);
 
   // Fetch identity ID on mount
   useEffect(() => {
@@ -156,6 +162,9 @@ export function useStorage(): UseStorageReturn {
       const basePath = getBasePath();
       if (!basePath) return;
 
+      // Calculate the keys for uploaded files
+      const uploadedKeys = files.map((file) => `${basePath}${file.name}`);
+
       await Promise.all(
         files.map((file) =>
           uploadData({
@@ -164,6 +173,17 @@ export function useStorage(): UseStorageReturn {
           })
         )
       );
+
+      // Track recently uploaded keys for delayed thumbnail fetch
+      setRecentlyUploadedKeys((prev) => [...prev, ...uploadedKeys]);
+
+      // Clear recently uploaded keys after delay
+      setTimeout(() => {
+        setRecentlyUploadedKeys((prev) =>
+          prev.filter((key) => !uploadedKeys.includes(key))
+        );
+      }, THUMBNAIL_FETCH_DELAY);
+
       await fetchItems();
     },
     [getBasePath, fetchItems]
@@ -190,5 +210,6 @@ export function useStorage(): UseStorageReturn {
     createFolder,
     refresh,
     getFileUrl,
+    recentlyUploadedKeys,
   };
 }

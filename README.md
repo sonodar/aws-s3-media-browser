@@ -8,6 +8,7 @@ AWS Amplify を活用した写真・動画ブラウザアプリケーション�
 - **メディアブラウジング**: S3 に保存されたファイル/フォルダの階層的なナビゲーション
 - **ファイル操作**: アップロード、ダウンロード、削除、フォルダ作成
 - **メディアプレビュー**: 画像・動画のインラインプレビュー（Lightbox）
+- **サムネイル自動生成**: アップロード時に画像・動画のサムネイルを自動生成
 
 ## Tech Stack
 
@@ -26,6 +27,91 @@ AWS Amplify を活用した写真・動画ブラウザアプリケーション�
 - npm
 - AWS CLI（デプロイ用）
 - AWS アカウント
+
+## Lambda Layer Setup (サムネイル生成用)
+
+サムネイル自動生成機能を使用するには、Sharp Lambda Layer をデプロイする必要があります。
+
+### 1. Sharp Lambda Layer のデプロイ
+
+[cbschuld/sharp-aws-lambda-layer](https://github.com/cbschuld/sharp-aws-lambda-layer) から Sharp Layer をデプロイします:
+
+```bash
+# Layer zip をダウンロード (ARM64 / Node.js 22 対応)
+curl -L -o sharp-layer.zip \
+  https://github.com/cbschuld/sharp-aws-lambda-layer/releases/latest/download/release-arm64.zip
+
+# Lambda Layer として発行
+aws lambda publish-layer-version \
+  --layer-name sharp \
+  --description "Sharp image processing library for Lambda (arm64)" \
+  --zip-file fileb://sharp-layer.zip \
+  --compatible-runtimes nodejs22.x nodejs20.x nodejs18.x \
+  --compatible-architectures arm64 \
+  --region ap-northeast-1
+
+# クリーンアップ
+rm sharp-layer.zip
+```
+
+> **Note**: x86_64 アーキテクチャを使用する場合は、`release-x64.zip` をダウンロードし、`--compatible-architectures x86_64` に変更してください。
+
+### 2. Layer ARN の取得
+
+デプロイ完了後、出力された `LayerVersionArn` を使用します。または以下のコマンドで取得できます:
+
+```bash
+aws lambda list-layer-versions \
+  --layer-name sharp \
+  --query 'LayerVersions[0].LayerVersionArn' \
+  --output text \
+  --region ap-northeast-1
+```
+
+### 3. 環境変数の設定
+
+取得した Layer ARN を環境変数に設定します。
+
+**ローカル開発（sandbox）**:
+
+```bash
+export SHARP_LAYER_ARN=arn:aws:lambda:ap-northeast-1:123456789012:layer:sharp:1
+npx ampx sandbox
+```
+
+**Amplify Hosting**:
+
+1. Amplify Console → App settings → Environment variables
+2. `SHARP_LAYER_ARN` を追加し、Layer ARN を設定
+
+### 4. (オプション) FFmpeg Layer のデプロイ
+
+動画サムネイル生成を有効にする場合は、FFmpeg Layer も必要です:
+
+```bash
+# FFmpeg Layer をデプロイ
+aws serverlessrepo create-cloud-formation-change-set \
+  --application-id arn:aws:serverlessrepo:us-east-1:145266761615:applications/ffmpeg-lambda-layer \
+  --stack-name ffmpeg-layer \
+  --region ap-northeast-1
+
+# ChangeSet を実行
+aws cloudformation execute-change-set \
+  --change-set-name <ChangeSetId> \
+  --region ap-northeast-1
+
+# Layer ARN を取得
+aws cloudformation describe-stacks \
+  --stack-name serverlessrepo-ffmpeg-layer \
+  --query 'Stacks[0].Outputs[?OutputKey==`LayerVersion`].OutputValue' \
+  --output text \
+  --region ap-northeast-1
+
+# 環境変数に設定
+export FFMPEG_LAYER_ARN=arn:aws:lambda:ap-northeast-1:123456789012:layer:ffmpeg:1
+```
+
+> **Note**: Sharp Layer と Lambda 関数は同じアーキテクチャを使用する必要があります。デフォルトは arm64（Graviton2）で、コスト効率に優れています。
 
 ## Getting Started
 

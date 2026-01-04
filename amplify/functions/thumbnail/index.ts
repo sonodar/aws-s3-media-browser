@@ -1,0 +1,1 @@
+export { thumbnailFunction } from './resource';

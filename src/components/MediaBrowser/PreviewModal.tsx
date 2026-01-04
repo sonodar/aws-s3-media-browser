@@ -1,21 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Lightbox, { type Slide } from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import type { StorageItem } from '../../hooks/useStorage';
 import { isImageFile, isVideoFile } from '../../utils/fileTypes';
+import './PreviewModal.css';
 
 interface PreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: StorageItem | null;
   getFileUrl: (key: string) => Promise<string>;
+  onDelete?: (item: StorageItem) => void;
 }
 
-export function PreviewModal({ isOpen, onClose, item, getFileUrl }: PreviewModalProps) {
+function formatFileSize(bytes?: number): string {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete }: PreviewModalProps) {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     if (!item || !isOpen) {
@@ -31,14 +41,12 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl }: PreviewModal
         if (isImageFile(item.name)) {
           setSlides([{ src: url }]);
         } else if (isVideoFile(item.name)) {
-          // type を指定しない（ブラウザに自動判定させる）
-          // video/quicktime を明示すると Chrome 等でサポート外と判定されスキップされる
           setSlides([{
             type: 'video',
             width: 1280,
             height: 720,
-            sources: [{ src: url }],
-          } as Slide]);
+            sources: [{ src: url, type: 'video/mp4' }],
+          }]);
         }
       } catch (error) {
         console.error('Failed to load file URL:', error);
@@ -50,24 +58,28 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl }: PreviewModal
     loadUrl();
   }, [item, isOpen, getFileUrl]);
 
+  const handleDeleteClick = () => {
+    dialogRef.current?.showModal();
+  };
+
+  const handleDeleteConfirm = () => {
+    if (item && onDelete) {
+      onDelete(item);
+      dialogRef.current?.close();
+      onClose();
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    dialogRef.current?.close();
+  };
+
   if (!isOpen || !item) return null;
 
   return (
     <>
       {loading && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          zIndex: 1000,
-          color: 'white',
-        }}>
+        <div className="preview-loading">
           読み込み中...
         </div>
       )}
@@ -93,8 +105,50 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl }: PreviewModal
             backgroundColor: 'rgba(0, 0, 0, 0.95)',
           },
         }}
+        toolbar={{
+          buttons: [
+            onDelete && (
+              <button
+                key="delete"
+                type="button"
+                className="yarl__button preview-delete-button"
+                onClick={handleDeleteClick}
+                aria-label="削除"
+              >
+                🗑️
+              </button>
+            ),
+            'close',
+          ].filter(Boolean),
+        }}
+        render={{
+          buttonPrev: () => null,
+          buttonNext: () => null,
+        }}
       />
+      {isOpen && slides.length > 0 && (
+        <div className="preview-caption">
+          <div className="preview-caption-title">{item.name}</div>
+          <div className="preview-caption-size">{formatFileSize(item.size)}</div>
+        </div>
+      )}
+      <dialog ref={dialogRef} className="preview-delete-dialog">
+        <p>「{item.name}」を削除しますか？</p>
+        <div className="preview-delete-dialog-actions">
+          <button
+            className="preview-delete-dialog-cancel"
+            onClick={handleDeleteCancel}
+          >
+            キャンセル
+          </button>
+          <button
+            className="preview-delete-dialog-delete"
+            onClick={handleDeleteConfirm}
+          >
+            削除
+          </button>
+        </div>
+      </dialog>
     </>
   );
 }
-

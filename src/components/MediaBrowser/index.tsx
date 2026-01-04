@@ -5,7 +5,6 @@ import { Header } from './Header';
 import { FileList } from './FileList';
 import { FileActions } from './FileActions';
 import { CreateFolderDialog } from './CreateFolderDialog';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { PreviewModal } from './PreviewModal';
 import { isPreviewable } from '../../utils/fileTypes';
 import './MediaBrowser.css';
@@ -26,11 +25,11 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
     createFolder,
     refresh,
     getFileUrl,
+    recentlyUploadedKeys,
   } = useStorage();
 
   const [identityId, setIdentityId] = useState<string | null>(null);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<StorageItem | null>(null);
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null);
 
   useEffect(() => {
@@ -45,9 +44,9 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
     }
   };
 
-  const handleDelete = async (key: string) => {
-    await remove(key);
-    setItemToDelete(null);
+  const handleDeleteFromPreview = async (item: StorageItem) => {
+    await remove(item.key);
+    setPreviewItem(null);
   };
 
   if (error) {
@@ -77,7 +76,7 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
             items={items}
             onFolderClick={navigate}
             onFileClick={handleFileClick}
-            onDelete={setItemToDelete}
+            recentlyUploadedKeys={recentlyUploadedKeys}
           />
         )}
       </main>
@@ -95,17 +94,12 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
         onCreate={createFolder}
       />
 
-      <DeleteConfirmDialog
-        item={itemToDelete}
-        onClose={() => setItemToDelete(null)}
-        onConfirm={handleDelete}
-      />
-
       <PreviewModal
         isOpen={previewItem !== null}
         onClose={() => setPreviewItem(null)}
         item={previewItem}
         getFileUrl={getFileUrl}
+        onDelete={handleDeleteFromPreview}
       />
     </div>
   );
@@ -115,5 +109,4 @@ export { Header } from './Header';
 export { FileList } from './FileList';
 export { FileActions } from './FileActions';
 export { CreateFolderDialog } from './CreateFolderDialog';
-export { DeleteConfirmDialog } from './DeleteConfirmDialog';
 export { PreviewModal } from './PreviewModal';
