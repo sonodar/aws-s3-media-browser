@@ -19,7 +19,7 @@
   - OSS ユーザー向けのコピペ可能なコマンド例
   - _Requirements: 1.1_
 
-- [ ] 2.1 Lambda 関数リソース定義
+- [x] 2.1 Lambda 関数リソース定義
   - `defineFunction` で Lambda 関数を定義
   - Lambda Layer ARN を環境変数から読み込み
   - 環境変数未設定時は明確なエラーメッセージで例外スロー
@@ -27,7 +27,7 @@
   - x86_64 アーキテクチャ指定（SAR の Sharp Layer 対応）
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2.2 onUploadHandler 実装（画像サムネイル）
+- [x] 2.2 onUploadHandler 実装（画像サムネイル）
   - S3 ObjectCreated イベントハンドラー作成
   - Sharp による画像リサイズ（400x400、fit: inside でアスペクト比維持）
   - JPEG 形式でサムネイルを `thumbnails/` に保存
@@ -35,18 +35,18 @@
   - 動画ファイルはスキップ（Release 2 で対応）
   - _Requirements: 1.1, 1.4_
 
-- [ ] 2.3 onDeleteHandler 実装
+- [x] 2.3 onDeleteHandler 実装
   - S3 ObjectRemoved イベントハンドラー作成
   - 対応するサムネイルを削除（存在しない場合は冪等にスキップ）
   - _Requirements: 3.1, 3.2_
 
-- [ ] 2.4 Storage リソース更新
+- [x] 2.4 Storage リソース更新
   - `defineStorage` の `access` に `thumbnails/{entity_id}/*` パスを追加
   - ユーザーは read のみ、Lambda は read/write/delete
   - `triggers` オプションで onUpload/onDelete に Lambda を登録
   - _Requirements: 1.3, 3.1_
 
-- [ ] 2.5 backend.ts 統合
+- [x] 2.5 backend.ts 統合
   - thumbnailFunction をインポートして `defineBackend` に追加
   - _Requirements: 1.1_
 
