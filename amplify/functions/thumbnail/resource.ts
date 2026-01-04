@@ -1,19 +1,33 @@
 import { defineFunction } from '@aws-amplify/backend';
 
 /**
- * Environment variable for Sharp Lambda Layer ARN
- * Users must deploy Sharp Layer from SAR and set this variable.
+ * Environment variables for Lambda Layer ARNs
+ * Users must deploy these layers and set the environment variables.
  * See README.md for setup instructions.
  */
 const SHARP_LAYER_ARN = process.env.SHARP_LAYER_ARN;
+const FFMPEG_LAYER_ARN = process.env.FFMPEG_LAYER_ARN;
 
-// Validate required environment variable at build time
+// Validate required environment variables at build time
 if (!SHARP_LAYER_ARN) {
   throw new Error(
     'SHARP_LAYER_ARN environment variable is required.\n' +
-    'Deploy Sharp Lambda Layer from AWS SAR and set the ARN.\n' +
+    'Deploy Sharp Lambda Layer and set the ARN.\n' +
     'See README.md for setup instructions.'
   );
+}
+
+// Build layers configuration
+// Sharp is required, FFmpeg is optional (for video thumbnails)
+const layers: Record<string, string> = {
+  // Key is module name for esbuild external bundling
+  sharp: SHARP_LAYER_ARN,
+};
+
+if (FFMPEG_LAYER_ARN) {
+  // FFmpeg is a binary, not a Node module, but adding to layers still works
+  // The key name doesn't matter for binaries
+  layers['ffmpeg-binary'] = FFMPEG_LAYER_ARN;
 }
 
 /**
@@ -27,8 +41,5 @@ export const thumbnailFunction = defineFunction({
   timeoutSeconds: 30,
   memoryMB: 1024,
   architecture: 'arm64',
-  layers: {
-    // Key is module name for esbuild external bundling
-    sharp: SHARP_LAYER_ARN,
-  },
+  layers,
 });
