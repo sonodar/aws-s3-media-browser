@@ -13,6 +13,7 @@
 - ファイル一覧での高速なサムネイル表示（遅延読み込み対応）
 - オリジナルファイル削除時のサムネイル連動削除
 - iPhone 16e での 3 カラム表示に最適化（400x400 ピクセル）
+- **OSS 配布対応**: Lambda Layer ARN を環境変数でパラメータ化
 
 ### Non-Goals
 - サムネイルの手動再生成
@@ -41,11 +42,10 @@ graph TB
         TH[ThumbnailImage]
     end
 
-    subgraph AWS_Lambda
-        UH[onUpload Handler]
-        DH[onDelete Handler]
-        Sharp[Sharp Library]
-        FFmpeg[FFmpeg Layer]
+    subgraph Backend_Amplify
+        DF[defineFunction]
+        SharpLayer[Sharp Lambda Layer]
+        FFmpegLayer[FFmpeg Lambda Layer]
     end
 
     subgraph AWS_S3
@@ -58,32 +58,37 @@ graph TB
     FL --> TH
     TH -->|getUrl| ThumbPath
 
-    OrigPath -->|S3 Event| UH
-    UH --> Sharp
-    UH --> FFmpeg
-    Sharp -->|write| ThumbPath
-    FFmpeg -->|write| ThumbPath
+    OrigPath -->|S3 Trigger| DF
+    DF --> SharpLayer
+    DF --> FFmpegLayer
+    SharpLayer -->|write| ThumbPath
+    FFmpegLayer -->|write| ThumbPath
 
-    OrigPath -->|S3 Delete Event| DH
-    DH -->|delete| ThumbPath
+    OrigPath -->|OBJECT_REMOVED| DF
+    DF -->|delete| ThumbPath
 ```
 
 **Architecture Integration**:
-- **Selected pattern**: S3 Event Trigger → Lambda → S3（イベント駆動アーキテクチャ）
+- **Selected pattern**: S3 Event Trigger → defineFunction (Lambda Layer) → S3（イベント駆動アーキテクチャ）
 - **Domain boundaries**: バックエンド（サムネイル生成）とフロントエンド（サムネイル表示）の責務分離
-- **Existing patterns preserved**: Amplify Gen2 の `defineStorage` と `defineFunction` を使用
-- **New components rationale**: Lambda 関数（画像/動画処理）、ThumbnailImage コンポーネント（遅延読み込み）
-- **Steering compliance**: Amplify コンポーネント最大活用の原則を維持
+- **Existing patterns preserved**: Amplify Gen2 の `defineStorage` でバケット定義、`defineFunction` で Lambda 定義
+- **New components rationale**:
+  - `defineFunction` + Lambda Layer（Sharp/FFmpeg を外部 Layer として参照）
+  - 環境変数で Layer ARN をパラメータ化（OSS 配布対応）
+  - ThumbnailImage コンポーネント（遅延読み込み）
+- **Steering compliance**: Amplify Gen2 のネイティブパターンを活用
+- **Key Decision**: 動画サムネイル生成に FFmpeg Layer が必須のため、画像・動画ともに Lambda Layer 方式で統一。Layer ARN を環境変数で設定し、OSS ユーザーが各自のアカウントにデプロイした Layer を使用可能に（詳細は `research.md` 参照）
 
 ### Technology Stack
 
 | Layer | Choice / Version | Role in Feature | Notes |
 |-------|------------------|-----------------|-------|
 | Frontend | React 18 + TypeScript | サムネイル表示 UI | 既存 |
-| Image Processing | Sharp ^0.33 | 画像サムネイル生成 | Lambda 内で使用 |
-| Video Processing | FFmpeg 6.x (Lambda Layer) | 動画サムネイル生成 | ARM64 静的ビルド |
-| Backend | Amplify Gen2 + Lambda | サムネイル生成・削除処理 | Node.js 20 + ARM64 |
+| Image Processing | Sharp Lambda Layer (SAR) | 画像サムネイル生成 | 環境変数で ARN 設定 |
+| Video Processing | FFmpeg Lambda Layer (SAR) | 動画サムネイル生成 | 環境変数で ARN 設定 |
+| Backend | Amplify defineFunction | サムネイル生成・削除処理 | Node.js 20 + x86_64 |
 | Storage | Amazon S3 | サムネイル保存 | thumbnails/{entity_id}/* |
+| Infrastructure | Amplify Gen2 | defineStorage.triggers で S3 イベント統合 | Docker 不要 |
 
 ## System Flows
 
@@ -214,9 +219,10 @@ function getThumbnailPath(originalKey: string): string;
 - Invariants: media/ プレフィックスのファイルのみ処理
 
 **Implementation Notes**
-- Integration: `defineStorage` の `triggers.onUpload` で登録
+- Integration: `defineFunction` + `defineStorage.triggers` で S3 イベントトリガーを設定
 - Validation: ファイル拡張子で画像/動画を判定
 - Risks: 大きな動画ファイルでのタイムアウト → Lambda タイムアウト 30 秒、メモリ 1024MB
+- Layer: Sharp/FFmpeg は Lambda Layer から提供（環境変数で ARN 設定）
 
 #### onDeleteHandler
 
@@ -247,7 +253,7 @@ function deleteThumbnail(bucket: string, originalKey: string): Promise<void>;
 - Postconditions: 対応するサムネイルが削除される（存在しない場合はスキップ）
 
 **Implementation Notes**
-- Integration: `defineStorage` の `triggers.onDelete` で登録
+- Integration: `defineStorage.triggers.onDelete` で S3 削除イベントトリガーを設定（onUpload と同一 Lambda）
 - Validation: サムネイル存在確認は不要（削除は冪等）
 
 ### Frontend Layer
@@ -375,7 +381,39 @@ function isThumbnailTarget(fileName: string): boolean;
 ### Storage Access Configuration
 
 ```typescript
+// amplify/functions/thumbnail/resource.ts
+import { defineFunction } from '@aws-amplify/backend';
+
+// 環境変数が未設定の場合は早期にエラー
+const SHARP_LAYER_ARN = process.env.SHARP_LAYER_ARN;
+if (!SHARP_LAYER_ARN) {
+  throw new Error(
+    'SHARP_LAYER_ARN environment variable is required. ' +
+    'Deploy Sharp Lambda Layer from SAR and set the ARN.'
+  );
+}
+
+export const thumbnailFunction = defineFunction({
+  name: 'thumbnail',
+  entry: './handler.ts',
+  timeoutSeconds: 30,
+  memoryMB: 1024,
+  layers: {
+    // モジュール名をキーにすると esbuild が自動で external に
+    sharp: SHARP_LAYER_ARN,
+  },
+  environment: {
+    // FFmpeg Layer のパスは /opt/bin/ffmpeg
+    FFMPEG_PATH: '/opt/bin/ffmpeg',
+  },
+});
+```
+
+```typescript
 // amplify/storage/resource.ts
+import { defineStorage } from '@aws-amplify/backend';
+import { thumbnailFunction } from '../functions/thumbnail/resource';
+
 export const storage = defineStorage({
   name: 'mediaBucket',
   access: (allow) => ({
@@ -383,26 +421,42 @@ export const storage = defineStorage({
       allow.entity('identity').to(['read', 'write', 'delete'])
     ],
     'thumbnails/{entity_id}/*': [
-      allow.entity('identity').to(['read'])
+      allow.entity('identity').to(['read']),
+      // Lambda がサムネイルを書き込むための権限
+      allow.resource(thumbnailFunction).to(['read', 'write', 'delete'])
     ]
   }),
   triggers: {
-    onUpload: defineFunction({
-      entry: './on-upload-handler.ts',
-      runtime: 20,
-      memoryMB: 1024,
-      timeoutSeconds: 30,
-    }),
-    onDelete: defineFunction({
-      entry: './on-delete-handler.ts',
-    })
-  }
+    onUpload: thumbnailFunction,
+    onDelete: thumbnailFunction,
+  },
 });
+```
+
+```typescript
+// amplify/backend.ts
+import { defineBackend } from '@aws-amplify/backend';
+import { auth } from './auth/resource';
+import { storage } from './storage/resource';
+import { thumbnailFunction } from './functions/thumbnail/resource';
+
+defineBackend({ auth, storage, thumbnailFunction });
 ```
 
 **Access Control**:
 - `media/`: ユーザーは read/write/delete 可能
-- `thumbnails/`: ユーザーは read のみ（Lambda が write）
+- `thumbnails/`: ユーザーは read のみ、Lambda が write/delete
+
+**Key Implementation Notes**:
+- `defineFunction` の `layers` オプションで Lambda Layer を参照
+- `layers` のキーにモジュール名（`sharp`）を指定すると esbuild が自動で external 化
+- `defineStorage.triggers` で S3 イベントトリガーを設定（Docker bundling 不要）
+- Layer ARN は環境変数 `SHARP_LAYER_ARN` で設定（OSS ユーザーが各自のアカウントにデプロイ）
+
+**環境変数設定**:
+- **ローカル開発**: `export SHARP_LAYER_ARN=arn:aws:lambda:...` で設定後 `npx ampx sandbox` で起動
+- **Amplify Hosting**: Console → App settings → Environment variables で設定
+- **未設定時**: `resource.ts` の読み込み時に例外がスローされ、明確なエラーメッセージを表示
 
 ## Error Handling
 
