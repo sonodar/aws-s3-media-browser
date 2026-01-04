@@ -104,6 +104,9 @@ async function generateImageThumbnail(bucket: string, key: string): Promise<void
     throw new Error(`Empty body for ${key}`);
   }
 
+  // Get upload time from object metadata
+  const uploadTime = response.LastModified;
+
   const inputBuffer = Buffer.from(await response.Body.transformToByteArray());
 
   // Generate thumbnail with Sharp
@@ -125,5 +128,12 @@ async function generateImageThumbnail(bucket: string, key: string): Promise<void
     ContentType: 'image/jpeg',
   }));
 
-  console.log(`Thumbnail created: ${thumbnailKey}`);
+  // Calculate and log processing time
+  const completedTime = new Date();
+  if (uploadTime) {
+    const processingTimeMs = completedTime.getTime() - uploadTime.getTime();
+    console.log(`Thumbnail created: ${thumbnailKey} (processing time: ${processingTimeMs}ms from upload)`);
+  } else {
+    console.log(`Thumbnail created: ${thumbnailKey}`);
+  }
 }
