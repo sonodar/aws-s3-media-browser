@@ -23,9 +23,10 @@ if (!SHARP_LAYER_ARN) {
 export const thumbnailFunction = defineFunction({
   name: 'thumbnail',
   entry: './handler.ts',
+  runtime: 22,
   timeoutSeconds: 30,
   memoryMB: 1024,
-  architecture: 'x86_64',
+  architecture: 'arm64',
   layers: {
     // Key is module name for esbuild external bundling
     sharp: SHARP_LAYER_ARN,

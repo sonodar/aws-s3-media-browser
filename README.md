@@ -34,30 +34,36 @@ AWS Amplify を活用した写真・動画ブラウザアプリケーション�
 
 ### 1. Sharp Lambda Layer のデプロイ
 
-AWS Serverless Application Repository (SAR) から Sharp Layer をデプロイします:
+[cbschuld/sharp-aws-lambda-layer](https://github.com/cbschuld/sharp-aws-lambda-layer) から Sharp Layer をデプロイします:
 
 ```bash
-# ap-northeast-1 にデプロイする場合
-aws serverlessrepo create-cloud-formation-change-set \
-  --application-id arn:aws:serverlessrepo:us-east-1:987481058235:applications/nodejs-sharp-lambda-layer \
-  --stack-name sharp-layer \
-  --semantic-version 0.34.1 \
+# Layer zip をダウンロード (ARM64 / Node.js 22 対応)
+curl -L -o sharp-layer.zip \
+  https://github.com/cbschuld/sharp-aws-lambda-layer/releases/latest/download/release-arm64.zip
+
+# Lambda Layer として発行
+aws lambda publish-layer-version \
+  --layer-name sharp \
+  --description "Sharp image processing library for Lambda (arm64)" \
+  --zip-file fileb://sharp-layer.zip \
+  --compatible-runtimes nodejs22.x nodejs20.x nodejs18.x \
+  --compatible-architectures arm64 \
   --region ap-northeast-1
 
-# ChangeSet を実行（出力された ChangeSetId を使用）
-aws cloudformation execute-change-set \
-  --change-set-name <ChangeSetId> \
-  --region ap-northeast-1
+# クリーンアップ
+rm sharp-layer.zip
 ```
+
+> **Note**: x86_64 アーキテクチャを使用する場合は、`release-x64.zip` をダウンロードし、`--compatible-architectures x86_64` に変更してください。
 
 ### 2. Layer ARN の取得
 
-デプロイ完了後、Layer ARN を取得します:
+デプロイ完了後、出力された `LayerVersionArn` を使用します。または以下のコマンドで取得できます:
 
 ```bash
-aws cloudformation describe-stacks \
-  --stack-name serverlessrepo-sharp-layer \
-  --query 'Stacks[0].Outputs[?OutputKey==`LayerVersion`].OutputValue' \
+aws lambda list-layer-versions \
+  --layer-name sharp \
+  --query 'LayerVersions[0].LayerVersionArn' \
   --output text \
   --region ap-northeast-1
 ```
@@ -105,7 +111,7 @@ aws cloudformation describe-stacks \
 export FFMPEG_LAYER_ARN=arn:aws:lambda:ap-northeast-1:123456789012:layer:ffmpeg:1
 ```
 
-> **Note**: Sharp Layer は x86_64 アーキテクチャ用です。Lambda 関数もデフォルトで x86_64 を使用します。
+> **Note**: Sharp Layer と Lambda 関数は同じアーキテクチャを使用する必要があります。デフォルトは arm64（Graviton2）で、コスト効率に優れています。
 
 ## Getting Started
 
