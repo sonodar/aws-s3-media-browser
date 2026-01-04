@@ -4,7 +4,7 @@
 
 ### Task 1: 共有ユーティリティ
 
-- [ ] 1.1 (P) pathUtils ユーティリティ作成
+- [x] 1.1 (P) pathUtils ユーティリティ作成
   - `getThumbnailPath`: `media/...` → `thumbnails/.../.thumb.jpg` 変換
   - `getOriginalPath`: 逆変換
   - `isThumbnailTarget`: 対象ファイル判定（jpg, jpeg, png, gif, webp, mp4, webm, mov）
