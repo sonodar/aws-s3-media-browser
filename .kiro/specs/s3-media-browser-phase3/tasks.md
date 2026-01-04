@@ -13,6 +13,12 @@
 
 ### Task 2: バックエンド（Lambda + S3 トリガー）
 
+- [x] 2.0 README に Lambda Layer セットアップ手順を追記
+  - SAR から Sharp Lambda Layer をデプロイする手順
+  - Layer ARN を環境変数に設定する手順（ローカル / Amplify Hosting）
+  - OSS ユーザー向けのコピペ可能なコマンド例
+  - _Requirements: 1.1_
+
 - [ ] 2.1 Lambda 関数リソース定義
   - `defineFunction` で Lambda 関数を定義
   - Lambda Layer ARN を環境変数から読み込み
