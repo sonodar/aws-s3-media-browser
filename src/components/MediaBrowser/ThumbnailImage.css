@@ -1,0 +1,35 @@
+.thumbnail-container {
+  width: 48px;
+  height: 48px;
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.thumbnail-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.thumbnail-loading {
+  opacity: 0;
+}
+
+.thumbnail-loaded {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.thumbnail-fallback {
+  background-color: #e0e0e0;
+}
+
+.thumbnail-fallback span {
+  font-size: 1.5rem;
+}

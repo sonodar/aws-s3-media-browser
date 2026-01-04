@@ -3,6 +3,15 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { FileList } from './FileList';
 import type { StorageItem } from '../../hooks/useStorage';
 
+// Mock ThumbnailImage component
+vi.mock('./ThumbnailImage', () => ({
+  ThumbnailImage: ({ originalKey, fileName, fileType }: { originalKey: string; fileName: string; fileType: string }) => (
+    <div data-testid="thumbnail-image" data-original-key={originalKey} data-file-name={fileName} data-file-type={fileType}>
+      Mocked Thumbnail
+    </div>
+  ),
+}));
+
 describe('FileList', () => {
   const mockItems: StorageItem[] = [
     { key: 'folder1/', name: 'folder1', type: 'folder' },
@@ -114,5 +123,75 @@ describe('FileList', () => {
 
     const fileItem = screen.getByText('photo.jpg').closest('li');
     expect(fileItem).toHaveAttribute('data-type', 'file');
+  });
+
+  describe('thumbnail display', () => {
+    it('should render ThumbnailImage for image files', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      );
+
+      const thumbnails = screen.getAllByTestId('thumbnail-image');
+      const imageThumbnail = thumbnails.find(
+        (t) => t.getAttribute('data-file-type') === 'image'
+      );
+      expect(imageThumbnail).toBeInTheDocument();
+      expect(imageThumbnail).toHaveAttribute('data-file-name', 'photo.jpg');
+    });
+
+    it('should render ThumbnailImage for video files', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      );
+
+      const thumbnails = screen.getAllByTestId('thumbnail-image');
+      const videoThumbnail = thumbnails.find(
+        (t) => t.getAttribute('data-file-type') === 'video'
+      );
+      expect(videoThumbnail).toBeInTheDocument();
+      expect(videoThumbnail).toHaveAttribute('data-file-name', 'video.mp4');
+    });
+
+    it('should use folder icon for folders instead of ThumbnailImage', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      );
+
+      const thumbnails = screen.getAllByTestId('thumbnail-image');
+      // Should have 2 thumbnails (image + video), not 3 (no folder)
+      expect(thumbnails).toHaveLength(2);
+    });
+
+    it('should pass correct originalKey to ThumbnailImage', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      );
+
+      const thumbnails = screen.getAllByTestId('thumbnail-image');
+      const imageThumbnail = thumbnails.find(
+        (t) => t.getAttribute('data-file-type') === 'image'
+      );
+      expect(imageThumbnail).toHaveAttribute('data-original-key', 'photo.jpg');
+    });
   });
 });

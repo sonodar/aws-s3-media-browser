@@ -52,34 +52,45 @@
 
 ### Task 3: フロントエンド
 
-- [ ] 3.1 (P) ThumbnailImage コンポーネント作成
+- [x] 3.1 (P) ThumbnailImage コンポーネント作成
   - `loading="lazy"` による遅延読み込み
   - 固定サイズコンテナ（aspect-ratio: 1/1）+ object-fit: contain でレイアウトシフト防止
   - loading → loaded | error の状態管理
   - `onError` でファイルタイプに応じたデフォルトアイコンにフォールバック
+  - `initialDelay` prop でアップロード直後のサムネイル取得遅延対応
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 1.5_
 
-- [ ] 3.2 FileList コンポーネント拡張
+- [x] 3.2 FileList コンポーネント拡張
   - ThumbnailImage を使用したサムネイル表示
   - 画像・動画ファイルにサムネイル適用
+  - `recentlyUploadedKeys` に含まれるファイルには 3 秒の遅延を適用
   - 依存: 3.1 完了後
   - _Requirements: 2.1_
 
-- [ ] 3.3 useStorage フック拡張
-  - アップロード完了後 3 秒待機してからリスト更新（サムネイル生成完了待ち）
+- [x] 3.3 useStorage フック拡張
+  - `recentlyUploadedKeys` でアップロード直後のファイルを追跡
+  - ファイル一覧は即時更新、サムネイルのみ 3 秒遅延で取得
   - 将来的にはイベント駆動に分離可能
+  - _Requirements: 2.1_
+
+- [ ] 3.4 タイルレイアウト実装
+  - 3 カラムのグリッドレイアウトに変更
+  - サムネイル中心のタイル表示に最適化
+  - 削除ボタンをプレビューモーダルに移動
+  - ファイル名・サイズの表示位置調整
   - _Requirements: 2.1_
 
 ### Task 4: テスト
 
-- [ ] 4.1 (P) pathUtils 単体テスト
+- [x] 4.1 (P) pathUtils 単体テスト
   - パス変換ロジックの正常系・異常系テスト
   - ファイルタイプ判定のテスト
   - _Requirements: 3.3_
 
-- [ ] 4.2 ThumbnailImage 単体テスト
+- [x] 4.2 ThumbnailImage 単体テスト
   - 状態遷移テスト（loading → loaded | error）
   - フォールバック表示のテスト
+  - `initialDelay` prop のテスト追加
   - _Requirements: 2.1, 2.2, 2.3, 1.5_
 
 - [ ] 4.3 E2E テスト

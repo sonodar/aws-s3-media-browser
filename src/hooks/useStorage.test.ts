@@ -237,4 +237,5 @@ describe('useStorage', () => {
       expect(result.current.error?.message).toBe('Network error');
     });
   });
+
 });

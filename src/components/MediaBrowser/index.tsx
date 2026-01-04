@@ -26,6 +26,7 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
     createFolder,
     refresh,
     getFileUrl,
+    recentlyUploadedKeys,
   } = useStorage();
 
   const [identityId, setIdentityId] = useState<string | null>(null);
@@ -78,6 +79,7 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
             onFolderClick={navigate}
             onFileClick={handleFileClick}
             onDelete={setItemToDelete}
+            recentlyUploadedKeys={recentlyUploadedKeys}
           />
         )}
       </main>
