@@ -25,7 +25,6 @@ describe('FileList', () => {
         items={[]}
         onFolderClick={vi.fn()}
         onFileClick={vi.fn()}
-        onDelete={vi.fn()}
       />
     );
 
@@ -38,7 +37,6 @@ describe('FileList', () => {
         items={mockItems}
         onFolderClick={vi.fn()}
         onFileClick={vi.fn()}
-        onDelete={vi.fn()}
       />
     );
 
@@ -54,7 +52,6 @@ describe('FileList', () => {
         items={mockItems}
         onFolderClick={onFolderClick}
         onFileClick={vi.fn()}
-        onDelete={vi.fn()}
       />
     );
 
@@ -70,7 +67,6 @@ describe('FileList', () => {
         items={mockItems}
         onFolderClick={vi.fn()}
         onFileClick={onFileClick}
-        onDelete={vi.fn()}
       />
     );
 
@@ -85,7 +81,6 @@ describe('FileList', () => {
         items={mockItems}
         onFolderClick={vi.fn()}
         onFileClick={vi.fn()}
-        onDelete={vi.fn()}
       />
     );
 
@@ -102,7 +97,6 @@ describe('FileList', () => {
         items={mockItems}
         onFolderClick={vi.fn()}
         onFileClick={vi.fn()}
-        onDelete={vi.fn()}
       />
     );
 
@@ -117,7 +111,6 @@ describe('FileList', () => {
         items={mockItems}
         onFolderClick={vi.fn()}
         onFileClick={vi.fn()}
-        onDelete={vi.fn()}
       />
     );
 
@@ -132,8 +125,7 @@ describe('FileList', () => {
           items={mockItems}
           onFolderClick={vi.fn()}
           onFileClick={vi.fn()}
-          onDelete={vi.fn()}
-        />
+          />
       );
 
       const thumbnails = screen.getAllByTestId('thumbnail-image');
@@ -150,8 +142,7 @@ describe('FileList', () => {
           items={mockItems}
           onFolderClick={vi.fn()}
           onFileClick={vi.fn()}
-          onDelete={vi.fn()}
-        />
+          />
       );
 
       const thumbnails = screen.getAllByTestId('thumbnail-image');
@@ -168,8 +159,7 @@ describe('FileList', () => {
           items={mockItems}
           onFolderClick={vi.fn()}
           onFileClick={vi.fn()}
-          onDelete={vi.fn()}
-        />
+          />
       );
 
       const thumbnails = screen.getAllByTestId('thumbnail-image');
@@ -183,8 +173,7 @@ describe('FileList', () => {
           items={mockItems}
           onFolderClick={vi.fn()}
           onFileClick={vi.fn()}
-          onDelete={vi.fn()}
-        />
+          />
       );
 
       const thumbnails = screen.getAllByTestId('thumbnail-image');

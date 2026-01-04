@@ -10,17 +10,10 @@ interface FileListProps {
   items: StorageItem[];
   onFolderClick: (folderName: string) => void;
   onFileClick: (item: StorageItem) => void;
-  onDelete: (item: StorageItem) => void;
   /** Keys of recently uploaded files (for delayed thumbnail fetch) */
   recentlyUploadedKeys?: string[];
 }
 
-function formatFileSize(bytes?: number): string {
-  if (!bytes) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 function getFileIcon(item: StorageItem): string {
   if (item.type === 'folder') return '📁';
@@ -39,7 +32,7 @@ function shouldShowThumbnail(item: StorageItem): boolean {
   return item.type === 'file' && getFileType(item) !== null;
 }
 
-export function FileList({ items, onFolderClick, onFileClick, onDelete, recentlyUploadedKeys = [] }: FileListProps) {
+export function FileList({ items, onFolderClick, onFileClick, recentlyUploadedKeys = [] }: FileListProps) {
   if (items.length === 0) {
     return (
       <div className="file-list-empty">
@@ -54,11 +47,6 @@ export function FileList({ items, onFolderClick, onFileClick, onDelete, recently
     } else {
       onFileClick(item);
     }
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent, item: StorageItem) => {
-    e.stopPropagation();
-    onDelete(item);
   };
 
   return (
@@ -82,19 +70,6 @@ export function FileList({ items, onFolderClick, onFileClick, onDelete, recently
             <span className="file-icon">{getFileIcon(item)}</span>
           )}
           <span className="file-name">{item.name}</span>
-          {item.type === 'file' && (
-            <span className="file-size">{formatFileSize(item.size)}</span>
-          )}
-          {item.type === 'folder' && (
-            <span className="folder-arrow">›</span>
-          )}
-          <button
-            className="delete-button"
-            onClick={(e) => handleDeleteClick(e, item)}
-            aria-label={`${item.name}を削除`}
-          >
-            🗑️
-          </button>
         </li>
       ))}
     </ul>
