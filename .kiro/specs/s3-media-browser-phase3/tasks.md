@@ -93,7 +93,7 @@
   - `initialDelay` prop のテスト追加
   - _Requirements: 2.1, 2.2, 2.3, 1.5_
 
-- [ ] 4.3 E2E テスト
+- [x] 4.3 E2E テスト
   - 画像アップロード → サムネイル表示確認
   - ファイル削除 → サムネイル削除確認
   - 動画アップロード → フォールバック表示確認（Release 1 では動画サムネイル未対応）
@@ -102,23 +102,23 @@
 
 ---
 
-## Release 2: 動画サムネイル生成（後日実装）
+## Release 2: 動画サムネイル生成
 
 ### Task 5: FFmpeg 統合
 
-- [ ] 5.1 FFmpeg Lambda Layer 設定
+- [x] 5.1 FFmpeg Lambda Layer 設定
   - SAR から ffmpeg-lambda-layer をデプロイ
   - Layer ARN を環境変数 `FFMPEG_LAYER_ARN` に設定
   - resource.ts で環境変数バリデーション追加
   - _Requirements: 1.2_
 
-- [ ] 5.2 onUploadHandler 拡張（動画サムネイル）
+- [x] 5.2 onUploadHandler 拡張（動画サムネイル）
   - FFmpeg による動画フレーム抽出
   - blackframe フィルターで黒フレームスキップ
   - Sharp でリサイズして JPEG 形式で保存
   - _Requirements: 1.2, 1.4_
 
-- [ ] 5.3 動画サムネイルのテスト
+- [x] 5.3 動画サムネイルのテスト
   - mp4, webm, mov ファイルのサムネイル生成確認
   - 黒フレームスキップの動作確認
   - _Requirements: 1.2_

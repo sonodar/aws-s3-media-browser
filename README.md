@@ -84,34 +84,69 @@ npx ampx sandbox
 1. Amplify Console → App settings → Environment variables
 2. `SHARP_LAYER_ARN` を追加し、Layer ARN を設定
 
-### 4. (オプション) FFmpeg Layer のデプロイ
+### 4. FFmpeg Layer のデプロイ（動画サムネイル生成用）
 
-動画サムネイル生成を有効にする場合は、FFmpeg Layer も必要です:
+動画サムネイル生成を有効にする場合は、FFmpeg Layer も必要です。
+
+[John Van Sickle の FFmpeg 静的ビルド](https://johnvansickle.com/ffmpeg/) を使用して ARM64 対応の Layer を作成します:
 
 ```bash
-# FFmpeg Layer をデプロイ
-aws serverlessrepo create-cloud-formation-change-set \
-  --application-id arn:aws:serverlessrepo:us-east-1:145266761615:applications/ffmpeg-lambda-layer \
-  --stack-name ffmpeg-layer \
+# 作業ディレクトリを作成
+mkdir -p ffmpeg-layer/bin && cd ffmpeg-layer
+
+# FFmpeg 静的バイナリをダウンロード (arm64)
+curl -L -o ffmpeg.tar.xz \
+  https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz
+
+# 展開して必要なバイナリを配置
+tar -xf ffmpeg.tar.xz
+cp ffmpeg-*-arm64-static/ffmpeg bin/
+cp ffmpeg-*-arm64-static/ffprobe bin/
+chmod +x bin/*
+
+# Layer 用の zip を作成
+zip -r ../ffmpeg-layer.zip bin/
+
+# Lambda Layer として発行
+cd ..
+aws lambda publish-layer-version \
+  --layer-name ffmpeg \
+  --description "FFmpeg static binary for Lambda (arm64)" \
+  --zip-file fileb://ffmpeg-layer.zip \
+  --compatible-runtimes nodejs22.x nodejs20.x nodejs18.x \
+  --compatible-architectures arm64 \
   --region ap-northeast-1
 
-# ChangeSet を実行
-aws cloudformation execute-change-set \
-  --change-set-name <ChangeSetId> \
-  --region ap-northeast-1
-
-# Layer ARN を取得
-aws cloudformation describe-stacks \
-  --stack-name serverlessrepo-ffmpeg-layer \
-  --query 'Stacks[0].Outputs[?OutputKey==`LayerVersion`].OutputValue' \
-  --output text \
-  --region ap-northeast-1
-
-# 環境変数に設定
-export FFMPEG_LAYER_ARN=arn:aws:lambda:ap-northeast-1:123456789012:layer:ffmpeg:1
+# クリーンアップ
+rm -rf ffmpeg-layer ffmpeg-layer.zip
 ```
 
-> **Note**: Sharp Layer と Lambda 関数は同じアーキテクチャを使用する必要があります。デフォルトは arm64（Graviton2）で、コスト効率に優れています。
+> **Note**: x86_64 アーキテクチャを使用する場合は、`ffmpeg-release-amd64-static.tar.xz` をダウンロードし、`--compatible-architectures x86_64` に変更してください。
+
+### 5. FFmpeg Layer ARN の設定
+
+```bash
+# Layer ARN を取得
+aws lambda list-layer-versions \
+  --layer-name ffmpeg \
+  --query 'LayerVersions[0].LayerVersionArn' \
+  --output text \
+  --region ap-northeast-1
+```
+
+**ローカル開発（sandbox）**:
+
+```bash
+export FFMPEG_LAYER_ARN=arn:aws:lambda:ap-northeast-1:123456789012:layer:ffmpeg:1
+npx ampx sandbox
+```
+
+**Amplify Hosting**:
+
+1. Amplify Console → App settings → Environment variables
+2. `FFMPEG_LAYER_ARN` を追加し、Layer ARN を設定
+
+> **Note**: Sharp Layer、FFmpeg Layer、Lambda 関数はすべて同じアーキテクチャ（arm64）を使用します。FFmpeg は `/opt/bin/ffmpeg` にマウントされます。
 
 ## Getting Started
 
