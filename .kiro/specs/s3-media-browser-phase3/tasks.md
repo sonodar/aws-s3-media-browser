@@ -1,93 +1,104 @@
 # Implementation Plan - Phase 3
 
-## Release 1: 画像サムネイル + 動画フォールバック
+## Release 1: 画像サムネイル生成 + フロントエンド表示
 
-### Task 1: 基盤整備
+### Task 1: 共有ユーティリティ
 
-- [ ] 1.1 pathUtils ユーティリティ作成
+- [ ] 1.1 (P) pathUtils ユーティリティ作成
   - `getThumbnailPath`: `media/...` → `thumbnails/.../.thumb.jpg` 変換
   - `getOriginalPath`: 逆変換
   - `isThumbnailTarget`: 対象ファイル判定（jpg, jpeg, png, gif, webp, mp4, webm, mov）
+  - バックエンド・フロントエンド双方で使用可能な純粋関数として実装
   - _Requirements: 3.3_
 
-- [ ] 1.2 Storage アクセス設定の更新
-  - `thumbnails/{entity_id}/*` への read 権限追加
-  - _Requirements: 1.3_
+### Task 2: バックエンド（Lambda + S3 トリガー）
 
-### Task 2: バックエンド（Lambda）
+- [ ] 2.1 Lambda 関数リソース定義
+  - `defineFunction` で Lambda 関数を定義
+  - Lambda Layer ARN を環境変数から読み込み
+  - 環境変数未設定時は明確なエラーメッセージで例外スロー
+  - タイムアウト 30 秒、メモリ 1024MB 設定
+  - x86_64 アーキテクチャ指定（SAR の Sharp Layer 対応）
+  - _Requirements: 1.1, 1.2_
 
-- [ ] 2.1 onUploadHandler 実装（画像サムネイル）
+- [ ] 2.2 onUploadHandler 実装（画像サムネイル）
   - S3 ObjectCreated イベントハンドラー作成
-  - Sharp による画像リサイズ（400x400、fit: inside）
-  - サムネイルを `thumbnails/` に保存
-  - 動画ファイルはスキップ（フォールバック対応）
+  - Sharp による画像リサイズ（400x400、fit: inside でアスペクト比維持）
+  - JPEG 形式でサムネイルを `thumbnails/` に保存
+  - EXIF 情報をストリップ（プライバシー保護）
+  - 動画ファイルはスキップ（Release 2 で対応）
   - _Requirements: 1.1, 1.4_
 
-- [ ] 2.2 onDeleteHandler 実装
+- [ ] 2.3 onDeleteHandler 実装
   - S3 ObjectRemoved イベントハンドラー作成
-  - 対応するサムネイルを削除
+  - 対応するサムネイルを削除（存在しない場合は冪等にスキップ）
   - _Requirements: 3.1, 3.2_
 
-- [ ] 2.3 Storage トリガー設定
-  - `defineStorage` の `triggers` オプションで Lambda 登録
-  - `media/` プレフィックスのみトリガー
-  - _Requirements: 1.1, 3.1_
+- [ ] 2.4 Storage リソース更新
+  - `defineStorage` の `access` に `thumbnails/{entity_id}/*` パスを追加
+  - ユーザーは read のみ、Lambda は read/write/delete
+  - `triggers` オプションで onUpload/onDelete に Lambda を登録
+  - _Requirements: 1.3, 3.1_
+
+- [ ] 2.5 backend.ts 統合
+  - thumbnailFunction をインポートして `defineBackend` に追加
+  - _Requirements: 1.1_
 
 ### Task 3: フロントエンド
 
-- [ ] 3.1 ThumbnailImage コンポーネント作成
+- [ ] 3.1 (P) ThumbnailImage コンポーネント作成
   - `loading="lazy"` による遅延読み込み
-  - 固定サイズコンテナ（aspect-ratio: 1/1）+ object-fit: contain
-  - `onError` でデフォルトアイコンにフォールバック
+  - 固定サイズコンテナ（aspect-ratio: 1/1）+ object-fit: contain でレイアウトシフト防止
+  - loading → loaded | error の状態管理
+  - `onError` でファイルタイプに応じたデフォルトアイコンにフォールバック
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 1.5_
 
 - [ ] 3.2 FileList コンポーネント拡張
   - ThumbnailImage を使用したサムネイル表示
   - 画像・動画ファイルにサムネイル適用
+  - 依存: 3.1 完了後
   - _Requirements: 2.1_
 
-- [ ] 3.3 useStorage 拡張
-  - アップロード完了後 3秒待機してからリスト更新
+- [ ] 3.3 useStorage フック拡張
+  - アップロード完了後 3 秒待機してからリスト更新（サムネイル生成完了待ち）
+  - 将来的にはイベント駆動に分離可能
   - _Requirements: 2.1_
 
-### Task 4: テストとデプロイ
+### Task 4: テスト
 
-- [ ] 4.1 単体テスト
-  - pathUtils のパス変換テスト
-  - ファイルタイプ判定テスト
+- [ ] 4.1 (P) pathUtils 単体テスト
+  - パス変換ロジックの正常系・異常系テスト
+  - ファイルタイプ判定のテスト
   - _Requirements: 3.3_
 
-- [ ] 4.2 E2E テスト
+- [ ] 4.2 ThumbnailImage 単体テスト
+  - 状態遷移テスト（loading → loaded | error）
+  - フォールバック表示のテスト
+  - _Requirements: 2.1, 2.2, 2.3, 1.5_
+
+- [ ] 4.3 E2E テスト
   - 画像アップロード → サムネイル表示確認
   - ファイル削除 → サムネイル削除確認
-  - 動画アップロード → フォールバック表示確認
+  - 動画アップロード → フォールバック表示確認（Release 1 では動画サムネイル未対応）
+  - 依存: Task 2, Task 3 完了後
   - _Requirements: 1.1, 2.1, 3.1_
-
-- [ ] 4.3 デプロイと動作確認
-  - sandbox 環境へデプロイ
-  - 画像サムネイル生成の動作確認
-  - 動画フォールバック表示の確認
-
-- [ ] 4.4 レイテンシ計測（ユーザー作業）
-  - CloudWatch Logs で Lambda 実行時間を計測
-  - 計測結果に基づいて useStorage の待機秒数（現在3秒）を調整
-  - _Note: 実装者は CloudWatch Logs でのログ出力を確実に行うこと_
 
 ---
 
 ## Release 2: 動画サムネイル生成（後日実装）
 
-### Task 5: FFmpeg Lambda Layer
+### Task 5: FFmpeg 統合
 
-- [ ] 5.1 FFmpeg Lambda Layer 作成
-  - ARM64 用静的ビルドを取得
-  - Lambda Layer としてデプロイ
+- [ ] 5.1 FFmpeg Lambda Layer 設定
+  - SAR から ffmpeg-lambda-layer をデプロイ
+  - Layer ARN を環境変数 `FFMPEG_LAYER_ARN` に設定
+  - resource.ts で環境変数バリデーション追加
   - _Requirements: 1.2_
 
 - [ ] 5.2 onUploadHandler 拡張（動画サムネイル）
   - FFmpeg による動画フレーム抽出
   - blackframe フィルターで黒フレームスキップ
-  - Sharp でリサイズしてサムネイル保存
+  - Sharp でリサイズして JPEG 形式で保存
   - _Requirements: 1.2, 1.4_
 
 - [ ] 5.3 動画サムネイルのテスト
