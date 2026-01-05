@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { list, remove, uploadData, getUrl } from 'aws-amplify/storage';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { parseUrlPath, syncToUrl } from './urlSync';
 
 export interface StorageItem {
   key: string;
@@ -33,9 +34,25 @@ export function useStorage(): UseStorageReturn {
   const [items, setItems] = useState<StorageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [currentPath, setCurrentPath] = useState('');
+  // Initialize currentPath from URL query parameter
+  const [currentPath, setCurrentPathState] = useState(() => parseUrlPath());
   const [identityId, setIdentityId] = useState<string | null>(null);
   const [recentlyUploadedKeys, setRecentlyUploadedKeys] = useState<string[]>([]);
+
+  // Wrapper to sync path changes to URL
+  const setCurrentPath = useCallback((path: string) => {
+    setCurrentPathState(path);
+    syncToUrl(path);
+  }, []);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPathState(parseUrlPath());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Fetch identity ID on mount
   useEffect(() => {
@@ -122,17 +139,17 @@ export function useStorage(): UseStorageReturn {
     }
   }, [identityId, currentPath, fetchItems]);
 
-  const navigate = useCallback((path: string) => {
-    setCurrentPath((prev) => (prev ? `${prev}/${path}` : path));
-  }, []);
+  const navigate = useCallback((folderName: string) => {
+    const newPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+    setCurrentPath(newPath);
+  }, [currentPath, setCurrentPath]);
 
   const goBack = useCallback(() => {
-    setCurrentPath((prev) => {
-      const parts = prev.split('/').filter(Boolean);
-      parts.pop();
-      return parts.join('/');
-    });
-  }, []);
+    const parts = currentPath.split('/').filter(Boolean);
+    parts.pop();
+    const newPath = parts.join('/');
+    setCurrentPath(newPath);
+  }, [currentPath, setCurrentPath]);
 
   const removeItem = useCallback(
     async (key: string) => {
