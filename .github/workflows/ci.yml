@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0' # 毎週日曜日 00:00 UTC
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5.0.1
+
+      - uses: actions/setup-node@v6.1.0
+        with:
+          node-version-file: '.tool-versions'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # TODO: AWS クレデンシャル設定後、以下のスタブ生成を削除し、
+      #       npx ampx generate outputs --app-id ${{ secrets.AMPLIFY_APP_ID }} --branch main
+      #       に置き換える。参考: https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/custom-pipelines/
+      - name: Generate amplify_outputs.json stub for CI
+        run: |
+          cat > amplify_outputs.json << 'EOF'
+          {
+            "auth": {
+              "user_pool_id": "stub",
+              "aws_region": "ap-northeast-1",
+              "user_pool_client_id": "stub",
+              "identity_pool_id": "stub",
+              "mfa_methods": [],
+              "standard_required_attributes": ["email"],
+              "username_attributes": ["email"],
+              "user_verification_types": ["email"],
+              "groups": [],
+              "mfa_configuration": "NONE",
+              "password_policy": {
+                "min_length": 8,
+                "require_lowercase": true,
+                "require_numbers": true,
+                "require_symbols": true,
+                "require_uppercase": true
+              },
+              "unauthenticated_identities_enabled": true
+            },
+            "storage": {
+              "aws_region": "ap-northeast-1",
+              "bucket_name": "stub",
+              "buckets": []
+            },
+            "version": "1.4"
+          }
+          EOF
+
+      - run: npm run build
+      - run: npm run test
