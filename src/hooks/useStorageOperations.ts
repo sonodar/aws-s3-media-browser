@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { list, remove, uploadData, getUrl } from 'aws-amplify/storage';
+import { list, remove, uploadData, getUrl, copy } from 'aws-amplify/storage';
+import { buildRenamedKey, buildRenamedPrefix } from '../utils/pathUtils';
 import { parseStorageItems } from './parseStorageItems';
 import type { StorageItem } from '../types/storage';
 
@@ -18,6 +19,38 @@ export interface DeleteResult {
   failed: Array<{ key: string; error: Error }>;
 }
 
+/**
+ * 単一ファイルリネームの結果
+ */
+export interface RenameItemResult {
+  success: boolean;
+  error?: string;
+  warning?: string;
+}
+
+/**
+ * フォルダリネームの結果
+ */
+export interface RenameFolderResult {
+  success: boolean;
+  error?: string;
+  succeeded?: number;
+  failed?: number;
+  failedFiles?: string[];
+  duplicates?: string[];
+}
+
+/**
+ * フォルダリネームの進捗情報
+ */
+export interface RenameProgress {
+  current: number;
+  total: number;
+}
+
+/** フォルダリネーム時の最大アイテム数 */
+const MAX_FOLDER_RENAME_ITEMS = 1000;
+
 export interface UseStorageOperationsReturn {
   items: StorageItem[];
   loading: boolean;
@@ -34,6 +67,25 @@ export interface UseStorageOperationsReturn {
   createFolder: (name: string) => Promise<void>;
   getFileUrl: (key: string) => Promise<string>;
   refresh: () => void;
+  /**
+   * 単一ファイルをリネームする
+   * @param currentKey 現在のS3オブジェクトキー
+   * @param newName 新しいファイル名（パスなし）
+   */
+  renameItem: (currentKey: string, newName: string) => Promise<RenameItemResult>;
+  /**
+   * フォルダをリネームする
+   * @param currentPrefix 現在のフォルダプレフィックス（末尾/あり）
+   * @param newName 新しいフォルダ名（末尾/なし）
+   * @param onProgress 進捗コールバック
+   */
+  renameFolder: (
+    currentPrefix: string,
+    newName: string,
+    onProgress?: (progress: RenameProgress) => void
+  ) => Promise<RenameFolderResult>;
+  /** リネーム処理中フラグ */
+  isRenaming: boolean;
 }
 
 /**
@@ -48,6 +100,7 @@ export function useStorageOperations({
   const [loading, setLoading] = useState(!!identityId);
   const [error, setError] = useState<Error | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const getBasePath = useCallback(() => {
     if (!identityId) return null;
@@ -208,6 +261,183 @@ export function useStorageOperations({
     fetchItems();
   }, [fetchItems]);
 
+  /**
+   * 単一ファイルをリネームする
+   */
+  const renameItem = useCallback(
+    async (currentKey: string, newName: string): Promise<RenameItemResult> => {
+      setIsRenaming(true);
+
+      try {
+        const newKey = buildRenamedKey(currentKey, newName);
+
+        // S3上で新キーの存在をチェック
+        try {
+          const existingItems = await list({
+            path: newKey,
+            options: { listAll: true },
+          });
+          // ファイルが存在する場合はエラー
+          if (existingItems.items.length > 0) {
+            return { success: false, error: '同じ名前のファイルが既に存在します' };
+          }
+        } catch (err) {
+          return {
+            success: false,
+            error: `リネーム前のチェックに失敗しました: ${(err as Error).message}`,
+          };
+        }
+
+        // コピー実行
+        try {
+          await copy({
+            source: { path: currentKey },
+            destination: { path: newKey },
+          });
+        } catch (err) {
+          return {
+            success: false,
+            error: `コピーに失敗しました: ${(err as Error).message}`,
+          };
+        }
+
+        // 元ファイルを削除
+        let warning: string | undefined;
+        try {
+          await remove({ path: currentKey });
+        } catch (err) {
+          // 削除失敗は警告として扱う（成功扱い）
+          warning = `元ファイルの削除に失敗しました: ${(err as Error).message}`;
+        }
+
+        // 一覧を更新
+        await fetchItems();
+
+        return { success: true, warning };
+      } finally {
+        setIsRenaming(false);
+      }
+    },
+    [fetchItems]
+  );
+
+  /**
+   * フォルダをリネームする
+   */
+  const renameFolder = useCallback(
+    async (
+      currentPrefix: string,
+      newName: string,
+      onProgress?: (progress: RenameProgress) => void
+    ): Promise<RenameFolderResult> => {
+      setIsRenaming(true);
+
+      try {
+        const newPrefix = buildRenamedPrefix(currentPrefix, newName);
+
+        // リネーム先の既存オブジェクトを取得
+        let targetItems: string[] = [];
+        try {
+          const targetResult = await list({
+            path: newPrefix,
+            options: { listAll: true },
+          });
+          targetItems = targetResult.items.map((item) => item.path);
+        } catch {
+          // リネーム先が存在しない場合は空として扱う
+        }
+
+        // ソースフォルダの内容を取得
+        const sourceResult = await list({
+          path: currentPrefix,
+          options: { listAll: true },
+        });
+        const sourceItems = sourceResult.items.map((item) => item.path);
+
+        // ファイル数制限チェック
+        if (sourceItems.length > MAX_FOLDER_RENAME_ITEMS) {
+          return {
+            success: false,
+            error: `フォルダ内のファイル数が多すぎます（${sourceItems.length}件）。${MAX_FOLDER_RENAME_ITEMS}件以下のフォルダのみリネーム可能です`,
+          };
+        }
+
+        // 重複チェック（高速パス: リネーム先が空なら重複なし）
+        if (targetItems.length > 0) {
+          const targetSet = new Set(targetItems);
+          const duplicates: string[] = [];
+
+          for (const sourcePath of sourceItems) {
+            // ソースパスからリネーム先パスを構築
+            const relativePath = sourcePath.slice(currentPrefix.length);
+            const destPath = `${newPrefix}${relativePath}`;
+            if (targetSet.has(destPath)) {
+              duplicates.push(relativePath);
+            }
+          }
+
+          if (duplicates.length > 0) {
+            return {
+              success: false,
+              error: `重複するファイルが存在します（${duplicates.length}件）`,
+              duplicates,
+            };
+          }
+        }
+
+        // コピー＆削除を実行
+        const total = sourceItems.length;
+        let succeeded = 0;
+        let failed = 0;
+        const failedFiles: string[] = [];
+
+        for (let i = 0; i < sourceItems.length; i++) {
+          const sourcePath = sourceItems[i];
+          const relativePath = sourcePath.slice(currentPrefix.length);
+          const destPath = `${newPrefix}${relativePath}`;
+
+          try {
+            await copy({
+              source: { path: sourcePath },
+              destination: { path: destPath },
+            });
+
+            // コピー成功したら元ファイルを削除
+            try {
+              await remove({ path: sourcePath });
+            } catch {
+              // 削除失敗は無視（ファイルは両方に存在することになる）
+            }
+
+            succeeded++;
+          } catch {
+            failed++;
+            failedFiles.push(relativePath);
+          }
+
+          onProgress?.({ current: i + 1, total });
+        }
+
+        // 一覧を更新
+        await fetchItems();
+
+        if (failed > 0) {
+          return {
+            success: false,
+            succeeded,
+            failed,
+            failedFiles,
+          };
+        }
+
+        return { success: true, succeeded, failed: 0 };
+      } finally {
+        setIsRenaming(false);
+      }
+    },
+    [fetchItems]
+  );
+
   return {
     items,
     loading,
@@ -219,5 +449,8 @@ export function useStorageOperations({
     createFolder,
     getFileUrl,
     refresh,
+    renameItem,
+    renameFolder,
+    isRenaming,
   };
 }

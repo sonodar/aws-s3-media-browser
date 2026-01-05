@@ -45,3 +45,51 @@ export function getOriginalPath(thumbnailPath: string): string {
 export function isThumbnailTarget(filename: string): boolean {
   return isImageFile(filename) || isVideoFile(filename);
 }
+
+/**
+ * Get parent directory path from a key or path
+ * @example
+ * getParentPath('photos/2024/image.jpg') // => 'photos/2024/'
+ * getParentPath('image.jpg') // => ''
+ * getParentPath('photos/') // => ''
+ */
+export function getParentPath(key: string): string {
+  // Remove trailing slash for folder paths
+  const normalizedKey = key.endsWith('/') ? key.slice(0, -1) : key;
+
+  const lastSlashIndex = normalizedKey.lastIndexOf('/');
+  if (lastSlashIndex === -1) {
+    return '';
+  }
+
+  return normalizedKey.substring(0, lastSlashIndex + 1);
+}
+
+/**
+ * Build a new key for a renamed file
+ * @param currentKey The current S3 object key
+ * @param newName The new file name (without path)
+ * @example
+ * buildRenamedKey('photos/old.jpg', 'new.jpg') // => 'photos/new.jpg'
+ */
+export function buildRenamedKey(currentKey: string, newName: string): string {
+  const parentPath = getParentPath(currentKey);
+  return `${parentPath}${newName}`;
+}
+
+/**
+ * Build a new prefix for a renamed folder
+ * @param currentPrefix The current folder prefix (with trailing slash)
+ * @param newName The new folder name (without trailing slash)
+ * @example
+ * buildRenamedPrefix('photos/old/', 'new') // => 'photos/new/'
+ */
+export function buildRenamedPrefix(
+  currentPrefix: string,
+  newName: string
+): string {
+  const parentPath = getParentPath(currentPrefix);
+  // Remove trailing slash from new name if present
+  const normalizedNewName = newName.endsWith('/') ? newName.slice(0, -1) : newName;
+  return `${parentPath}${normalizedNewName}/`;
+}

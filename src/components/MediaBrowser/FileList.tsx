@@ -18,6 +18,8 @@ interface FileListProps {
   selectedKeys?: ReadonlySet<string>;
   /** 選択トグル */
   onToggleSelection?: (key: string) => void;
+  /** リネームコールバック */
+  onRename?: (item: StorageItem) => void;
 }
 
 
@@ -46,6 +48,7 @@ export function FileList({
   isSelectionMode = false,
   selectedKeys = new Set(),
   onToggleSelection,
+  onRename,
 }: FileListProps) {
   if (items.length === 0) {
     return (
@@ -68,6 +71,11 @@ export function FileList({
   const handleCheckboxClick = (e: React.MouseEvent, key: string) => {
     e.stopPropagation();
     onToggleSelection?.(key);
+  };
+
+  const handleRenameClick = (e: React.MouseEvent, item: StorageItem) => {
+    e.stopPropagation();
+    onRename?.(item);
   };
 
   return (
@@ -103,6 +111,16 @@ export function FileList({
               <span className="file-icon">{getFileIcon(item)}</span>
             )}
             <span className="file-name">{item.name}</span>
+            {!isSelectionMode && onRename && (
+              <button
+                className="rename-button"
+                onClick={(e) => handleRenameClick(e, item)}
+                aria-label={`${item.name} の名前を変更`}
+                title="名前を変更"
+              >
+                ✏️
+              </button>
+            )}
           </li>
         );
       })}

@@ -11,6 +11,7 @@ import { FileActions } from './FileActions';
 import { CreateFolderDialog } from './CreateFolderDialog';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { PreviewModal } from './PreviewModal';
+import { RenameDialog } from './RenameDialog';
 import { isPreviewable } from '../../utils/fileTypes';
 import './MediaBrowser.css';
 
@@ -41,6 +42,8 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     createFolder,
     refresh,
     getFileUrl,
+    renameItem,
+    renameFolder,
   } = useStorageOperations({ identityId, currentPath });
 
   // Selection management
@@ -63,6 +66,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<StorageItem | null>(null);
 
   // Get selected items for deletion
   const selectedItems = useMemo(
@@ -89,6 +93,14 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     await removeItems(selectedItems);
     setShowDeleteConfirm(false);
     exitSelectionMode();
+  };
+
+  const handleRename = (item: StorageItem) => {
+    setRenameTarget(item);
+  };
+
+  const handleCloseRenameDialog = () => {
+    setRenameTarget(null);
   };
 
   if (error) {
@@ -130,6 +142,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
             isSelectionMode={isSelectionMode}
             selectedKeys={selectedKeys}
             onToggleSelection={toggleSelection}
+            onRename={handleRename}
           />
         )}
       </main>
@@ -153,6 +166,10 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         item={previewItem}
         getFileUrl={getFileUrl}
         onDelete={handleDeleteFromPreview}
+        onRename={(item) => {
+          setPreviewItem(null);
+          setRenameTarget(item);
+        }}
       />
 
       {showDeleteConfirm && (
@@ -161,6 +178,17 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={handleConfirmDelete}
           isDeleting={isDeleting}
+        />
+      )}
+
+      {renameTarget && (
+        <RenameDialog
+          isOpen={renameTarget !== null}
+          item={renameTarget}
+          existingItems={items}
+          onClose={handleCloseRenameDialog}
+          onRenameFile={renameItem}
+          onRenameFolder={renameFolder}
         />
       )}
     </div>

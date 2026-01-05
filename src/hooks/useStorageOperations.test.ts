@@ -8,6 +8,7 @@ vi.mock('aws-amplify/storage', () => ({
   remove: vi.fn(),
   uploadData: vi.fn(),
   getUrl: vi.fn(),
+  copy: vi.fn(),
 }));
 
 // Mock aws-amplify/auth to prevent interference with other test files
@@ -15,7 +16,7 @@ vi.mock('aws-amplify/auth', () => ({
   fetchAuthSession: vi.fn(),
 }));
 
-import { list, remove, uploadData, getUrl } from 'aws-amplify/storage';
+import { list, remove, uploadData, getUrl, copy } from 'aws-amplify/storage';
 
 describe('useStorageOperations', () => {
   const identityId = 'test-identity-id';
@@ -532,6 +533,460 @@ describe('useStorageOperations', () => {
 
       // Initial fetch + refresh after deletion
       expect(list).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('renameItem (単一ファイルリネーム)', () => {
+    it('should rename file successfully when target does not exist', async () => {
+      const basePath = `media/${identityId}/`;
+      // Initial list
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        // Check for duplicate - empty means no conflict
+        .mockResolvedValueOnce({ items: [] })
+        // Refresh after rename
+        .mockResolvedValueOnce({ items: [] });
+
+      vi.mocked(copy).mockResolvedValue({ path: `${basePath}new.jpg` });
+      vi.mocked(remove).mockResolvedValue({ path: `${basePath}old.jpg` });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string };
+      await act(async () => {
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      expect(renameResult!.success).toBe(true);
+      expect(copy).toHaveBeenCalledWith({
+        source: { path: `${basePath}old.jpg` },
+        destination: { path: `${basePath}new.jpg` },
+      });
+      expect(remove).toHaveBeenCalledWith({ path: `${basePath}old.jpg` });
+    });
+
+    it('should return error when target file already exists', async () => {
+      const basePath = `media/${identityId}/`;
+      // Initial list
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        // Check for duplicate - file exists
+        .mockResolvedValueOnce({ items: [{ path: `${basePath}new.jpg`, size: 100 }] });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string };
+      await act(async () => {
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      expect(renameResult!.success).toBe(false);
+      expect(renameResult!.error).toBe('同じ名前のファイルが既に存在します');
+      expect(copy).not.toHaveBeenCalled();
+      expect(remove).not.toHaveBeenCalled();
+    });
+
+    it('should return error when list API fails during duplicate check', async () => {
+      const basePath = `media/${identityId}/`;
+      // Initial list
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        // Check for duplicate - API error
+        .mockRejectedValueOnce(new Error('Network error'));
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string };
+      await act(async () => {
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      expect(renameResult!.success).toBe(false);
+      expect(renameResult!.error).toContain('リネーム前のチェックに失敗しました');
+      expect(copy).not.toHaveBeenCalled();
+    });
+
+    it('should return error when copy fails', async () => {
+      const basePath = `media/${identityId}/`;
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] });
+
+      vi.mocked(copy).mockRejectedValueOnce(new Error('Copy failed'));
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string };
+      await act(async () => {
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      expect(renameResult!.success).toBe(false);
+      expect(renameResult!.error).toContain('コピーに失敗しました');
+      // Original file should remain (no remove called)
+      expect(remove).not.toHaveBeenCalled();
+    });
+
+    it('should return success with warning when delete fails after copy', async () => {
+      const basePath = `media/${identityId}/`;
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] });
+
+      vi.mocked(copy).mockResolvedValueOnce({ path: `${basePath}new.jpg` });
+      vi.mocked(remove).mockRejectedValueOnce(new Error('Delete failed'));
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string; warning?: string };
+      await act(async () => {
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      // Rename is considered successful even if delete fails
+      expect(renameResult!.success).toBe(true);
+      expect(renameResult!.warning).toContain('元ファイルの削除に失敗');
+    });
+
+    it('should set isRenaming to true during rename', async () => {
+      const basePath = `media/${identityId}/`;
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] });
+
+      let resolveCopy: (value: { path: string }) => void;
+      const copyPromise = new Promise<{ path: string }>((resolve) => {
+        resolveCopy = resolve;
+      });
+      vi.mocked(copy).mockReturnValueOnce(copyPromise);
+      vi.mocked(remove).mockResolvedValueOnce({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isRenaming).toBe(false);
+
+      let renamePromise: Promise<unknown>;
+      act(() => {
+        renamePromise = result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      expect(result.current.isRenaming).toBe(true);
+
+      await act(async () => {
+        resolveCopy!({ path: `${basePath}new.jpg` });
+        await renamePromise;
+      });
+
+      expect(result.current.isRenaming).toBe(false);
+    });
+
+    it('should refresh items after successful rename', async () => {
+      const basePath = `media/${identityId}/`;
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [] });
+
+      vi.mocked(copy).mockResolvedValueOnce({ path: `${basePath}new.jpg` });
+      vi.mocked(remove).mockResolvedValueOnce({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(list).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+      });
+
+      // Initial + duplicate check + refresh after rename
+      expect(list).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('renameFolder (フォルダリネーム)', () => {
+    const basePath = `media/${identityId}/`;
+
+    it('should rename folder successfully when target does not exist', async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial hook mount
+        .mockResolvedValueOnce({ items: [] }) // Check target prefix empty
+        .mockResolvedValueOnce({ items: [ // List source folder contents
+          { path: `${basePath}old/file1.jpg`, size: 100 },
+          { path: `${basePath}old/file2.jpg`, size: 200 },
+        ]})
+        .mockResolvedValueOnce({ items: [] }); // Refresh after rename
+
+      vi.mocked(copy).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; succeeded?: number; failed?: number };
+      await act(async () => {
+        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+      });
+
+      expect(renameResult!.success).toBe(true);
+      expect(renameResult!.succeeded).toBe(2);
+      expect(copy).toHaveBeenCalledTimes(2);
+      expect(copy).toHaveBeenCalledWith({
+        source: { path: `${basePath}old/file1.jpg` },
+        destination: { path: `${basePath}new/file1.jpg` },
+      });
+    });
+
+    it('should return error when folder has more than 1000 items', async () => {
+      const manyItems = Array.from({ length: 1001 }, (_, i) => ({
+        path: `${basePath}old/file${i}.jpg`,
+        size: 100,
+      }));
+
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial hook mount
+        .mockResolvedValueOnce({ items: [] }) // Check target prefix empty
+        .mockResolvedValueOnce({ items: manyItems }); // List source - too many items
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string };
+      await act(async () => {
+        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+      });
+
+      expect(renameResult!.success).toBe(false);
+      expect(renameResult!.error).toContain('ファイル数が多すぎます');
+      expect(renameResult!.error).toContain('1001');
+      expect(copy).not.toHaveBeenCalled();
+    });
+
+    it('should abort rename when duplicate files exist in target', async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [ // Target folder has files
+          { path: `${basePath}new/file1.jpg`, size: 100 },
+        ]})
+        .mockResolvedValueOnce({ items: [ // Source folder contents
+          { path: `${basePath}old/file1.jpg`, size: 100 },
+          { path: `${basePath}old/file2.jpg`, size: 200 },
+        ]});
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; error?: string; duplicates?: string[] };
+      await act(async () => {
+        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+      });
+
+      expect(renameResult!.success).toBe(false);
+      expect(renameResult!.error).toContain('重複するファイルが存在します');
+      expect(renameResult!.duplicates).toContain('file1.jpg');
+      expect(copy).not.toHaveBeenCalled();
+    });
+
+    it('should skip duplicate check when target is empty (fast path)', async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Target empty - fast path
+        .mockResolvedValueOnce({ items: [
+          { path: `${basePath}old/file1.jpg`, size: 100 },
+        ]})
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.renameFolder(`${basePath}old/`, 'new');
+      });
+
+      // Should proceed without additional duplicate checks
+      expect(copy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report partial failure when some copies fail', async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Target empty
+        .mockResolvedValueOnce({ items: [
+          { path: `${basePath}old/file1.jpg`, size: 100 },
+          { path: `${basePath}old/file2.jpg`, size: 200 },
+        ]})
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy)
+        .mockResolvedValueOnce({ path: 'test' })
+        .mockRejectedValueOnce(new Error('Copy failed'));
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let renameResult: { success: boolean; succeeded?: number; failed?: number; failedFiles?: string[] };
+      await act(async () => {
+        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+      });
+
+      expect(renameResult!.success).toBe(false);
+      expect(renameResult!.succeeded).toBe(1);
+      expect(renameResult!.failed).toBe(1);
+      expect(renameResult!.failedFiles).toContain('file2.jpg');
+      // Only successful copy should have remove called
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call progress callback during folder rename', async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Target empty
+        .mockResolvedValueOnce({ items: [
+          { path: `${basePath}old/file1.jpg`, size: 100 },
+          { path: `${basePath}old/file2.jpg`, size: 200 },
+        ]})
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const progressCallback = vi.fn();
+
+      await act(async () => {
+        await result.current.renameFolder(`${basePath}old/`, 'new', progressCallback);
+      });
+
+      expect(progressCallback).toHaveBeenCalled();
+      // Should be called with progress updates
+      expect(progressCallback).toHaveBeenCalledWith({ current: 1, total: 2 });
+      expect(progressCallback).toHaveBeenCalledWith({ current: 2, total: 2 });
+    });
+
+    it('should set isRenaming during folder rename', async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Target check
+        .mockResolvedValueOnce({ items: [
+          { path: `${basePath}old/file1.jpg`, size: 100 },
+        ]}) // Source list
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      // Create a deferred promise for copy
+      let resolveCopy: ((value: { path: string }) => void) | undefined;
+      const copyPromise = new Promise<{ path: string }>((resolve) => {
+        resolveCopy = resolve;
+      });
+      vi.mocked(copy).mockReturnValue(copyPromise);
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isRenaming).toBe(false);
+
+      let renamePromise: Promise<unknown>;
+      act(() => {
+        renamePromise = result.current.renameFolder(`${basePath}old/`, 'new');
+      });
+
+      // Wait a tick for the async operation to start
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.isRenaming).toBe(true);
+
+      await act(async () => {
+        resolveCopy!({ path: 'test' });
+        await renamePromise;
+      });
+
+      expect(result.current.isRenaming).toBe(false);
     });
   });
 });

@@ -95,3 +95,41 @@
   background-color: #ccc;
   cursor: not-allowed;
 }
+
+/* Progress message */
+.progress-message {
+  color: #1976d2;
+  font-size: 0.875rem;
+  margin: 8px 0 0 0;
+}
+
+/* Folder error details */
+.folder-error-details {
+  margin: 12px 0;
+  padding: 12px;
+  background-color: #fff3f3;
+  border-radius: 8px;
+  border: 1px solid #ffcdd2;
+}
+
+.error-summary {
+  color: #d32f2f;
+  font-size: 0.875rem;
+  margin: 0 0 8px 0;
+}
+
+.failed-files-list,
+.duplicate-files-list {
+  margin: 8px 0 0 0;
+  padding: 0 0 0 20px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.failed-files-list li,
+.duplicate-files-list li {
+  margin: 4px 0;
+  word-break: break-all;
+}
