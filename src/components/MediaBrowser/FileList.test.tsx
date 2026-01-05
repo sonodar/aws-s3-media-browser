@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FileList } from './FileList';
-import type { StorageItem } from '../../hooks/useStorage';
+import type { StorageItem } from '../../types/storage';
 
 // Mock ThumbnailImage component
 vi.mock('./ThumbnailImage', () => ({
