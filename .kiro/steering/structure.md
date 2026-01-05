@@ -12,7 +12,8 @@
 **Purpose**: React アプリケーションのソースコード
 **Structure**:
 - `components/[Feature]/` - 機能単位のコンポーネント群
-- `hooks/` - 再利用可能なカスタムフック
+- `hooks/` - 単一責任のカスタムフック + 関連ユーティリティ
+- `types/` - 共有型定義
 - `utils/` - ユーティリティ関数
 - `test/` - テスト設定・ヘルパー
 
@@ -37,7 +38,7 @@
 
 - **Files**: PascalCase（コンポーネント）、camelCase（hooks/utils）
 - **Components**: PascalCase（例: `MediaBrowser`, `FileList`）
-- **Hooks**: `use` プレフィックス（例: `useStorage`）
+- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`）
 - **CSS**: コンポーネント名と同名（例: `Header.css`）
 
 ## Import Organization
@@ -48,7 +49,8 @@ import { useState, useEffect } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 
 // 2. 内部モジュール（相対パス）
-import { useStorage } from '../../hooks/useStorage';
+import { useStorageOperations } from '../../hooks/useStorageOperations';
+import { useStoragePath } from '../../hooks/useStoragePath';
 import { isPreviewable } from '../../utils/fileTypes';
 
 // 3. ローカルコンポーネント
@@ -62,8 +64,9 @@ import './MediaBrowser.css';
 
 - **Co-location**: テストとスタイルはコンポーネントと同一ディレクトリ
 - **Single Export Point**: 機能フォルダは `index.tsx` で公開 API を制御
-- **Hook Abstraction**: 状態管理・副作用ロジックはカスタムフックに分離
-- **Type Co-location**: 型定義は使用箇所に近い場所に配置
+- **Single Responsibility Hooks**: 各フックは単一の責務を持つ（認証、パス管理、操作など）
+- **Type Co-location**: 型定義は使用箇所に近い場所、共有型は `types/` に配置
+- **Pure Function Extraction**: テスト可能な純粋関数は hooks/ 内にユーティリティとして配置可
 
 ---
 _Document patterns, not file trees. New files following patterns shouldn't require updates_

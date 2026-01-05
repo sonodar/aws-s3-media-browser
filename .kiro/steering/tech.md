@@ -3,7 +3,9 @@
 ## Architecture
 
 フロントエンド SPA + AWS Amplify マネージドバックエンド構成。
-Amplify Gen2 (TypeScript CDK) でバックエンドリソース（Auth, Storage）を定義。
+Amplify Gen2 (TypeScript CDK) でバックエンドリソース（Auth, Storage, Functions）を定義。
+S3 トリガー Lambda でサムネイル自動生成（Sharp + FFmpeg Layer）。
+WebAuthn（パスキー）によるパスワードレス認証をサポート。
 
 ## Core Technologies
 
@@ -57,6 +59,10 @@ Amplify Gen2 (TypeScript CDK) でバックエンドリソース（Auth, Storage�
 | セルフサインアップ無効化 | 管理者のみがユーザー作成可能なクローズド環境 |
 | Identity ID ベースストレージ | ユーザー間の完全なデータ分離 |
 | Vite + React 19 | 高速な開発サーバーと最新の React 機能 |
+| 単一責任フック分割 | テスト容易性と保守性向上（useStorage → 個別フック） |
+| URL クエリパラメータ同期 | SPA でのブラウザ履歴・リロード対応 |
+| WebAuthn パスキー認証 | パスワードレスでセキュアな認証体験 |
+| Set ベース選択管理 | O(1) 選択チェックによる複数選択・一括操作 |
 
 ---
 _Document standards and patterns, not every dependency_
