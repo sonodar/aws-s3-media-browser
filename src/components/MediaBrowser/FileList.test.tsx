@@ -118,6 +118,165 @@ describe('FileList', () => {
     expect(fileItem).toHaveAttribute('data-type', 'file');
   });
 
+  describe('選択モード', () => {
+    it('選択モード時にチェックボックスが表示される', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(3);
+    });
+
+    it('選択モードでない場合はチェックボックスが表示されない', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={false}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      const checkboxes = screen.queryAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(0);
+    });
+
+    it('選択中のアイテムにハイライトスタイルが適用される', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set(['photo.jpg'])}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      const selectedItem = screen.getByText('photo.jpg').closest('li');
+      expect(selectedItem).toHaveClass('file-list-item--selected');
+    });
+
+    it('選択されていないアイテムにはハイライトスタイルがない', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set(['photo.jpg'])}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      const unselectedItem = screen.getByText('folder1').closest('li');
+      expect(unselectedItem).not.toHaveClass('file-list-item--selected');
+    });
+
+    it('チェックボックスのクリックで onToggleSelection が呼ばれる', () => {
+      const onToggleSelection = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={onToggleSelection}
+        />
+      );
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      fireEvent.click(checkboxes[0]);
+
+      expect(onToggleSelection).toHaveBeenCalledWith('folder1/');
+    });
+
+    it('選択モード時はアイテムクリックで選択トグルが呼ばれる', () => {
+      const onToggleSelection = vi.fn();
+      const onFolderClick = vi.fn();
+      const onFileClick = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={onFolderClick}
+          onFileClick={onFileClick}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={onToggleSelection}
+        />
+      );
+
+      fireEvent.click(screen.getByText('folder1'));
+
+      expect(onToggleSelection).toHaveBeenCalledWith('folder1/');
+      expect(onFolderClick).not.toHaveBeenCalled();
+    });
+
+    it('選択モード時はファイルクリックで選択トグルが呼ばれる', () => {
+      const onToggleSelection = vi.fn();
+      const onFileClick = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={onFileClick}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={onToggleSelection}
+        />
+      );
+
+      fireEvent.click(screen.getByText('photo.jpg'));
+
+      expect(onToggleSelection).toHaveBeenCalledWith('photo.jpg');
+      expect(onFileClick).not.toHaveBeenCalled();
+    });
+
+    it('チェックボックスに適切な aria-label が設定されている', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      expect(screen.getByLabelText('folder1 を選択')).toBeInTheDocument();
+      expect(screen.getByLabelText('photo.jpg を選択')).toBeInTheDocument();
+      expect(screen.getByLabelText('video.mp4 を選択')).toBeInTheDocument();
+    });
+
+    it('選択中のチェックボックスは checked 状態になる', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set(['photo.jpg'])}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      const checkbox = screen.getByLabelText('photo.jpg を選択') as HTMLInputElement;
+      expect(checkbox.checked).toBe(true);
+    });
+  });
+
   describe('thumbnail display', () => {
     it('should render ThumbnailImage for image files', () => {
       render(
@@ -181,6 +340,46 @@ describe('FileList', () => {
         (t) => t.getAttribute('data-file-type') === 'image'
       );
       expect(imageThumbnail).toHaveAttribute('data-original-key', 'photo.jpg');
+    });
+  });
+
+  describe('keyboard accessibility', () => {
+    it('Space キーでチェックボックスが操作できる', () => {
+      const onToggleSelection = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={onToggleSelection}
+        />
+      );
+
+      const checkbox = screen.getByLabelText('photo.jpg を選択');
+      fireEvent.keyDown(checkbox, { key: ' ', code: 'Space' });
+
+      // Checkbox handles space natively, so we click instead
+      fireEvent.click(checkbox);
+      expect(onToggleSelection).toHaveBeenCalledWith('photo.jpg');
+    });
+
+    it('チェックボックスがフォーカス可能である', () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+        />
+      );
+
+      const checkbox = screen.getByLabelText('photo.jpg を選択');
+      checkbox.focus();
+      expect(document.activeElement).toBe(checkbox);
     });
   });
 });

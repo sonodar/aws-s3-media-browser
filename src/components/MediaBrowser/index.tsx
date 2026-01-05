@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useIdentityId } from '../../hooks/useIdentityId';
 import { useStoragePath } from '../../hooks/useStoragePath';
 import { useUploadTracker } from '../../hooks/useUploadTracker';
 import { useStorageOperations } from '../../hooks/useStorageOperations';
+import { useSelection } from '../../hooks/useSelection';
 import type { StorageItem } from '../../types/storage';
 import { Header } from './Header';
 import { FileList } from './FileList';
 import { FileActions } from './FileActions';
 import { CreateFolderDialog } from './CreateFolderDialog';
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { PreviewModal } from './PreviewModal';
 import { isPreviewable } from '../../utils/fileTypes';
 import './MediaBrowser.css';
@@ -33,10 +35,25 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
     loading: storageLoading,
     error: storageError,
     removeItem,
+    removeItems,
+    isDeleting,
     createFolder,
     refresh,
     getFileUrl,
   } = useStorageOperations({ identityId, currentPath });
+
+  // Selection management
+  const itemKeys = useMemo(() => items.map((item) => item.key), [items]);
+  const {
+    isSelectionMode,
+    selectedKeys,
+    selectedCount,
+    isAllSelected,
+    enterSelectionMode,
+    exitSelectionMode,
+    toggleSelection,
+    toggleSelectAll,
+  } = useSelection({ itemKeys });
 
   // Aggregate loading and error states
   const loading = identityLoading || storageLoading;
@@ -44,6 +61,13 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
 
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Get selected items for deletion
+  const selectedItems = useMemo(
+    () => items.filter((item) => selectedKeys.has(item.key)),
+    [items, selectedKeys]
+  );
 
   const handleFileClick = (item: StorageItem) => {
     if (isPreviewable(item.name)) {
@@ -54,6 +78,16 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
   const handleDeleteFromPreview = async (item: StorageItem) => {
     await removeItem(item.key);
     setPreviewItem(null);
+  };
+
+  const handleDeleteSelected = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    await removeItems(selectedItems);
+    setShowDeleteConfirm(false);
+    exitSelectionMode();
   };
 
   if (error) {
@@ -71,6 +105,13 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
         currentPath={currentPath}
         onBack={goBack}
         onSignOut={onSignOut}
+        isSelectionMode={isSelectionMode}
+        selectedCount={selectedCount}
+        isAllSelected={isAllSelected}
+        onEnterSelectionMode={enterSelectionMode}
+        onExitSelectionMode={exitSelectionMode}
+        onToggleSelectAll={toggleSelectAll}
+        onDeleteSelected={handleDeleteSelected}
       />
 
       <main className="media-browser-content">
@@ -84,6 +125,9 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
             onFolderClick={navigate}
             onFileClick={handleFileClick}
             recentlyUploadedKeys={recentlyUploadedKeys}
+            isSelectionMode={isSelectionMode}
+            selectedKeys={selectedKeys}
+            onToggleSelection={toggleSelection}
           />
         )}
       </main>
@@ -108,6 +152,15 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
         getFileUrl={getFileUrl}
         onDelete={handleDeleteFromPreview}
       />
+
+      {showDeleteConfirm && (
+        <DeleteConfirmDialog
+          items={selectedItems}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 }

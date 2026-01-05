@@ -65,3 +65,27 @@
   color: #666;
   grid-column: 1 / -1;
 }
+
+/* Selection mode styles */
+.file-list-item--selected {
+  background-color: #e3f2fd !important;
+  border: 2px solid #1976d2;
+}
+
+.file-list-item--selected:hover {
+  background-color: #bbdefb !important;
+}
+
+.file-list-checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #1976d2;
+}
+
+.file-list-item {
+  position: relative;
+}

@@ -308,4 +308,230 @@ describe('useStorageOperations', () => {
       });
     });
   });
+
+  describe('removeItems (複数削除)', () => {
+    it('should delete a single file', async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [{ key: 'media/id/file.jpg', name: 'file.jpg', type: 'file' as const }];
+
+      let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
+      await act(async () => {
+        deleteResult = await result.current.removeItems(items);
+      });
+
+      expect(remove).toHaveBeenCalledWith({ path: 'media/id/file.jpg' });
+      expect(deleteResult!.succeeded).toEqual(['media/id/file.jpg']);
+      expect(deleteResult!.failed).toHaveLength(0);
+    });
+
+    it('should delete multiple files in parallel', async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: 'media/id/file1.jpg', name: 'file1.jpg', type: 'file' as const },
+        { key: 'media/id/file2.jpg', name: 'file2.jpg', type: 'file' as const },
+        { key: 'media/id/file3.jpg', name: 'file3.jpg', type: 'file' as const },
+      ];
+
+      let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
+      await act(async () => {
+        deleteResult = await result.current.removeItems(items);
+      });
+
+      expect(remove).toHaveBeenCalledTimes(3);
+      expect(deleteResult!.succeeded).toHaveLength(3);
+      expect(deleteResult!.failed).toHaveLength(0);
+    });
+
+    it('should handle partial failure', async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+      const mockError = new Error('Permission denied');
+      vi.mocked(remove)
+        .mockResolvedValueOnce({ path: 'test' })
+        .mockRejectedValueOnce(mockError)
+        .mockResolvedValueOnce({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: 'media/id/file1.jpg', name: 'file1.jpg', type: 'file' as const },
+        { key: 'media/id/file2.jpg', name: 'file2.jpg', type: 'file' as const },
+        { key: 'media/id/file3.jpg', name: 'file3.jpg', type: 'file' as const },
+      ];
+
+      let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
+      await act(async () => {
+        deleteResult = await result.current.removeItems(items);
+      });
+
+      expect(deleteResult!.succeeded).toHaveLength(2);
+      expect(deleteResult!.failed).toHaveLength(1);
+      expect(deleteResult!.failed[0].key).toBe('media/id/file2.jpg');
+      expect(deleteResult!.failed[0].error).toBe(mockError);
+    });
+
+    it('should delete folder contents recursively', async () => {
+      const basePath = `media/${identityId}/`;
+      // Initial list for hook mount
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        // Folder contents list
+        .mockResolvedValueOnce({
+          items: [
+            { path: `${basePath}folder/file1.jpg`, size: 100 },
+            { path: `${basePath}folder/file2.jpg`, size: 200 },
+            { path: `${basePath}folder/subfolder/file3.jpg`, size: 300 },
+          ],
+        })
+        // Final refresh
+        .mockResolvedValueOnce({ items: [] });
+
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [{ key: `${basePath}folder/`, name: 'folder', type: 'folder' as const }];
+
+      await act(async () => {
+        await result.current.removeItems(items);
+      });
+
+      // Should list folder contents first
+      expect(list).toHaveBeenCalledWith({
+        path: `${basePath}folder/`,
+        options: { listAll: true },
+      });
+
+      // Should delete all contents + folder itself (4 total: 3 files + 1 folder)
+      expect(remove).toHaveBeenCalledTimes(4);
+    });
+
+    it('should handle folder that does not exist as object', async () => {
+      const basePath = `media/${identityId}/`;
+      // Initial list for hook mount
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] })
+        // Folder contents list - no folder object, just files inside
+        .mockResolvedValueOnce({
+          items: [
+            { path: `${basePath}folder/file1.jpg`, size: 100 },
+          ],
+        })
+        // Final refresh
+        .mockResolvedValueOnce({ items: [] });
+
+      // First call succeeds (file), second call fails (folder object doesn't exist)
+      vi.mocked(remove)
+        .mockResolvedValueOnce({ path: 'test' })
+        .mockRejectedValueOnce(new Error('NotFound'));
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [{ key: `${basePath}folder/`, name: 'folder', type: 'folder' as const }];
+
+      let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
+      await act(async () => {
+        deleteResult = await result.current.removeItems(items);
+      });
+
+      // File deletion succeeded, folder object deletion failed but that's ok
+      expect(deleteResult!.succeeded).toContain(`${basePath}folder/file1.jpg`);
+    });
+
+    it('should set isDeleting to true during deletion', async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+      let resolveRemove: () => void;
+      vi.mocked(remove).mockImplementation(
+        () => new Promise((resolve) => { resolveRemove = () => resolve({ path: 'test' }); })
+      );
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isDeleting).toBe(false);
+
+      const items = [{ key: 'media/id/file.jpg', name: 'file.jpg', type: 'file' as const }];
+
+      let deletePromise: Promise<unknown>;
+      act(() => {
+        deletePromise = result.current.removeItems(items);
+      });
+
+      // isDeleting should be true while deletion is in progress
+      expect(result.current.isDeleting).toBe(true);
+
+      await act(async () => {
+        resolveRemove!();
+        await deletePromise;
+      });
+
+      expect(result.current.isDeleting).toBe(false);
+    });
+
+    it('should refresh items after deletion', async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+
+      const { result } = renderHook(() =>
+        useStorageOperations({ identityId, currentPath })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(list).toHaveBeenCalledTimes(1);
+
+      const items = [{ key: 'media/id/file.jpg', name: 'file.jpg', type: 'file' as const }];
+
+      await act(async () => {
+        await result.current.removeItems(items);
+      });
+
+      // Initial fetch + refresh after deletion
+      expect(list).toHaveBeenCalledTimes(2);
+    });
+  });
 });
