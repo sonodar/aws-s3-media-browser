@@ -18,6 +18,8 @@ interface HeaderProps {
   onToggleSelectAll?: () => void;
   /** 削除ボタン押下 */
   onDeleteSelected?: () => void;
+  /** 設定モーダルを開く */
+  onOpenSettings?: () => void;
 }
 
 export function Header({
@@ -31,6 +33,7 @@ export function Header({
   onExitSelectionMode,
   onToggleSelectAll,
   onDeleteSelected,
+  onOpenSettings,
 }: HeaderProps) {
   const pathParts = currentPath.split('/').filter(Boolean);
   const currentFolder = pathParts[pathParts.length - 1] || null;
@@ -100,6 +103,15 @@ export function Header({
             aria-label="選択"
           >
             選択
+          </button>
+        )}
+        {onOpenSettings && (
+          <button
+            className="settings-button"
+            onClick={onOpenSettings}
+            aria-label="設定"
+          >
+            設定
           </button>
         )}
         <button

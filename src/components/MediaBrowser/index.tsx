@@ -16,9 +16,10 @@ import './MediaBrowser.css';
 
 interface MediaBrowserProps {
   onSignOut: () => void;
+  onOpenSettings?: () => void;
 }
 
-export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
+export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   // Individual hooks
   const {
     identityId,
@@ -112,6 +113,7 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
         onExitSelectionMode={exitSelectionMode}
         onToggleSelectAll={toggleSelectAll}
         onDeleteSelected={handleDeleteSelected}
+        onOpenSettings={onOpenSettings}
       />
 
       <main className="media-browser-content">
