@@ -157,8 +157,9 @@ describe('MediaBrowser Behavior Tests', () => {
     it('should display items after loading completes', async () => {
       render(<MediaBrowser onSignOut={onSignOut} />);
 
+      // Wait for items to actually appear
       await waitFor(() => {
-        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument();
+        expect(screen.getByText('folder1')).toBeInTheDocument();
       });
 
       // Should display folder and files
