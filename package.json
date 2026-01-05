@@ -1,6 +1,17 @@
 {
-  "name": "aws-s3-photo-browser",
+  "name": "aws-s3-media-browser",
   "version": "1.0.0",
+  "description": "AWS Amplify Gen2 を活用した S3 上の写真・動画ブラウザアプリケーション。ユーザーごとに独立したストレージ空間を提供し、メディアファイルの閲覧・管理を可能にします。",
+  "keywords": [
+    "aws-amplify",
+    "media-browser",
+    "react",
+    "s3",
+    "serverless",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "sonodar",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -9,10 +20,6 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@aws-amplify/backend": "^1.19.0",
     "@aws-amplify/backend-cli": "^1.8.1",

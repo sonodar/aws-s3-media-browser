@@ -1,8 +1,39 @@
-# amplify
-node_modules
-.amplify
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.amplify/
+
+# Amplify outputs (generated, may contain AWS resource IDs)
 amplify_outputs*
 amplifyconfiguration*
 
-dist/
+# Test coverage
 coverage/
+
+# Environment files (may contain secrets)
+.env
+.env.*
+.envrc
+
+# IDE settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Playwright MCP screenshots (development artifacts)
+.playwright-mcp/
+
+# Logs
+*.log
+npm-debug.log*
