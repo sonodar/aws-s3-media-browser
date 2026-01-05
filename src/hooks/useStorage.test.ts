@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useStorage } from './useStorage';
 
@@ -19,12 +19,30 @@ import { list, remove, uploadData } from 'aws-amplify/storage';
 import { fetchAuthSession } from 'aws-amplify/auth';
 
 describe('useStorage', () => {
+  const originalLocation = window.location;
+  const originalHistory = window.history;
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock identity ID
     vi.mocked(fetchAuthSession).mockResolvedValue({
       identityId: 'test-identity-id',
     } as Awaited<ReturnType<typeof fetchAuthSession>>);
+
+    // Mock window.location and history for URL sync tests
+    vi.stubGlobal('location', {
+      ...originalLocation,
+      href: 'http://localhost/',
+      search: '',
+    });
+    vi.stubGlobal('history', {
+      ...originalHistory,
+      pushState: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('initial state', () => {
@@ -235,6 +253,143 @@ describe('useStorage', () => {
 
       expect(result.current.error).not.toBeNull();
       expect(result.current.error?.message).toBe('Network error');
+    });
+  });
+
+  describe('URL synchronization', () => {
+    it('should initialize currentPath from URL query parameter', async () => {
+      vi.stubGlobal('location', {
+        ...originalLocation,
+        href: 'http://localhost/?path=photos%2F2024',
+        search: '?path=photos%2F2024',
+      });
+
+      vi.mocked(list).mockResolvedValue({
+        items: [],
+        nextToken: undefined,
+      } as Awaited<ReturnType<typeof list>>);
+
+      const { result } = renderHook(() => useStorage());
+
+      // Initial path should be parsed from URL
+      expect(result.current.currentPath).toBe('photos/2024');
+    });
+
+    it('should update URL when navigating to folder', async () => {
+      vi.mocked(list).mockResolvedValue({
+        items: [],
+        nextToken: undefined,
+      } as Awaited<ReturnType<typeof list>>);
+
+      const { result } = renderHook(() => useStorage());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      act(() => {
+        result.current.navigate('folder1');
+      });
+
+      await waitFor(() => {
+        expect(result.current.currentPath).toBe('folder1');
+      });
+
+      expect(window.history.pushState).toHaveBeenCalledWith(
+        { path: 'folder1' },
+        '',
+        expect.stringContaining('path=folder1')
+      );
+    });
+
+    it('should update URL when going back', async () => {
+      vi.stubGlobal('location', {
+        ...originalLocation,
+        href: 'http://localhost/?path=folder1',
+        search: '?path=folder1',
+      });
+
+      vi.mocked(list).mockResolvedValue({
+        items: [],
+        nextToken: undefined,
+      } as Awaited<ReturnType<typeof list>>);
+
+      const { result } = renderHook(() => useStorage());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      act(() => {
+        result.current.goBack();
+      });
+
+      await waitFor(() => {
+        expect(result.current.currentPath).toBe('');
+      });
+
+      // URL should be updated to remove path parameter
+      expect(window.history.pushState).toHaveBeenCalledWith(
+        { path: '' },
+        '',
+        expect.stringMatching(/^http:\/\/localhost\/(\?)?$/)
+      );
+    });
+
+    it('should handle Japanese folder names in URL', async () => {
+      const japanesePath = '写真/旅行';
+      const encodedPath = encodeURIComponent(japanesePath);
+      vi.stubGlobal('location', {
+        ...originalLocation,
+        href: `http://localhost/?path=${encodedPath}`,
+        search: `?path=${encodedPath}`,
+      });
+
+      vi.mocked(list).mockResolvedValue({
+        items: [],
+        nextToken: undefined,
+      } as Awaited<ReturnType<typeof list>>);
+
+      const { result } = renderHook(() => useStorage());
+
+      expect(result.current.currentPath).toBe(japanesePath);
+    });
+
+    it('should respond to popstate event (browser back/forward)', async () => {
+      vi.mocked(list).mockResolvedValue({
+        items: [],
+        nextToken: undefined,
+      } as Awaited<ReturnType<typeof list>>);
+
+      const { result } = renderHook(() => useStorage());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Navigate to a folder first
+      act(() => {
+        result.current.navigate('folder1');
+      });
+
+      await waitFor(() => {
+        expect(result.current.currentPath).toBe('folder1');
+      });
+
+      // Simulate popstate event (browser back button)
+      vi.stubGlobal('location', {
+        ...originalLocation,
+        href: 'http://localhost/',
+        search: '',
+      });
+
+      act(() => {
+        window.dispatchEvent(new PopStateEvent('popstate', { state: { path: '' } }));
+      });
+
+      await waitFor(() => {
+        expect(result.current.currentPath).toBe('');
+      });
     });
   });
 
