@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { StorageItem } from '../../hooks/useStorage';
+import type { StorageItem } from '../../types/storage';
 import './CreateFolderDialog.css'; // Reuse dialog styles
 
 interface DeleteConfirmDialogProps {

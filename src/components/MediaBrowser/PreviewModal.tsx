@@ -3,7 +3,7 @@ import Lightbox, { type Slide } from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
-import type { StorageItem } from '../../hooks/useStorage';
+import type { StorageItem } from '../../types/storage';
 import { isImageFile, isVideoFile } from '../../utils/fileTypes';
 import './PreviewModal.css';
 

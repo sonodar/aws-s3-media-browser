@@ -1,4 +1,4 @@
-import type { StorageItem } from '../../hooks/useStorage';
+import type { StorageItem } from '../../types/storage';
 import { isImageFile, isVideoFile } from '../../utils/fileTypes';
 import { ThumbnailImage } from './ThumbnailImage';
 import './FileList.css';

@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
-import { fetchAuthSession } from 'aws-amplify/auth';
-import { useStorage, type StorageItem } from '../../hooks/useStorage';
+import { useState } from 'react';
+import { useIdentityId } from '../../hooks/useIdentityId';
+import { useStoragePath } from '../../hooks/useStoragePath';
+import { useUploadTracker } from '../../hooks/useUploadTracker';
+import { useStorageOperations } from '../../hooks/useStorageOperations';
+import type { StorageItem } from '../../types/storage';
 import { Header } from './Header';
 import { FileList } from './FileList';
 import { FileActions } from './FileActions';
@@ -14,29 +17,33 @@ interface MediaBrowserProps {
 }
 
 export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
+  // Individual hooks
+  const {
+    identityId,
+    loading: identityLoading,
+    error: identityError,
+  } = useIdentityId();
+
+  const { currentPath, navigate, goBack } = useStoragePath();
+
+  const { recentlyUploadedKeys } = useUploadTracker();
+
   const {
     items,
-    loading,
-    error,
-    currentPath,
-    navigate,
-    goBack,
-    remove,
+    loading: storageLoading,
+    error: storageError,
+    removeItem,
     createFolder,
     refresh,
     getFileUrl,
-    recentlyUploadedKeys,
-  } = useStorage();
+  } = useStorageOperations({ identityId, currentPath });
 
-  const [identityId, setIdentityId] = useState<string | null>(null);
+  // Aggregate loading and error states
+  const loading = identityLoading || storageLoading;
+  const error = identityError || storageError;
+
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null);
-
-  useEffect(() => {
-    fetchAuthSession().then((session) => {
-      setIdentityId(session.identityId ?? null);
-    });
-  }, []);
 
   const handleFileClick = (item: StorageItem) => {
     if (isPreviewable(item.name)) {
@@ -45,7 +52,7 @@ export function MediaBrowser({ onSignOut }: MediaBrowserProps) {
   };
 
   const handleDeleteFromPreview = async (item: StorageItem) => {
-    await remove(item.key);
+    await removeItem(item.key);
     setPreviewItem(null);
   };
 

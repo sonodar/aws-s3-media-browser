@@ -5,3 +5,4 @@ amplify_outputs*
 amplifyconfiguration*
 
 dist/
+coverage/
