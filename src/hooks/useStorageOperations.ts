@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { list, remove, uploadData, getUrl, copy } from 'aws-amplify/storage';
-import { buildRenamedKey, buildRenamedPrefix } from '../utils/pathUtils';
+import {
+  buildRenamedKey,
+  buildRenamedPrefix,
+  encodePathForCopy,
+} from '../utils/pathUtils';
 import { parseStorageItems } from './parseStorageItems';
 import type { StorageItem } from '../types/storage';
 
@@ -66,7 +70,7 @@ export interface UseStorageOperationsReturn {
   isDeleting: boolean;
   createFolder: (name: string) => Promise<void>;
   getFileUrl: (key: string) => Promise<string>;
-  refresh: () => void;
+  refresh: () => Promise<void>;
   /**
    * 単一ファイルをリネームする
    * @param currentKey 現在のS3オブジェクトキー
@@ -257,8 +261,8 @@ export function useStorageOperations({
     return result.url.toString();
   }, []);
 
-  const refresh = useCallback(() => {
-    fetchItems();
+  const refresh = useCallback((): Promise<void> => {
+    return fetchItems();
   }, [fetchItems]);
 
   /**
@@ -289,9 +293,12 @@ export function useStorageOperations({
         }
 
         // コピー実行
+        // Amplify の copy API は CopySource ヘッダーを URL エンコードしないため、
+        // 日本語などの非ASCII文字を含むパスでエラーが発生する。
+        // ソースパスを事前にエンコードすることで回避する。
         try {
           await copy({
-            source: { path: currentKey },
+            source: { path: encodePathForCopy(currentKey) },
             destination: { path: newKey },
           });
         } catch (err) {
@@ -398,7 +405,7 @@ export function useStorageOperations({
 
           try {
             await copy({
-              source: { path: sourcePath },
+              source: { path: encodePathForCopy(sourcePath) },
               destination: { path: destPath },
             });
 

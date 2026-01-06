@@ -108,13 +108,15 @@ export function RenameDialog({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      // IME 変換中は無視（変換確定の Enter でリネームが実行されるのを防ぐ）
+      if (e.nativeEvent.isComposing) return;
+
       if (e.key === 'Escape' && !isProcessing) {
         onClose();
-      } else if (e.key === 'Enter' && !isProcessing) {
-        handleSubmit();
       }
+      // Enter キーでのリネーム実行を削除（モバイルファーストのため不要、IME との相性も悪い）
     },
-    [isProcessing, onClose, handleSubmit]
+    [isProcessing, onClose]
   );
 
   const handleClose = useCallback(() => {

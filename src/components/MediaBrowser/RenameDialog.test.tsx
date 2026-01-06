@@ -196,7 +196,8 @@ describe('RenameDialog', () => {
   });
 
   describe('keyboard handling', () => {
-    it('should submit on Enter key', async () => {
+    it('should not submit on Enter keyDown (removed for IME compatibility)', async () => {
+      // モバイルファーストのため、また IME との相性が悪いため Enter キーでのリネーム実行を削除
       render(
         <RenameDialog
           isOpen={true}
@@ -212,9 +213,8 @@ describe('RenameDialog', () => {
       fireEvent.change(input, { target: { value: 'newname.jpg' } });
       fireEvent.keyDown(input, { key: 'Enter' });
 
-      await waitFor(() => {
-        expect(mockOnRenameFile).toHaveBeenCalledWith(fileItem.key, 'newname.jpg');
-      });
+      // Enter keyDown では submit が呼ばれないことを確認
+      expect(mockOnRenameFile).not.toHaveBeenCalled();
     });
 
     it('should close on Escape key', () => {

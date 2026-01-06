@@ -1,6 +1,25 @@
 import { isImageFile, isVideoFile } from './fileTypes';
 
 /**
+ * Encode path for S3 CopySource header
+ *
+ * Amplify Storage の copy API は x-amz-copy-source ヘッダーにソースパスを
+ * URL エンコードせずに設定するため、日本語などの非ASCII文字を含むパスで
+ * エラーが発生する。この関数でパスを事前にエンコードすることで回避する。
+ *
+ * @see https://github.com/axios/axios/issues/4556
+ * @example
+ * encodePathForCopy('media/abc/日本語.jpg')
+ * // => 'media/abc/%E6%97%A5%E6%9C%AC%E8%AA%9E.jpg'
+ */
+export function encodePathForCopy(path: string): string {
+  return path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+/**
  * Thumbnail file suffix
  */
 const THUMBNAIL_SUFFIX = '.thumb.jpg';

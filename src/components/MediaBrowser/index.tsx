@@ -95,7 +95,10 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     exitSelectionMode();
   };
 
-  const handleRename = (item: StorageItem) => {
+  const handleRename = async (item: StorageItem) => {
+    // リネームダイアログを開く前に最新のアイテムリストを取得
+    // これにより、前回のリネーム操作後の古いステートによる誤検知を防ぐ
+    await refresh();
     setRenameTarget(item);
   };
 
@@ -157,7 +160,13 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
       <CreateFolderDialog
         isOpen={showCreateFolder}
         onClose={() => setShowCreateFolder(false)}
-        onCreate={createFolder}
+        onCreate={async (name) => {
+          await createFolder(name);
+          // createFolder 内で fetchItems を呼んでいるが、React の state 更新が
+          // コミットされる前にダイアログが閉じると items が反映されない可能性がある。
+          // refresh を await することで確実に最新の状態を取得する。
+          await refresh();
+        }}
       />
 
       <PreviewModal
@@ -166,8 +175,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         item={previewItem}
         getFileUrl={getFileUrl}
         onDelete={handleDeleteFromPreview}
-        onRename={(item) => {
+        onRename={async (item) => {
           setPreviewItem(null);
+          await refresh();
           setRenameTarget(item);
         }}
       />
