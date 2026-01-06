@@ -5,11 +5,13 @@ import { FileActionMenu } from "./FileActionMenu";
 describe("FileActionMenu", () => {
   const mockOnRename = vi.fn();
   const mockOnDelete = vi.fn();
+  const mockOnMove = vi.fn();
 
   const defaultProps = {
     itemName: "test-file.jpg",
     onRename: mockOnRename,
     onDelete: mockOnDelete,
+    onMove: mockOnMove,
   };
 
   beforeEach(() => {
@@ -40,13 +42,23 @@ describe("FileActionMenu", () => {
   });
 
   describe("menu items", () => {
-    it("should show rename and delete options when opened", () => {
+    it("should show rename, move, and delete options when opened", () => {
       render(<FileActionMenu {...defaultProps} />);
 
       fireEvent.click(screen.getByRole("button", { name: "test-file.jpg のアクション" }));
 
       expect(screen.getByRole("menuitem", { name: /名前を変更/ })).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: /移動/ })).toBeInTheDocument();
       expect(screen.getByRole("menuitem", { name: /削除/ })).toBeInTheDocument();
+    });
+
+    it("should call onMove when move is clicked", () => {
+      render(<FileActionMenu {...defaultProps} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "test-file.jpg のアクション" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: /移動/ }));
+
+      expect(mockOnMove).toHaveBeenCalledTimes(1);
     });
 
     it("should call onRename when rename is clicked", () => {
@@ -111,7 +123,7 @@ describe("FileActionMenu", () => {
       fireEvent.click(screen.getByRole("button", { name: "test-file.jpg のアクション" }));
 
       expect(screen.getByRole("menu")).toBeInTheDocument();
-      expect(screen.getAllByRole("menuitem")).toHaveLength(2);
+      expect(screen.getAllByRole("menuitem")).toHaveLength(3);
     });
   });
 });

@@ -20,17 +20,20 @@ export interface DropdownMenuProps {
   triggerIcon?: LucideIcon;
   /** メニュートリガーのaria-label */
   triggerLabel: string;
-  /** メニュー位置（デフォルト: 'bottom-right'） */
-  position?: "bottom-left" | "bottom-right";
+  /** メニュー位置（デフォルト: 'auto'）'auto'の場合は画面端を検出して自動決定 */
+  position?: "bottom-left" | "bottom-right" | "auto";
 }
 
 export function DropdownMenu({
   items,
   triggerIcon: TriggerIcon = EllipsisVertical,
   triggerLabel,
-  position = "bottom-right",
+  position = "auto",
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [computedPosition, setComputedPosition] = useState<"bottom-left" | "bottom-right">(
+    "bottom-right",
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 外部クリックでメニューを閉じる
@@ -61,7 +64,39 @@ export function DropdownMenu({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen]);
 
+  // メニュー位置を計算（autoの場合は画面端を検出）
+  const calculatePosition = (): "bottom-left" | "bottom-right" => {
+    if (position !== "auto") {
+      return position;
+    }
+
+    if (!containerRef.current) {
+      return "bottom-right";
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const menuWidth = 160; // min-width from CSS
+    const viewportWidth = window.innerWidth;
+
+    // 左端に近い場合（メニューを右に展開）
+    if (rect.left < menuWidth) {
+      return "bottom-left";
+    }
+
+    // 右端に近い場合（メニューを左に展開）
+    if (viewportWidth - rect.right < menuWidth) {
+      return "bottom-right";
+    }
+
+    // デフォルトは右寄せ
+    return "bottom-right";
+  };
+
   const handleToggle = () => {
+    if (!isOpen) {
+      // メニューを開く前に位置を計算
+      setComputedPosition(calculatePosition());
+    }
     setIsOpen((prev) => !prev);
   };
 
@@ -89,7 +124,7 @@ export function DropdownMenu({
       </button>
 
       {isOpen && (
-        <div className={`dropdown-menu dropdown-menu--${position}`} role="menu">
+        <div className={`dropdown-menu dropdown-menu--${computedPosition}`} role="menu">
           {items.map((item) => {
             const ItemIcon = item.icon;
             return (

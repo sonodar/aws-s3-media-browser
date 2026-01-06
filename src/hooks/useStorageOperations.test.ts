@@ -950,4 +950,343 @@ describe("useStorageOperations", () => {
       expect(result.current.isRenaming).toBe(false);
     });
   });
+
+  describe("moveItems (ファイル/フォルダ移動)", () => {
+    const basePath = `media/${identityId}/`;
+
+    it("should move a single file to destination folder", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Check destination for duplicates
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: `${basePath}photos/file.jpg`, name: "file.jpg", type: "file" as const },
+      ];
+
+      let moveResult: { success: boolean; succeeded: number; failed: number };
+      await act(async () => {
+        moveResult = await result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      expect(moveResult!.success).toBe(true);
+      expect(moveResult!.succeeded).toBe(1);
+      // encodePathForCopy encodes each segment but preserves /
+      // For ASCII-only paths, the result is the same as the input
+      expect(copy).toHaveBeenCalledWith({
+        source: { path: `${basePath}photos/file.jpg` },
+        destination: { path: `${basePath}archive/file.jpg` },
+      });
+      expect(remove).toHaveBeenCalledWith({ path: `${basePath}photos/file.jpg` });
+    });
+
+    it("should move multiple files to destination folder", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Check destination
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: `${basePath}photos/file1.jpg`, name: "file1.jpg", type: "file" as const },
+        { key: `${basePath}photos/file2.jpg`, name: "file2.jpg", type: "file" as const },
+      ];
+
+      let moveResult: { success: boolean; succeeded: number; failed: number };
+      await act(async () => {
+        moveResult = await result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      expect(moveResult!.success).toBe(true);
+      expect(moveResult!.succeeded).toBe(2);
+      expect(copy).toHaveBeenCalledTimes(2);
+      expect(remove).toHaveBeenCalledTimes(2);
+    });
+
+    it("should move folder with all contents", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({
+          items: [
+            // Folder contents (listFolderContents is called first)
+            { path: `${basePath}photos/folder/file1.jpg`, size: 100 },
+            { path: `${basePath}photos/folder/subfolder/file2.jpg`, size: 200 },
+          ],
+        })
+        .mockResolvedValueOnce({ items: [] }) // Check destination for duplicates
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [{ key: `${basePath}photos/folder/`, name: "folder", type: "folder" as const }];
+
+      let moveResult: { success: boolean; succeeded: number; failed: number };
+      await act(async () => {
+        moveResult = await result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      expect(moveResult!.success).toBe(true);
+      expect(moveResult!.succeeded).toBe(2);
+      // Should copy files preserving folder structure
+      expect(copy).toHaveBeenCalledWith({
+        source: { path: `${basePath}photos/folder/file1.jpg` },
+        destination: { path: `${basePath}archive/folder/file1.jpg` },
+      });
+      expect(copy).toHaveBeenCalledWith({
+        source: { path: `${basePath}photos/folder/subfolder/file2.jpg` },
+        destination: { path: `${basePath}archive/folder/subfolder/file2.jpg` },
+      });
+    });
+
+    it("should abort when duplicate file exists at destination", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({
+          // listAll for destination - duplicate exists
+          items: [{ path: `${basePath}archive/file.jpg`, size: 100 }],
+        });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: `${basePath}photos/file.jpg`, name: "file.jpg", type: "file" as const },
+      ];
+
+      let moveResult: { success: boolean; error?: string; duplicates?: string[] };
+      await act(async () => {
+        moveResult = await result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      expect(moveResult!.success).toBe(false);
+      expect(moveResult!.error).toContain("同名のファイルが存在します");
+      expect(moveResult!.duplicates).toContain("file.jpg");
+      expect(copy).not.toHaveBeenCalled();
+    });
+
+    it("should call progress callback during move", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Check destination
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: `${basePath}photos/file1.jpg`, name: "file1.jpg", type: "file" as const },
+        { key: `${basePath}photos/file2.jpg`, name: "file2.jpg", type: "file" as const },
+      ];
+
+      const progressCallback = vi.fn();
+
+      await act(async () => {
+        await result.current.moveItems(items, `${basePath}archive`, progressCallback);
+      });
+
+      expect(progressCallback).toHaveBeenCalledWith({ current: 1, total: 2 });
+      expect(progressCallback).toHaveBeenCalledWith({ current: 2, total: 2 });
+    });
+
+    it("should report partial failure when some copies fail", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Check destination
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy)
+        .mockResolvedValueOnce({ path: "test" })
+        .mockRejectedValueOnce(new Error("Copy failed"));
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const items = [
+        { key: `${basePath}photos/file1.jpg`, name: "file1.jpg", type: "file" as const },
+        { key: `${basePath}photos/file2.jpg`, name: "file2.jpg", type: "file" as const },
+      ];
+
+      let moveResult: {
+        success: boolean;
+        succeeded: number;
+        failed: number;
+        failedItems?: string[];
+      };
+      await act(async () => {
+        moveResult = await result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      expect(moveResult!.success).toBe(false);
+      expect(moveResult!.succeeded).toBe(1);
+      expect(moveResult!.failed).toBe(1);
+      expect(moveResult!.failedItems).toContain("file2.jpg");
+    });
+
+    it("should set isMoving during move operation", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Check destination
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      let resolveCopy: ((value: { path: string }) => void) | undefined;
+      const copyPromise = new Promise<{ path: string }>((resolve) => {
+        resolveCopy = resolve;
+      });
+      vi.mocked(copy).mockReturnValue(copyPromise);
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isMoving).toBe(false);
+
+      const items = [
+        { key: `${basePath}photos/file.jpg`, name: "file.jpg", type: "file" as const },
+      ];
+
+      let movePromise: Promise<unknown>;
+      act(() => {
+        movePromise = result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      // Wait a tick for the async operation to start
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.isMoving).toBe(true);
+
+      await act(async () => {
+        resolveCopy!({ path: "test" });
+        await movePromise;
+      });
+
+      expect(result.current.isMoving).toBe(false);
+    });
+
+    it("should refresh items after successful move", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({ items: [] }) // Check destination
+        .mockResolvedValueOnce({ items: [] }); // Refresh
+
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(list).toHaveBeenCalledTimes(1);
+
+      const items = [
+        { key: `${basePath}photos/file.jpg`, name: "file.jpg", type: "file" as const },
+      ];
+
+      await act(async () => {
+        await result.current.moveItems(items, `${basePath}archive`);
+      });
+
+      // Initial + duplicate check + refresh after move
+      expect(list).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe("listFolders", () => {
+    const basePath = `media/${identityId}/`;
+
+    it("should return only folders from the specified path", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial hook mount
+        .mockResolvedValueOnce({
+          items: [
+            { path: `${basePath}photos/`, size: 0, lastModified: new Date() },
+            { path: `${basePath}archive/`, size: 0, lastModified: new Date() },
+            { path: `${basePath}file.jpg`, size: 1024, lastModified: new Date() },
+            { path: `${basePath}document.pdf`, size: 2048, lastModified: new Date() },
+          ],
+        });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let folders: Array<{ key: string; name: string; type: string }>;
+      await act(async () => {
+        folders = await result.current.listFolders(basePath);
+      });
+
+      expect(folders!).toHaveLength(2);
+      expect(folders!.every((f) => f.type === "folder")).toBe(true);
+      // Order may vary, use toContain for both
+      const folderNames = folders!.map((f) => f.name);
+      expect(folderNames).toContain("photos");
+      expect(folderNames).toContain("archive");
+    });
+
+    it("should return empty array when no folders exist", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] }) // Initial
+        .mockResolvedValueOnce({
+          items: [{ path: `${basePath}file.jpg`, size: 1024, lastModified: new Date() }],
+        });
+
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      let folders: Array<{ key: string; name: string; type: string }>;
+      await act(async () => {
+        folders = await result.current.listFolders(basePath);
+      });
+
+      expect(folders!).toHaveLength(0);
+    });
+  });
 });

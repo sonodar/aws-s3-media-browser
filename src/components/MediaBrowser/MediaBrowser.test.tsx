@@ -519,7 +519,7 @@ describe("MediaBrowser Behavior Tests", () => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
       });
 
-      expect(screen.getByRole("button", { name: /選択/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "選択" })).toBeInTheDocument();
     });
 
     it("should enter selection mode when selection button is clicked", async () => {
@@ -529,7 +529,7 @@ describe("MediaBrowser Behavior Tests", () => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
       });
 
-      const selectionButton = screen.getByRole("button", { name: /選択/ });
+      const selectionButton = screen.getByRole("button", { name: "選択" });
       fireEvent.click(selectionButton);
 
       // Should show selection mode UI
@@ -547,7 +547,7 @@ describe("MediaBrowser Behavior Tests", () => {
       });
 
       // Enter selection mode
-      fireEvent.click(screen.getByRole("button", { name: /選択/ }));
+      fireEvent.click(screen.getByRole("button", { name: "選択" }));
 
       await waitFor(() => {
         const checkboxes = screen.getAllByRole("checkbox");
@@ -563,7 +563,7 @@ describe("MediaBrowser Behavior Tests", () => {
       });
 
       // Enter selection mode
-      fireEvent.click(screen.getByRole("button", { name: /選択/ }));
+      fireEvent.click(screen.getByRole("button", { name: "選択" }));
 
       await waitFor(() => {
         expect(screen.getByText("0件選択中")).toBeInTheDocument();
@@ -585,7 +585,7 @@ describe("MediaBrowser Behavior Tests", () => {
       });
 
       // Enter selection mode
-      fireEvent.click(screen.getByRole("button", { name: /選択/ }));
+      fireEvent.click(screen.getByRole("button", { name: "選択" }));
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /キャンセル/ })).toBeInTheDocument();
@@ -595,7 +595,7 @@ describe("MediaBrowser Behavior Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /キャンセル/ }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /選択/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "選択" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /キャンセル/ })).not.toBeInTheDocument();
       });
     });
@@ -608,7 +608,7 @@ describe("MediaBrowser Behavior Tests", () => {
       });
 
       // Enter selection mode
-      fireEvent.click(screen.getByRole("button", { name: /選択/ }));
+      fireEvent.click(screen.getByRole("button", { name: "選択" }));
 
       await waitFor(() => {
         expect(screen.getByText("0件選択中")).toBeInTheDocument();
@@ -637,7 +637,7 @@ describe("MediaBrowser Behavior Tests", () => {
       });
 
       // Enter selection mode
-      fireEvent.click(screen.getByRole("button", { name: /選択/ }));
+      fireEvent.click(screen.getByRole("button", { name: "選択" }));
 
       // Select an item
       fireEvent.click(screen.getByText("photo1.jpg"));
@@ -671,7 +671,7 @@ describe("MediaBrowser Behavior Tests", () => {
       });
 
       // Enter selection mode
-      fireEvent.click(screen.getByRole("button", { name: /選択/ }));
+      fireEvent.click(screen.getByRole("button", { name: "選択" }));
 
       await waitFor(() => {
         expect(screen.getByText("0件選択中")).toBeInTheDocument();
