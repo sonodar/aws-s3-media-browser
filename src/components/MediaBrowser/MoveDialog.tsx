@@ -126,7 +126,8 @@ export function MoveDialog({
           setFailedItems(result.failedItems);
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Move operation failed:", err);
       setError("予期しないエラーが発生しました");
     } finally {
       setIsMoving(false);
