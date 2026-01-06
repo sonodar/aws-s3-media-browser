@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { FileUploader } from '@aws-amplify/ui-react-storage';
-import './FileActions.css';
+import { useState } from "react";
+import { FileUploader } from "@aws-amplify/ui-react-storage";
+import "./FileActions.css";
 
 interface FileActionsProps {
   currentPath: string;
@@ -13,7 +13,7 @@ export function FileActions({
   currentPath,
   identityId,
   onUploadComplete,
-  onCreateFolder
+  onCreateFolder,
 }: FileActionsProps) {
   const [showUploader, setShowUploader] = useState(false);
 
@@ -56,7 +56,7 @@ export function FileActions({
               </button>
             </div>
             <FileUploader
-              acceptedFileTypes={['image/*', 'video/*']}
+              acceptedFileTypes={["image/*", "video/*"]}
               path={getUploadPath()}
               maxFileCount={10}
               isResumable

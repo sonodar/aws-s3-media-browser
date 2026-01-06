@@ -1,19 +1,19 @@
 /**
  * Supported image file extensions
  */
-export const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'] as const;
+export const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"] as const;
 
 /**
  * Supported video file extensions
  */
-export const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov'] as const;
+export const VIDEO_EXTENSIONS = ["mp4", "webm", "mov"] as const;
 
 /**
  * Get file extension from filename
  */
 export function getFileExtension(filename: string): string {
-  const parts = filename.split('.');
-  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+  const parts = filename.split(".");
+  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 }
 
 /**
@@ -42,8 +42,8 @@ export function isPreviewable(filename: string): boolean {
 /**
  * Get file type category
  */
-export function getFileType(filename: string): 'image' | 'video' | 'other' {
-  if (isImageFile(filename)) return 'image';
-  if (isVideoFile(filename)) return 'video';
-  return 'other';
+export function getFileType(filename: string): "image" | "video" | "other" {
+  if (isImageFile(filename)) return "image";
+  if (isVideoFile(filename)) return "video";
+  return "other";
 }

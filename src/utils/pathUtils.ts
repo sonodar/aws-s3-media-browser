@@ -1,4 +1,4 @@
-import { isImageFile, isVideoFile } from './fileTypes';
+import { isImageFile, isVideoFile } from "./fileTypes";
 
 /**
  * Encode path for S3 CopySource header
@@ -14,15 +14,15 @@ import { isImageFile, isVideoFile } from './fileTypes';
  */
 export function encodePathForCopy(path: string): string {
   return path
-    .split('/')
+    .split("/")
     .map((segment) => encodeURIComponent(segment))
-    .join('/');
+    .join("/");
 }
 
 /**
  * Thumbnail file suffix
  */
-const THUMBNAIL_SUFFIX = '.thumb.jpg';
+const THUMBNAIL_SUFFIX = ".thumb.jpg";
 
 /**
  * Convert original media path to thumbnail path
@@ -31,11 +31,11 @@ const THUMBNAIL_SUFFIX = '.thumb.jpg';
  * // => 'thumbnails/abc123/photos/image.jpg.thumb.jpg'
  */
 export function getThumbnailPath(originalPath: string): string {
-  if (!originalPath.startsWith('media/')) {
+  if (!originalPath.startsWith("media/")) {
     throw new Error('Path must start with "media/"');
   }
 
-  const thumbnailPath = originalPath.replace(/^media\//, 'thumbnails/');
+  const thumbnailPath = originalPath.replace(/^media\//, "thumbnails/");
   return `${thumbnailPath}${THUMBNAIL_SUFFIX}`;
 }
 
@@ -46,7 +46,7 @@ export function getThumbnailPath(originalPath: string): string {
  * // => 'media/abc123/photos/image.jpg'
  */
 export function getOriginalPath(thumbnailPath: string): string {
-  if (!thumbnailPath.startsWith('thumbnails/')) {
+  if (!thumbnailPath.startsWith("thumbnails/")) {
     throw new Error('Path must start with "thumbnails/"');
   }
 
@@ -55,7 +55,7 @@ export function getOriginalPath(thumbnailPath: string): string {
   }
 
   const withoutSuffix = thumbnailPath.slice(0, -THUMBNAIL_SUFFIX.length);
-  return withoutSuffix.replace(/^thumbnails\//, 'media/');
+  return withoutSuffix.replace(/^thumbnails\//, "media/");
 }
 
 /**
@@ -74,11 +74,11 @@ export function isThumbnailTarget(filename: string): boolean {
  */
 export function getParentPath(key: string): string {
   // Remove trailing slash for folder paths
-  const normalizedKey = key.endsWith('/') ? key.slice(0, -1) : key;
+  const normalizedKey = key.endsWith("/") ? key.slice(0, -1) : key;
 
-  const lastSlashIndex = normalizedKey.lastIndexOf('/');
+  const lastSlashIndex = normalizedKey.lastIndexOf("/");
   if (lastSlashIndex === -1) {
-    return '';
+    return "";
   }
 
   return normalizedKey.substring(0, lastSlashIndex + 1);
@@ -103,12 +103,9 @@ export function buildRenamedKey(currentKey: string, newName: string): string {
  * @example
  * buildRenamedPrefix('photos/old/', 'new') // => 'photos/new/'
  */
-export function buildRenamedPrefix(
-  currentPrefix: string,
-  newName: string
-): string {
+export function buildRenamedPrefix(currentPrefix: string, newName: string): string {
   const parentPath = getParentPath(currentPrefix);
   // Remove trailing slash from new name if present
-  const normalizedNewName = newName.endsWith('/') ? newName.slice(0, -1) : newName;
+  const normalizedNewName = newName.endsWith("/") ? newName.slice(0, -1) : newName;
   return `${parentPath}${normalizedNewName}/`;
 }

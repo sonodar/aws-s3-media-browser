@@ -1,4 +1,4 @@
-import type { StorageItem } from '../types/storage';
+import type { StorageItem } from "../types/storage";
 
 export interface S3ListItem {
   path: string;
@@ -18,20 +18,20 @@ export function parseStorageItems(items: S3ListItem[], basePath: string): Storag
   const parsed: StorageItem[] = items
     .filter((item) => item.path !== basePath) // Exclude current folder marker
     .map((item) => {
-      const relativePath = item.path.replace(basePath, '');
+      const relativePath = item.path.replace(basePath, "");
       // Check if this is a direct child or nested
-      const parts = relativePath.split('/').filter(Boolean);
+      const parts = relativePath.split("/").filter(Boolean);
 
       if (parts.length === 0) return null;
 
       // Only show direct children
-      const isFolder = item.path.endsWith('/') || parts.length > 1;
+      const isFolder = item.path.endsWith("/") || parts.length > 1;
       const name = parts[0];
 
       return {
         key: item.path,
         name: isFolder ? name : relativePath,
-        type: isFolder ? 'folder' : 'file',
+        type: isFolder ? "folder" : "file",
         size: item.size,
         lastModified: item.lastModified,
       } as StorageItem;
@@ -50,7 +50,7 @@ export function parseStorageItems(items: S3ListItem[], basePath: string): Storag
   // Sort: folders first, then files, alphabetically within each type
   uniqueItems.sort((a, b) => {
     if (a.type === b.type) return a.name.localeCompare(b.name);
-    return a.type === 'folder' ? -1 : 1;
+    return a.type === "folder" ? -1 : 1;
   });
 
   return uniqueItems;

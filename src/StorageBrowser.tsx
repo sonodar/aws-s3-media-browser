@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   createAmplifyAuthAdapter,
   createStorageBrowser,
-} from '@aws-amplify/ui-react-storage/browser';
-import '@aws-amplify/ui-react-storage/styles.css';
+} from "@aws-amplify/ui-react-storage/browser";
+import "@aws-amplify/ui-react-storage/styles.css";
 
 export function StorageBrowser() {
   const { StorageBrowser: Browser } = useMemo(
@@ -11,7 +11,7 @@ export function StorageBrowser() {
       createStorageBrowser({
         config: createAmplifyAuthAdapter(),
       }),
-    []
+    [],
   );
 
   return <Browser />;

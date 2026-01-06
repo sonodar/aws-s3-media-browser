@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { getUrl } from 'aws-amplify/storage';
-import { getThumbnailPath } from '../../utils/pathUtils';
-import './ThumbnailImage.css';
+import { useState, useEffect } from "react";
+import { getUrl } from "aws-amplify/storage";
+import { getThumbnailPath } from "../../utils/pathUtils";
+import "./ThumbnailImage.css";
 
 export interface ThumbnailImageProps {
   /** Original file key (media/...) */
@@ -9,20 +9,25 @@ export interface ThumbnailImageProps {
   /** File name for alt text */
   fileName: string;
   /** File type for fallback icon */
-  fileType: 'image' | 'video';
+  fileType: "image" | "video";
   /** Delay in ms before fetching thumbnail (for newly uploaded files) */
   initialDelay?: number;
 }
 
-type ThumbnailState = 'loading' | 'loaded' | 'error';
+type ThumbnailState = "loading" | "loaded" | "error";
 
 const FALLBACK_ICONS = {
-  image: '🖼️',
-  video: '🎬',
+  image: "🖼️",
+  video: "🎬",
 } as const;
 
-export function ThumbnailImage({ originalKey, fileName, fileType, initialDelay }: ThumbnailImageProps) {
-  const [state, setState] = useState<ThumbnailState>(initialDelay ? 'error' : 'loading');
+export function ThumbnailImage({
+  originalKey,
+  fileName,
+  fileType,
+  initialDelay,
+}: ThumbnailImageProps) {
+  const [state, setState] = useState<ThumbnailState>(initialDelay ? "error" : "loading");
   const [url, setUrl] = useState<string | null>(null);
   const [delayComplete, setDelayComplete] = useState(!initialDelay);
 
@@ -32,7 +37,7 @@ export function ThumbnailImage({ originalKey, fileName, fileType, initialDelay }
 
     const timer = setTimeout(() => {
       setDelayComplete(true);
-      setState('loading');
+      setState("loading");
     }, initialDelay);
 
     return () => clearTimeout(timer);
@@ -53,7 +58,7 @@ export function ThumbnailImage({ originalKey, fileName, fileType, initialDelay }
         }
       } catch {
         if (isMounted) {
-          setState('error');
+          setState("error");
         }
       }
     };
@@ -66,14 +71,14 @@ export function ThumbnailImage({ originalKey, fileName, fileType, initialDelay }
   }, [originalKey, delayComplete]);
 
   const handleLoad = () => {
-    setState('loaded');
+    setState("loaded");
   };
 
   const handleError = () => {
-    setState('error');
+    setState("error");
   };
 
-  if (state === 'error') {
+  if (state === "error") {
     return (
       <div className="thumbnail-container thumbnail-fallback">
         <span>{FALLBACK_ICONS[fileType]}</span>
@@ -89,7 +94,7 @@ export function ThumbnailImage({ originalKey, fileName, fileType, initialDelay }
         loading="lazy"
         onLoad={handleLoad}
         onError={handleError}
-        className={state === 'loading' ? 'thumbnail-loading' : 'thumbnail-loaded'}
+        className={state === "loading" ? "thumbnail-loading" : "thumbnail-loaded"}
       />
     </div>
   );

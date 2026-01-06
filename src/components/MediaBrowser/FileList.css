@@ -15,7 +15,9 @@
   border-radius: 8px;
   cursor: pointer;
   background-color: #fafafa;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .file-list-item:active {

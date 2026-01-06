@@ -1,6 +1,7 @@
 # Research & Design Decisions
 
 ## Summary
+
 - **Feature**: spa-router
 - **Discovery Scope**: Extension（既存システムへの機能追加）
 - **Key Findings**:
@@ -11,6 +12,7 @@
 ## Research Log
 
 ### ルーティングアプローチの検討
+
 - **Context**: SPA でのページリロード時に currentPath を保持する方法
 - **Sources Consulted**:
   - History API (MDN)
@@ -25,6 +27,7 @@
   - useStorage フックの拡張で実装可能
 
 ### URL 形式の検討
+
 - **Context**: フォルダパスを URL に反映する形式の選定
 - **Sources Consulted**: Amplify Hosting documentation, SPA routing best practices
 - **Findings**:
@@ -36,6 +39,7 @@
   - 将来的にパスベースへの移行も可能（設計で拡張性確保）
 
 ### 既存コード統合ポイント
+
 - **Context**: 変更対象ファイルの特定
 - **Sources Consulted**: 既存コードベース分析（Grep/Read）
 - **Findings**:
@@ -48,15 +52,16 @@
 
 ## Architecture Pattern Evaluation
 
-| Option | Description | Strengths | Risks / Limitations | Notes |
-|--------|-------------|-----------|---------------------|-------|
-| Native History API | pushState/popstate 直接利用 | 依存関係ゼロ、最小バンドル | 手動実装が必要 | 採用: シンプルな要件に最適 |
-| React Router v7 | フル機能ルーター | 豊富な機能、大きなコミュニティ | ~15KB 追加、過剰な機能 | 不採用: 単一パス同期には過剰 |
-| Wouter | 軽量ルーター (~1.5KB) | 小さなフットプリント | 機能限定 | 不採用: 依存追加を避ける |
+| Option             | Description                 | Strengths                      | Risks / Limitations    | Notes                        |
+| ------------------ | --------------------------- | ------------------------------ | ---------------------- | ---------------------------- |
+| Native History API | pushState/popstate 直接利用 | 依存関係ゼロ、最小バンドル     | 手動実装が必要         | 採用: シンプルな要件に最適   |
+| React Router v7    | フル機能ルーター            | 豊富な機能、大きなコミュニティ | ~15KB 追加、過剰な機能 | 不採用: 単一パス同期には過剰 |
+| Wouter             | 軽量ルーター (~1.5KB)       | 小さなフットプリント           | 機能限定               | 不採用: 依存追加を避ける     |
 
 ## Design Decisions
 
 ### Decision: Native History API 採用
+
 - **Context**: URL とパス状態を同期する実装方式の選定
 - **Alternatives Considered**:
   1. React Router v7 — フル機能だが過剰
@@ -73,6 +78,7 @@
 - **Follow-up**: テストで popstate イベント処理を検証
 
 ### Decision: クエリパラメータ形式 URL
+
 - **Context**: フォルダパスの URL エンコード形式
 - **Alternatives Considered**:
   1. Path-based `/browse/folder1/folder2` — サーバー設定必要
@@ -89,6 +95,7 @@
 - **Follow-up**: 日本語フォルダ名のエンコード/デコードテスト
 
 ### Decision: useStorage への URL 同期ロジック追加
+
 - **Context**: URL 同期ロジックの配置場所
 - **Alternatives Considered**:
   1. useStorage 内に直接実装 — 既存フックの責務増大だが最小変更
@@ -105,10 +112,12 @@
 - **Follow-up**: useStorage のリファクタリングは別タスクとして実施
 
 ## Risks & Mitigations
+
 - **ブラウザ履歴汚染**: 頻繁な pushState でブラウザ履歴が肥大化 → replaceState との使い分けを検討
 - **初期ロード競合**: URL パース前に fetchItems が発動 → 初期化順序の制御が必要
 - **日本語パス文字化け**: エンコード/デコード不一致 → encodeURIComponent/decodeURIComponent を一貫使用
 
 ## References
+
 - [History API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/History_API)
 - [AWS Amplify Hosting - Single Page App Rewrites](https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html)

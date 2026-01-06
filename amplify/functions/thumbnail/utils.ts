@@ -1,24 +1,24 @@
 /**
  * Supported image file extensions
  */
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'] as const;
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"] as const;
 
 /**
  * Supported video file extensions
  */
-const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov'] as const;
+const VIDEO_EXTENSIONS = ["mp4", "webm", "mov"] as const;
 
 /**
  * Thumbnail file suffix
  */
-const THUMBNAIL_SUFFIX = '.thumb.jpg';
+const THUMBNAIL_SUFFIX = ".thumb.jpg";
 
 /**
  * Get file extension from filename (lowercase)
  */
 export function getFileExtension(filename: string): string {
-  const parts = filename.split('.');
-  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+  const parts = filename.split(".");
+  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 }
 
 /**
@@ -51,10 +51,10 @@ export function isThumbnailTarget(filename: string): boolean {
  * // => 'thumbnails/abc123/photos/image.jpg.thumb.jpg'
  */
 export function getThumbnailPath(originalPath: string): string {
-  if (!originalPath.startsWith('media/')) {
+  if (!originalPath.startsWith("media/")) {
     throw new Error('Path must start with "media/"');
   }
 
-  const thumbnailPath = originalPath.replace(/^media\//, 'thumbnails/');
+  const thumbnailPath = originalPath.replace(/^media\//, "thumbnails/");
   return `${thumbnailPath}${THUMBNAIL_SUFFIX}`;
 }

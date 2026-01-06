@@ -1,4 +1,4 @@
-import './Header.css';
+import "./Header.css";
 
 interface HeaderProps {
   currentPath: string;
@@ -35,30 +35,28 @@ export function Header({
   onDeleteSelected,
   onOpenSettings,
 }: HeaderProps) {
-  const pathParts = currentPath.split('/').filter(Boolean);
+  const pathParts = currentPath.split("/").filter(Boolean);
   const currentFolder = pathParts[pathParts.length - 1] || null;
 
   if (isSelectionMode) {
     return (
       <header className="media-browser-header media-browser-header--selection">
         <div className="header-left">
-          <button
-            className="cancel-button"
-            onClick={onExitSelectionMode}
-            aria-label="キャンセル"
-          >
+          <button className="cancel-button" onClick={onExitSelectionMode} aria-label="キャンセル">
             キャンセル
           </button>
-          <span className="selection-count" aria-live="polite">{selectedCount}件選択中</span>
+          <span className="selection-count" aria-live="polite">
+            {selectedCount}件選択中
+          </span>
         </div>
         <div className="header-right">
           {onToggleSelectAll && (
             <button
               className="select-all-button"
               onClick={onToggleSelectAll}
-              aria-label={isAllSelected ? '全解除' : '全選択'}
+              aria-label={isAllSelected ? "全解除" : "全選択"}
             >
-              {isAllSelected ? '全解除' : '全選択'}
+              {isAllSelected ? "全解除" : "全選択"}
             </button>
           )}
           {onDeleteSelected && (
@@ -80,19 +78,13 @@ export function Header({
     <header className="media-browser-header">
       <div className="header-left">
         {currentPath && (
-          <button
-            className="back-button"
-            onClick={onBack}
-            aria-label="戻る"
-          >
+          <button className="back-button" onClick={onBack} aria-label="戻る">
             ←
           </button>
         )}
         <div className="header-title">
           <h1>S3 Media Browser</h1>
-          {currentFolder && (
-            <span className="current-folder">{currentFolder}</span>
-          )}
+          {currentFolder && <span className="current-folder">{currentFolder}</span>}
         </div>
       </div>
       <div className="header-right">
@@ -106,19 +98,11 @@ export function Header({
           </button>
         )}
         {onOpenSettings && (
-          <button
-            className="settings-button"
-            onClick={onOpenSettings}
-            aria-label="設定"
-          >
+          <button className="settings-button" onClick={onOpenSettings} aria-label="設定">
             設定
           </button>
         )}
-        <button
-          className="signout-button"
-          onClick={onSignOut}
-          aria-label="サインアウト"
-        >
+        <button className="signout-button" onClick={onSignOut} aria-label="サインアウト">
           サインアウト
         </button>
       </div>

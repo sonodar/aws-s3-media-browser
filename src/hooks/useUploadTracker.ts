@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from "react";
 
 export interface UseUploadTrackerReturn {
   recentlyUploadedKeys: string[];
@@ -46,7 +46,7 @@ export function useUploadTracker(clearDelay: number = 3000): UseUploadTrackerRet
         timersRef.current.set(key, timer);
       });
     },
-    [clearDelay]
+    [clearDelay],
   );
 
   return { recentlyUploadedKeys, trackUpload, clearKeys };

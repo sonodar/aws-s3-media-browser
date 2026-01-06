@@ -7,11 +7,13 @@
 ### 設計方針
 
 **ハイブリッド認証アプローチ**を採用する：
+
 - 既存の Authenticator コンポーネントはパスワード認証に継続使用
 - パスキーサインインは独立したカスタムコンポーネントで実装
 - Amplify Auth SDK の WebAuthn API を直接利用
 
 この方針を選択した理由：
+
 1. Amplify UI Authenticator はパスキーサインインをネイティブサポートしていない
 2. 既存のパスワード認証フロー（パスワードリセット等）を維持できる
 3. 実装リスクを最小化しつつ、段階的にパスキー機能を追加可能
@@ -105,15 +107,15 @@
 
 ## Technology Stack
 
-| レイヤー | 技術 | バージョン |
-|---------|------|-----------|
-| Frontend | React | 19.x |
-| UI Components | @aws-amplify/ui-react | ^6.x |
-| Auth SDK | aws-amplify/auth | ^6.x |
-| Build Tool | Vite | ^6.x |
-| Backend | AWS Amplify Gen2 | latest |
-| Authentication | Amazon Cognito + WebAuthn | - |
-| Language | TypeScript | ^5.x |
+| レイヤー       | 技術                      | バージョン |
+| -------------- | ------------------------- | ---------- |
+| Frontend       | React                     | 19.x       |
+| UI Components  | @aws-amplify/ui-react     | ^6.x       |
+| Auth SDK       | aws-amplify/auth          | ^6.x       |
+| Build Tool     | Vite                      | ^6.x       |
+| Backend        | AWS Amplify Gen2          | latest     |
+| Authentication | Amazon Cognito + WebAuthn | -          |
+| Language       | TypeScript                | ^5.x       |
 
 ## System Flows
 
@@ -250,8 +252,9 @@
 **責務**: Cognito UserPool の WebAuthn 設定を宣言的に定義
 
 **変更内容**:
+
 ```typescript
-import { defineAuth } from '@aws-amplify/backend';
+import { defineAuth } from "@aws-amplify/backend";
 
 export const auth = defineAuth({
   loginWith: {
@@ -260,17 +263,18 @@ export const auth = defineAuth({
     webAuthn: process.env.WEBAUTHN_RELYING_PARTY_ID
       ? {
           relyingPartyId: process.env.WEBAUTHN_RELYING_PARTY_ID,
-          userVerification: 'preferred',
+          userVerification: "preferred",
         }
       : {
           // Amplify デフォルト: サンドボックスは localhost、ブランチデプロイは Amplify ドメイン
-          userVerification: 'preferred',
+          userVerification: "preferred",
         },
   },
 });
 ```
 
 **環境変数**:
+
 - `WEBAUTHN_RELYING_PARTY_ID`: カスタムドメイン使用時に設定（例: `example.com`）
 - 未設定時: Amplify のデフォルト動作（localhost または Amplify アプリドメイン）
 
@@ -281,6 +285,7 @@ export const auth = defineAuth({
 **責務**: ブラウザの WebAuthn サポート状況を検出
 
 **インターフェース**:
+
 ```typescript
 export interface UseWebAuthnSupportReturn {
   isSupported: boolean;
@@ -290,6 +295,7 @@ export function useWebAuthnSupport(): UseWebAuthnSupportReturn;
 ```
 
 **実装概要**:
+
 - `window.PublicKeyCredential` の存在チェック
 - `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()` の結果を確認
 
@@ -300,6 +306,7 @@ export function useWebAuthnSupport(): UseWebAuthnSupportReturn;
 **責務**: パスキーの CRUD 操作を管理
 
 **インターフェース**:
+
 ```typescript
 export interface WebAuthnCredential {
   credentialId: string;
@@ -322,6 +329,7 @@ export function usePasskey(): UsePasskeyReturn;
 ```
 
 **使用する Amplify API**:
+
 - `associateWebAuthnCredential()`: パスキー登録
 - `listWebAuthnCredentials({ pageSize?, nextToken? })`: 一覧取得（ページネーション対応）
 - `deleteWebAuthnCredential({ credentialId })`: 削除
@@ -333,6 +341,7 @@ export function usePasskey(): UsePasskeyReturn;
 **責務**: パスキーによるサインイン UI を提供
 
 **Props**:
+
 ```typescript
 interface PasskeySignInProps {
   onSuccess: () => void;
@@ -341,6 +350,7 @@ interface PasskeySignInProps {
 ```
 
 **UI 構成**:
+
 - メールアドレス入力フィールド
 - パスキーでサインインボタン
 - パスワードでサインインへの切り替えリンク
@@ -348,12 +358,13 @@ interface PasskeySignInProps {
 - ローディング状態表示
 
 **使用する Amplify API**:
+
 ```typescript
 signIn({
   username: email,
   options: {
-    authFlowType: 'USER_AUTH',
-    preferredChallenge: 'WEB_AUTHN',
+    authFlowType: "USER_AUTH",
+    preferredChallenge: "WEB_AUTHN",
   },
 });
 ```
@@ -365,6 +376,7 @@ signIn({
 **責務**: 登録済みパスキーの一覧表示・登録・削除
 
 **Props**:
+
 ```typescript
 interface PasskeyManagementProps {
   // Props なし - 認証済みユーザー向けの自己完結コンポーネント
@@ -372,6 +384,7 @@ interface PasskeyManagementProps {
 ```
 
 **UI 構成**:
+
 - パスキー登録ボタン
 - 登録済みパスキー一覧（Card コンポーネント）
   - パスキー名（friendlyCredentialName）
@@ -389,6 +402,7 @@ interface PasskeyManagementProps {
 **責務**: パスキー管理のモーダルラッパー
 
 **Props**:
+
 ```typescript
 interface PasskeySettingsModalProps {
   isOpen: boolean;
@@ -397,6 +411,7 @@ interface PasskeySettingsModalProps {
 ```
 
 **UI 構成**:
+
 - モーダルオーバーレイ
 - モーダルヘッダー（タイトル + 閉じるボタン）
 - PasskeyManagement コンポーネント
@@ -408,15 +423,17 @@ interface PasskeySettingsModalProps {
 **変更内容**: ハイブリッド認証 UI の統合
 
 **UI フロー**:
+
 1. 初期表示: パスキーサインインオプション + パスワードサインインへの切り替えリンク
 2. パスキーサインイン成功 → MediaBrowser 表示
 3. パスワードサインイン選択 → Authenticator 表示
 4. Authenticator サインイン成功 → MediaBrowser 表示
 
 **状態管理**:
+
 ```typescript
-type AuthMode = 'passkey' | 'password';
-const [authMode, setAuthMode] = useState<AuthMode>('passkey');
+type AuthMode = "passkey" | "password";
+const [authMode, setAuthMode] = useState<AuthMode>("passkey");
 const [isAuthenticated, setIsAuthenticated] = useState(false);
 ```
 
@@ -427,6 +444,7 @@ const [isAuthenticated, setIsAuthenticated] = useState(false);
 **変更内容**: 設定ボタンの追加
 
 **追加 Props**:
+
 ```typescript
 interface HeaderProps {
   // ...既存 Props
@@ -435,21 +453,22 @@ interface HeaderProps {
 ```
 
 **UI 変更**:
+
 - header-right セクションに設定ボタン（⚙️ アイコン）を追加
 - クリックで PasskeySettingsModal を開く
 
 ## Requirements Traceability
 
-| Requirement | Design Component | 実装場所 |
-|------------|------------------|---------|
-| Req 1: バックエンド認証設定 | Auth Backend Configuration | `amplify/auth/resource.ts` |
-| Req 1.2: 環境変数からの RelyingPartyID 取得 | Auth Backend Configuration | `amplify/auth/resource.ts` |
-| Req 2: パスキー登録機能 | usePasskey Hook, PasskeyManagement | `src/hooks/usePasskey.ts`, `src/components/PasskeyManagement/` |
-| Req 3: パスキー管理機能 | usePasskey Hook, PasskeyManagement, PasskeySettingsModal | `src/hooks/usePasskey.ts`, `src/components/PasskeyManagement/`, `src/components/PasskeySettingsModal/` |
-| Req 4: パスキーによるサインイン | PasskeySignIn | `src/components/PasskeySignIn/` |
-| Req 5: パスワードとパスキーの併用 | Updated App.tsx | `src/App.tsx` |
-| Req 6: ユーザーインターフェース | 全 UI コンポーネント, useWebAuthnSupport | 各コンポーネント, `src/hooks/useWebAuthnSupport.ts` |
-| Req 7: セキュリティ要件 | Auth Backend Configuration, usePasskey | `amplify/auth/resource.ts`, `src/hooks/usePasskey.ts` |
+| Requirement                                 | Design Component                                         | 実装場所                                                                                               |
+| ------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Req 1: バックエンド認証設定                 | Auth Backend Configuration                               | `amplify/auth/resource.ts`                                                                             |
+| Req 1.2: 環境変数からの RelyingPartyID 取得 | Auth Backend Configuration                               | `amplify/auth/resource.ts`                                                                             |
+| Req 2: パスキー登録機能                     | usePasskey Hook, PasskeyManagement                       | `src/hooks/usePasskey.ts`, `src/components/PasskeyManagement/`                                         |
+| Req 3: パスキー管理機能                     | usePasskey Hook, PasskeyManagement, PasskeySettingsModal | `src/hooks/usePasskey.ts`, `src/components/PasskeyManagement/`, `src/components/PasskeySettingsModal/` |
+| Req 4: パスキーによるサインイン             | PasskeySignIn                                            | `src/components/PasskeySignIn/`                                                                        |
+| Req 5: パスワードとパスキーの併用           | Updated App.tsx                                          | `src/App.tsx`                                                                                          |
+| Req 6: ユーザーインターフェース             | 全 UI コンポーネント, useWebAuthnSupport                 | 各コンポーネント, `src/hooks/useWebAuthnSupport.ts`                                                    |
+| Req 7: セキュリティ要件                     | Auth Backend Configuration, usePasskey                   | `amplify/auth/resource.ts`, `src/hooks/usePasskey.ts`                                                  |
 
 ## File Structure
 
@@ -490,11 +509,13 @@ src/
 **決定**: Authenticator コンポーネントとカスタムパスキーサインインコンポーネントを併用
 
 **理由**:
+
 - Amplify UI Authenticator はパスキーサインインをネイティブサポートしていない
 - 既存のパスワード認証機能（パスワードリセット等）を維持できる
 - 段階的な移行が可能
 
 **代替案と却下理由**:
+
 1. 完全カスタムサインイン UI → 実装コスト大、パスワード認証機能の再実装が必要
 2. Authenticator のみ使用 → パスキーサインイン不可
 
@@ -503,11 +524,13 @@ src/
 **決定**: Header の設定ボタンからモーダルでパスキー管理画面を表示
 
 **理由**:
+
 - 新規ルーティング不要
 - 既存の UI フローを維持
 - コンテキストを失わずに設定変更可能
 
 **代替案と却下理由**:
+
 1. 専用設定ページ → ルーティング追加が必要、UI フロー複雑化
 2. ドロップダウンメニュー → 複雑な操作には不向き
 
@@ -516,11 +539,13 @@ src/
 **決定**: `WEBAUTHN_RELYING_PARTY_ID` 環境変数で本番ドメインを設定可能に
 
 **理由**:
+
 - ローカル開発時は設定不要（Amplify デフォルト: localhost）
 - サンドボックスデプロイは Amplify ドメイン自動解決
 - 本番環境のみカスタムドメイン設定
 
 **トレードオフ**:
+
 - 本番デプロイ時に環境変数設定が必要
 - ドメイン変更時は既存パスキーが無効化される
 

@@ -1,25 +1,14 @@
-import { useState, FormEvent } from 'react';
-import { signIn } from 'aws-amplify/auth';
-import {
-  Flex,
-  TextField,
-  Button,
-  Text,
-  Link,
-  Loader,
-  Heading,
-} from '@aws-amplify/ui-react';
+import { useState, FormEvent } from "react";
+import { signIn } from "aws-amplify/auth";
+import { Flex, TextField, Button, Text, Link, Loader, Heading } from "@aws-amplify/ui-react";
 
 export interface PasskeySignInProps {
   onSuccess: () => void;
   onSwitchToPassword: () => void;
 }
 
-export function PasskeySignIn({
-  onSuccess,
-  onSwitchToPassword,
-}: PasskeySignInProps) {
-  const [email, setEmail] = useState('');
+export function PasskeySignIn({ onSuccess, onSwitchToPassword }: PasskeySignInProps) {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,29 +26,23 @@ export function PasskeySignIn({
       const result = await signIn({
         username: email,
         options: {
-          authFlowType: 'USER_AUTH',
-          preferredChallenge: 'WEB_AUTHN',
+          authFlowType: "USER_AUTH",
+          preferredChallenge: "WEB_AUTHN",
         },
       });
 
-      if (result.nextStep.signInStep === 'DONE') {
+      if (result.nextStep.signInStep === "DONE") {
         onSuccess();
       }
     } catch {
-      setError('サインインに失敗しました。もう一度お試しください。');
+      setError("サインインに失敗しました。もう一度お試しください。");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Flex
-      as="form"
-      direction="column"
-      gap="medium"
-      padding="large"
-      onSubmit={handleSubmit}
-    >
+    <Flex as="form" direction="column" gap="medium" padding="large" onSubmit={handleSubmit}>
       <Heading level={3}>パスキーでサインイン</Heading>
 
       <TextField
@@ -84,7 +67,7 @@ export function PasskeySignIn({
         isDisabled={loading}
         loadingText="サインイン中..."
       >
-        {loading ? <Loader /> : 'パスキーでサインイン'}
+        {loading ? <Loader /> : "パスキーでサインイン"}
       </Button>
 
       <Flex justifyContent="center">

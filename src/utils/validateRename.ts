@@ -1,4 +1,4 @@
-import type { StorageItem } from '../types/storage';
+import type { StorageItem } from "../types/storage";
 
 export interface ValidateRenameOptions {
   /** 入力された新しい名前 */
@@ -36,36 +36,34 @@ export function validateRename(options: ValidateRenameOptions): ValidationResult
   const normalizedName = newName.trim();
 
   // 1. 空文字チェック
-  if (normalizedName === '') {
-    return { valid: false, error: '名前を入力してください' };
+  if (normalizedName === "") {
+    return { valid: false, error: "名前を入力してください" };
   }
 
   // 2. 無効文字チェック（スラッシュ）
-  if (normalizedName.includes('/') || normalizedName.includes('\\')) {
-    return { valid: false, error: '名前にスラッシュは使用できません' };
+  if (normalizedName.includes("/") || normalizedName.includes("\\")) {
+    return { valid: false, error: "名前にスラッシュは使用できません" };
   }
 
   // 3. 長さ制限（100文字）
   if (normalizedName.length > 100) {
-    return { valid: false, error: '名前は100文字以内にしてください' };
+    return { valid: false, error: "名前は100文字以内にしてください" };
   }
 
   // 4. 同一名チェック
   if (normalizedName === item.name) {
-    return { valid: false, error: '名前が変更されていません' };
+    return { valid: false, error: "名前が変更されていません" };
   }
 
   // 5. 重複チェック（UI）
   // 同タイプのアイテムで、現在のアイテム以外に同名のものがあるか
   const isDuplicate = existingItems.some(
     (existing) =>
-      existing.type === item.type &&
-      existing.key !== item.key &&
-      existing.name === normalizedName
+      existing.type === item.type && existing.key !== item.key && existing.name === normalizedName,
   );
 
   if (isDuplicate) {
-    const itemType = item.type === 'folder' ? 'フォルダ' : 'ファイル';
+    const itemType = item.type === "folder" ? "フォルダ" : "ファイル";
     return { valid: false, error: `同じ名前の${itemType}が既に存在します` };
   }
 

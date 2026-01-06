@@ -1,10 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { RenameDialog } from './RenameDialog';
-import type { StorageItem } from '../../types/storage';
-import type { RenameItemResult, RenameFolderResult, RenameProgress } from '../../hooks/useStorageOperations';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { RenameDialog } from "./RenameDialog";
+import type { StorageItem } from "../../types/storage";
+import type {
+  RenameItemResult,
+  RenameFolderResult,
+  RenameProgress,
+} from "../../hooks/useStorageOperations";
 
-describe('RenameDialog', () => {
+describe("RenameDialog", () => {
   const mockOnClose = vi.fn();
   const mockOnRenameFile = vi.fn<[string, string], Promise<RenameItemResult>>();
   const mockOnRenameFolder = vi.fn<
@@ -13,22 +17,22 @@ describe('RenameDialog', () => {
   >();
 
   const fileItem: StorageItem = {
-    key: 'media/user123/photos/image.jpg',
-    name: 'image.jpg',
-    type: 'file',
+    key: "media/user123/photos/image.jpg",
+    name: "image.jpg",
+    type: "file",
   };
 
   const folderItem: StorageItem = {
-    key: 'media/user123/photos/myfolder/',
-    name: 'myfolder',
-    type: 'folder',
+    key: "media/user123/photos/myfolder/",
+    name: "myfolder",
+    type: "folder",
   };
 
   const existingItems: StorageItem[] = [
     fileItem,
     folderItem,
-    { key: 'media/user123/photos/existing.jpg', name: 'existing.jpg', type: 'file' },
-    { key: 'media/user123/photos/existingfolder/', name: 'existingfolder', type: 'folder' },
+    { key: "media/user123/photos/existing.jpg", name: "existing.jpg", type: "file" },
+    { key: "media/user123/photos/existingfolder/", name: "existingfolder", type: "folder" },
   ];
 
   beforeEach(() => {
@@ -37,8 +41,8 @@ describe('RenameDialog', () => {
     mockOnRenameFolder.mockResolvedValue({ success: true, succeeded: 5, failed: 0 });
   });
 
-  describe('initial display', () => {
-    it('should not render when isOpen is false', () => {
+  describe("initial display", () => {
+    it("should not render when isOpen is false", () => {
       render(
         <RenameDialog
           isOpen={false}
@@ -47,13 +51,13 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it('should render dialog with file title when item is file', () => {
+    it("should render dialog with file title when item is file", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -62,14 +66,14 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByText('ファイル名を変更')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("ファイル名を変更")).toBeInTheDocument();
     });
 
-    it('should render dialog with folder title when item is folder', () => {
+    it("should render dialog with folder title when item is folder", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -78,13 +82,13 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      expect(screen.getByText('フォルダ名を変更')).toBeInTheDocument();
+      expect(screen.getByText("フォルダ名を変更")).toBeInTheDocument();
     });
 
-    it('should have current name as default value in input field', () => {
+    it("should have current name as default value in input field", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -93,14 +97,14 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      expect(input).toHaveValue('image.jpg');
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveValue("image.jpg");
     });
 
-    it('should have autofocus on input field', () => {
+    it("should have autofocus on input field", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -109,16 +113,16 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole("textbox");
       expect(document.activeElement).toBe(input);
     });
   });
 
-  describe('validation error display', () => {
-    it('should show error for empty name', async () => {
+  describe("validation error display", () => {
+    it("should show error for empty name", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -127,18 +131,18 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: '' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
-      expect(screen.getByText('名前を入力してください')).toBeInTheDocument();
+      expect(screen.getByText("名前を入力してください")).toBeInTheDocument();
       expect(mockOnRenameFile).not.toHaveBeenCalled();
     });
 
-    it('should show error for name with slash', async () => {
+    it("should show error for name with slash", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -147,17 +151,17 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'foo/bar' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "foo/bar" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
-      expect(screen.getByText('名前にスラッシュは使用できません')).toBeInTheDocument();
+      expect(screen.getByText("名前にスラッシュは使用できません")).toBeInTheDocument();
     });
 
-    it('should show error for unchanged name', async () => {
+    it("should show error for unchanged name", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -166,16 +170,16 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
       // Name is already set to item.name, just click submit
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
-      expect(screen.getByText('名前が変更されていません')).toBeInTheDocument();
+      expect(screen.getByText("名前が変更されていません")).toBeInTheDocument();
     });
 
-    it('should show error for duplicate file name', async () => {
+    it("should show error for duplicate file name", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -184,19 +188,19 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'existing.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "existing.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
-      expect(screen.getByText('同じ名前のファイルが既に存在します')).toBeInTheDocument();
+      expect(screen.getByText("同じ名前のファイルが既に存在します")).toBeInTheDocument();
     });
   });
 
-  describe('keyboard handling', () => {
-    it('should not submit on Enter keyDown (removed for IME compatibility)', async () => {
+  describe("keyboard handling", () => {
+    it("should not submit on Enter keyDown (removed for IME compatibility)", async () => {
       // モバイルファーストのため、また IME との相性が悪いため Enter キーでのリネーム実行を削除
       render(
         <RenameDialog
@@ -206,18 +210,18 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newname.jpg' } });
-      fireEvent.keyDown(input, { key: 'Enter' });
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newname.jpg" } });
+      fireEvent.keyDown(input, { key: "Enter" });
 
       // Enter keyDown では submit が呼ばれないことを確認
       expect(mockOnRenameFile).not.toHaveBeenCalled();
     });
 
-    it('should close on Escape key', () => {
+    it("should close on Escape key", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -226,17 +230,17 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
 
-  describe('button interactions', () => {
-    it('should close dialog on cancel button click', () => {
+  describe("button interactions", () => {
+    it("should close dialog on cancel button click", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -245,15 +249,15 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      fireEvent.click(screen.getByRole('button', { name: 'キャンセル' }));
+      fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
 
       expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it('should call onRenameFile for file item on submit', async () => {
+    it("should call onRenameFile for file item on submit", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -262,19 +266,19 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfile.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(mockOnRenameFile).toHaveBeenCalledWith(fileItem.key, 'newfile.jpg');
+        expect(mockOnRenameFile).toHaveBeenCalledWith(fileItem.key, "newfile.jpg");
       });
     });
 
-    it('should call onRenameFolder for folder item on submit', async () => {
+    it("should call onRenameFolder for folder item on submit", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -283,25 +287,25 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfolder' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfolder" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
         expect(mockOnRenameFolder).toHaveBeenCalledWith(
           folderItem.key,
-          'newfolder',
-          expect.any(Function)
+          "newfolder",
+          expect.any(Function),
         );
       });
     });
   });
 
-  describe('processing state', () => {
-    it('should disable input and buttons during processing', async () => {
+  describe("processing state", () => {
+    it("should disable input and buttons during processing", async () => {
       // Make rename take some time
       let resolveRename: (value: RenameItemResult) => void;
       const renamePromise = new Promise<RenameItemResult>((resolve) => {
@@ -317,19 +321,19 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfile.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       // Should be disabled during processing
       await waitFor(() => {
-        expect(screen.getByRole('textbox')).toBeDisabled();
+        expect(screen.getByRole("textbox")).toBeDisabled();
       });
-      expect(screen.getByRole('button', { name: 'キャンセル' })).toBeDisabled();
-      expect(screen.getByRole('button', { name: '変更中...' })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "キャンセル" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "変更中..." })).toBeDisabled();
 
       // Resolve to complete
       await act(async () => {
@@ -337,7 +341,7 @@ describe('RenameDialog', () => {
       });
     });
 
-    it('should show processing text on submit button', async () => {
+    it("should show processing text on submit button", async () => {
       let resolveRename: (value: RenameItemResult) => void;
       const renamePromise = new Promise<RenameItemResult>((resolve) => {
         resolveRename = resolve;
@@ -352,15 +356,15 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfile.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: '変更中...' })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "変更中..." })).toBeInTheDocument();
       });
 
       await act(async () => {
@@ -369,8 +373,8 @@ describe('RenameDialog', () => {
     });
   });
 
-  describe('folder rename progress', () => {
-    it('should display progress during folder rename', async () => {
+  describe("folder rename progress", () => {
+    it("should display progress during folder rename", async () => {
       let progressCallback: ((progress: RenameProgress) => void) | undefined;
       let resolveRename: (value: RenameFolderResult) => void;
       const renamePromise = new Promise<RenameFolderResult>((resolve) => {
@@ -390,12 +394,12 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfolder' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfolder" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       // Wait for rename to start
       await waitFor(() => {
@@ -408,7 +412,7 @@ describe('RenameDialog', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('3 / 10 件処理中...')).toBeInTheDocument();
+        expect(screen.getByText("3 / 10 件処理中...")).toBeInTheDocument();
       });
 
       await act(async () => {
@@ -417,11 +421,11 @@ describe('RenameDialog', () => {
     });
   });
 
-  describe('error handling from hook', () => {
-    it('should display error from onRenameFile', async () => {
+  describe("error handling from hook", () => {
+    it("should display error from onRenameFile", async () => {
       mockOnRenameFile.mockResolvedValueOnce({
         success: false,
-        error: '同じ名前のファイルが既に存在します',
+        error: "同じ名前のファイルが既に存在します",
       });
 
       render(
@@ -432,26 +436,26 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfile.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(screen.getByText('同じ名前のファイルが既に存在します')).toBeInTheDocument();
+        expect(screen.getByText("同じ名前のファイルが既に存在します")).toBeInTheDocument();
       });
 
       // Dialog should remain open
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
-    it('should display error from onRenameFolder', async () => {
+    it("should display error from onRenameFolder", async () => {
       mockOnRenameFolder.mockResolvedValueOnce({
         success: false,
-        error: '重複するファイルが存在します（3件）',
-        duplicates: ['file1.txt', 'file2.txt', 'file3.txt'],
+        error: "重複するファイルが存在します（3件）",
+        duplicates: ["file1.txt", "file2.txt", "file3.txt"],
       });
 
       render(
@@ -462,24 +466,24 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfolder' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfolder" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(screen.getByText('重複するファイルが存在します（3件）')).toBeInTheDocument();
+        expect(screen.getByText("重複するファイルが存在します（3件）")).toBeInTheDocument();
       });
     });
 
-    it('should display partial failure details for folder rename', async () => {
+    it("should display partial failure details for folder rename", async () => {
       mockOnRenameFolder.mockResolvedValueOnce({
         success: false,
         succeeded: 7,
         failed: 3,
-        failedFiles: ['subdir/file1.txt', 'subdir/file2.txt', 'file3.jpg'],
+        failedFiles: ["subdir/file1.txt", "subdir/file2.txt", "file3.jpg"],
       });
 
       render(
@@ -490,12 +494,12 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfolder' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfolder" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       // Should show summary
       await waitFor(() => {
@@ -504,16 +508,16 @@ describe('RenameDialog', () => {
       });
 
       // Should show failed files list
-      expect(screen.getByText('subdir/file1.txt')).toBeInTheDocument();
-      expect(screen.getByText('subdir/file2.txt')).toBeInTheDocument();
-      expect(screen.getByText('file3.jpg')).toBeInTheDocument();
+      expect(screen.getByText("subdir/file1.txt")).toBeInTheDocument();
+      expect(screen.getByText("subdir/file2.txt")).toBeInTheDocument();
+      expect(screen.getByText("file3.jpg")).toBeInTheDocument();
     });
 
-    it('should display duplicate files list when folder rename has duplicates', async () => {
+    it("should display duplicate files list when folder rename has duplicates", async () => {
       mockOnRenameFolder.mockResolvedValueOnce({
         success: false,
-        error: '重複するファイルが存在します（2件）',
-        duplicates: ['duplicate1.txt', 'duplicate2.txt'],
+        error: "重複するファイルが存在します（2件）",
+        duplicates: ["duplicate1.txt", "duplicate2.txt"],
       });
 
       render(
@@ -524,23 +528,23 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfolder' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfolder" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(screen.getByText('duplicate1.txt')).toBeInTheDocument();
-        expect(screen.getByText('duplicate2.txt')).toBeInTheDocument();
+        expect(screen.getByText("duplicate1.txt")).toBeInTheDocument();
+        expect(screen.getByText("duplicate2.txt")).toBeInTheDocument();
       });
     });
 
-    it('should close dialog on success with warning from onRenameFile', async () => {
+    it("should close dialog on success with warning from onRenameFile", async () => {
       mockOnRenameFile.mockResolvedValueOnce({
         success: true,
-        warning: '元ファイルの削除に失敗しました',
+        warning: "元ファイルの削除に失敗しました",
       });
 
       render(
@@ -551,12 +555,12 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfile.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
         expect(mockOnClose).toHaveBeenCalled();
@@ -564,8 +568,8 @@ describe('RenameDialog', () => {
     });
   });
 
-  describe('success handling', () => {
-    it('should close dialog on successful file rename', async () => {
+  describe("success handling", () => {
+    it("should close dialog on successful file rename", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -574,19 +578,19 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfile.jpg' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
         expect(mockOnClose).toHaveBeenCalled();
       });
     });
 
-    it('should close dialog on successful folder rename', async () => {
+    it("should close dialog on successful folder rename", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -595,12 +599,12 @@ describe('RenameDialog', () => {
           onClose={mockOnClose}
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'newfolder' } });
-      fireEvent.click(screen.getByRole('button', { name: '変更' }));
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfolder" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
         expect(mockOnClose).toHaveBeenCalled();

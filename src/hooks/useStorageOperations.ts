@@ -1,12 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { list, remove, uploadData, getUrl, copy } from 'aws-amplify/storage';
-import {
-  buildRenamedKey,
-  buildRenamedPrefix,
-  encodePathForCopy,
-} from '../utils/pathUtils';
-import { parseStorageItems } from './parseStorageItems';
-import type { StorageItem } from '../types/storage';
+import { useState, useEffect, useCallback } from "react";
+import { list, remove, uploadData, getUrl, copy } from "aws-amplify/storage";
+import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../utils/pathUtils";
+import { parseStorageItems } from "./parseStorageItems";
+import type { StorageItem } from "../types/storage";
 
 export interface UseStorageOperationsProps {
   identityId: string | null;
@@ -86,7 +82,7 @@ export interface UseStorageOperationsReturn {
   renameFolder: (
     currentPrefix: string,
     newName: string,
-    onProgress?: (progress: RenameProgress) => void
+    onProgress?: (progress: RenameProgress) => void,
   ) => Promise<RenameFolderResult>;
   /** リネーム処理中フラグ */
   isRenaming: boolean;
@@ -153,14 +149,14 @@ export function useStorageOperations({
           uploadData({
             path: `${basePath}${file.name}`,
             data: file,
-          })
-        )
+          }),
+        ),
       );
 
       await fetchItems();
       return uploadedKeys;
     },
-    [getBasePath, fetchItems]
+    [getBasePath, fetchItems],
   );
 
   const removeItem = useCallback(
@@ -168,7 +164,7 @@ export function useStorageOperations({
       await remove({ path: key });
       await fetchItems();
     },
-    [fetchItems]
+    [fetchItems],
   );
 
   /**
@@ -195,7 +191,7 @@ export function useStorageOperations({
         const allKeysToDelete: string[] = [];
 
         for (const item of itemsToDelete) {
-          if (item.type === 'folder') {
+          if (item.type === "folder") {
             // フォルダの場合は配下コンテンツを取得
             const folderContents = await listFolderContents(item.key);
             allKeysToDelete.push(...folderContents);
@@ -214,7 +210,7 @@ export function useStorageOperations({
           uniqueKeys.map(async (key) => {
             await remove({ path: key });
             return key;
-          })
+          }),
         );
 
         // 結果を分類
@@ -223,7 +219,7 @@ export function useStorageOperations({
 
         results.forEach((result, index) => {
           const key = uniqueKeys[index];
-          if (result.status === 'fulfilled') {
+          if (result.status === "fulfilled") {
             succeeded.push(key);
           } else {
             failed.push({ key, error: result.reason as Error });
@@ -238,7 +234,7 @@ export function useStorageOperations({
         setIsDeleting(false);
       }
     },
-    [listFolderContents, fetchItems]
+    [listFolderContents, fetchItems],
   );
 
   const createFolder = useCallback(
@@ -249,11 +245,11 @@ export function useStorageOperations({
       const folderPath = `${basePath}${name}/`;
       await uploadData({
         path: folderPath,
-        data: '',
+        data: "",
       });
       await fetchItems();
     },
-    [getBasePath, fetchItems]
+    [getBasePath, fetchItems],
   );
 
   const getFileUrl = useCallback(async (key: string): Promise<string> => {
@@ -283,7 +279,7 @@ export function useStorageOperations({
           });
           // ファイルが存在する場合はエラー
           if (existingItems.items.length > 0) {
-            return { success: false, error: '同じ名前のファイルが既に存在します' };
+            return { success: false, error: "同じ名前のファイルが既に存在します" };
           }
         } catch (err) {
           return {
@@ -325,7 +321,7 @@ export function useStorageOperations({
         setIsRenaming(false);
       }
     },
-    [fetchItems]
+    [fetchItems],
   );
 
   /**
@@ -335,7 +331,7 @@ export function useStorageOperations({
     async (
       currentPrefix: string,
       newName: string,
-      onProgress?: (progress: RenameProgress) => void
+      onProgress?: (progress: RenameProgress) => void,
     ): Promise<RenameFolderResult> => {
       setIsRenaming(true);
 
@@ -442,7 +438,7 @@ export function useStorageOperations({
         setIsRenaming(false);
       }
     },
-    [fetchItems]
+    [fetchItems],
   );
 
   return {

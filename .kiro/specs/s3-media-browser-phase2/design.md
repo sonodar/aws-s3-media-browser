@@ -35,6 +35,7 @@ Phase 2 では StorageBrowser コンポーネントを置き換え、カスタ�
 ### 1. MediaBrowser コンポーネント
 
 **ファイル構成:**
+
 ```
 src/
 ├── components/
@@ -78,7 +79,7 @@ interface UseStorageReturn {
 interface StorageItem {
   key: string;
   name: string;
-  type: 'file' | 'folder';
+  type: "file" | "folder";
   size?: number;
   lastModified?: Date;
 }
@@ -136,6 +137,7 @@ import ReactPlayer from 'react-player';
 ```
 
 **react-player の特徴:**
+
 - MP4, WebM, MOV など主要形式をサポート
 - `playsinline` でモバイル Safari のフルスクリーン強制を回避
 - ネイティブ HTML5 コントロール（再生/一時停止、シーク、音量）
@@ -159,23 +161,23 @@ media/
 ### Amplify Storage API 使用例
 
 ```typescript
-import { list, uploadData, remove, getUrl } from 'aws-amplify/storage';
+import { list, uploadData, remove, getUrl } from "aws-amplify/storage";
 
 // ファイル一覧取得
 const result = await list({
-  path: 'media/{entity_id}/',
-  options: { listAll: true }
+  path: "media/{entity_id}/",
+  options: { listAll: true },
 });
 
 // ファイルアップロード
 await uploadData({
-  path: 'media/{entity_id}/photo.jpg',
+  path: "media/{entity_id}/photo.jpg",
   data: file,
 });
 
 // ファイル URL 取得（プレビュー用）
 const url = await getUrl({
-  path: 'media/{entity_id}/photo.jpg',
+  path: "media/{entity_id}/photo.jpg",
 });
 ```
 
@@ -183,13 +185,13 @@ const url = await getUrl({
 
 ### 認可方式
 
-| 操作 | API/コンポーネント | 認可方式 |
-|------|---------------------|----------|
-| 一覧取得 | `list` | Cognito Identity + IAM Policy |
-| 画像プレビュー | StorageImage | Presigned URL（内部で自動取得） |
-| 動画プレビュー | `getUrl` → react-player | Presigned URL（15分有効） |
-| アップロード | FileUploader | Cognito Identity + IAM Policy |
-| 削除 | `remove` | Cognito Identity + IAM Policy |
+| 操作           | API/コンポーネント      | 認可方式                        |
+| -------------- | ----------------------- | ------------------------------- |
+| 一覧取得       | `list`                  | Cognito Identity + IAM Policy   |
+| 画像プレビュー | StorageImage            | Presigned URL（内部で自動取得） |
+| 動画プレビュー | `getUrl` → react-player | Presigned URL（15分有効）       |
+| アップロード   | FileUploader            | Cognito Identity + IAM Policy   |
+| 削除           | `remove`                | Cognito Identity + IAM Policy   |
 
 ### Presigned URL の使用（動画プレビュー）
 
@@ -252,8 +254,8 @@ const { url } = await getUrl({
 {
   "dependencies": {
     "@aws-amplify/ui-react": "^6.x",
-    "@aws-amplify/ui-react-storage": "^3.x",  // FileUploader
-    "react-player": "^2.x"                     // 動画プレビュー
+    "@aws-amplify/ui-react-storage": "^3.x", // FileUploader
+    "react-player": "^2.x" // 動画プレビュー
   }
 }
 ```

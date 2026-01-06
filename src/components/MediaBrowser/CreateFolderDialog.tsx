@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import './CreateFolderDialog.css';
+import { useState } from "react";
+import "./CreateFolderDialog.css";
 
 interface CreateFolderDialogProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ interface CreateFolderDialogProps {
 }
 
 export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDialogProps) {
-  const [folderName, setFolderName] = useState('');
+  const [folderName, setFolderName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,13 +21,13 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
 
   const validateFolderName = (name: string): string | null => {
     if (!name.trim()) {
-      return 'フォルダ名を入力してください';
+      return "フォルダ名を入力してください";
     }
-    if (name.includes('/') || name.includes('\\')) {
-      return 'フォルダ名にスラッシュは使用できません';
+    if (name.includes("/") || name.includes("\\")) {
+      return "フォルダ名にスラッシュは使用できません";
     }
     if (name.length > 100) {
-      return 'フォルダ名は100文字以内にしてください';
+      return "フォルダ名は100文字以内にしてください";
     }
     return null;
   };
@@ -46,17 +46,17 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
 
     try {
       await onCreate(folderName.trim());
-      setFolderName('');
+      setFolderName("");
       onClose();
     } catch (err) {
-      setError('フォルダの作成に失敗しました');
+      setError("フォルダの作成に失敗しました");
     } finally {
       setIsCreating(false);
     }
   };
 
   const handleClose = () => {
-    setFolderName('');
+    setFolderName("");
     setError(null);
     onClose();
   };
@@ -91,7 +91,7 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
               disabled={isCreating || !folderName.trim()}
               className="submit-button"
             >
-              {isCreating ? '作成中...' : '作成'}
+              {isCreating ? "作成中..." : "作成"}
             </button>
           </div>
         </form>

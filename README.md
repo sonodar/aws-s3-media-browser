@@ -24,15 +24,15 @@ Google Photo や iCloud のようなクラウドストレージは便利です�
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Language | TypeScript 5.x (strict mode) |
-| Frontend | React 19 + Vite |
-| Backend | AWS Amplify Gen2 |
-| Auth | Amazon Cognito (Email + WebAuthn) |
-| Storage | Amazon S3 |
-| Functions | AWS Lambda (サムネイル生成) |
-| Testing | Vitest + Testing Library |
+| Category  | Technology                        |
+| --------- | --------------------------------- |
+| Language  | TypeScript 5.x (strict mode)      |
+| Frontend  | React 19 + Vite                   |
+| Backend   | AWS Amplify Gen2                  |
+| Auth      | Amazon Cognito (Email + WebAuthn) |
+| Storage   | Amazon S3                         |
+| Functions | AWS Lambda (サムネイル生成)       |
+| Testing   | Vitest + Testing Library          |
 
 ## Prerequisites
 
@@ -151,12 +151,12 @@ npm run dev
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | 開発サーバー起動 |
-| `npm run build` | プロダクションビルド |
-| `npm run preview` | ビルドプレビュー |
-| `npm run test` | テスト実行 |
+| Command              | Description          |
+| -------------------- | -------------------- |
+| `npm run dev`        | 開発サーバー起動     |
+| `npm run build`      | プロダクションビルド |
+| `npm run preview`    | ビルドプレビュー     |
+| `npm run test`       | テスト実行           |
 | `npm run test:watch` | テストウォッチモード |
 
 ## Project Structure

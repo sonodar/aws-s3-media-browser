@@ -8,9 +8,11 @@
 ## Directory Patterns
 
 ### Frontend Source (`/src/`)
+
 **Location**: `/src/`
 **Purpose**: React アプリケーションのソースコード
 **Structure**:
+
 - `components/[Feature]/` - 機能単位のコンポーネント群
 - `hooks/` - 単一責任のカスタムフック + 関連ユーティリティ
 - `types/` - 共有型定義
@@ -18,18 +20,22 @@
 - `test/` - テスト設定・ヘルパー
 
 ### Feature Components (`/src/components/[Feature]/`)
+
 **Location**: `/src/components/MediaBrowser/`
 **Purpose**: 機能を構成するコンポーネント群を同一ディレクトリに配置
 **Pattern**:
+
 - `index.tsx` - メインコンポーネント（エクスポートハブ）
 - `[Component].tsx` - サブコンポーネント
 - `[Component].css` - コンポーネント固有スタイル
 - `[Component].test.tsx` - テスト（同一ディレクトリ）
 
 ### Amplify Backend (`/amplify/`)
+
 **Location**: `/amplify/`
 **Purpose**: AWS Amplify Gen2 バックエンド定義
 **Pattern**:
+
 - `backend.ts` - バックエンドエントリポイント
 - `auth/resource.ts` - 認証リソース定義
 - `storage/resource.ts` - ストレージリソース定義
@@ -45,17 +51,17 @@
 
 ```typescript
 // 1. React/外部ライブラリ
-import { useState, useEffect } from 'react';
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { useState, useEffect } from "react";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 // 2. 内部モジュール（相対パス）
-import { useStorageOperations } from '../../hooks/useStorageOperations';
-import { useStoragePath } from '../../hooks/useStoragePath';
-import { isPreviewable } from '../../utils/fileTypes';
+import { useStorageOperations } from "../../hooks/useStorageOperations";
+import { useStoragePath } from "../../hooks/useStoragePath";
+import { isPreviewable } from "../../utils/fileTypes";
 
 // 3. ローカルコンポーネント
-import { Header } from './Header';
-import './MediaBrowser.css';
+import { Header } from "./Header";
+import "./MediaBrowser.css";
 ```
 
 **Path Pattern**: 相対パス（`../../`）を使用。パスエイリアス未設定。
@@ -69,4 +75,5 @@ import './MediaBrowser.css';
 - **Pure Function Extraction**: テスト可能な純粋関数は hooks/ 内にユーティリティとして配置可
 
 ---
+
 _Document patterns, not file trees. New files following patterns shouldn't require updates_

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { parseUrlPath, syncToUrl } from './urlSync';
+import { useState, useEffect, useCallback } from "react";
+import { parseUrlPath, syncToUrl } from "./urlSync";
 
 export interface UseStoragePathReturn {
   currentPath: string;
@@ -24,8 +24,8 @@ export function useStoragePath(): UseStoragePathReturn {
     const handlePopState = () => {
       setCurrentPathState(parseUrlPath());
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const navigate = useCallback(
@@ -33,13 +33,13 @@ export function useStoragePath(): UseStoragePathReturn {
       const newPath = currentPath ? `${currentPath}/${folderName}` : folderName;
       setCurrentPath(newPath);
     },
-    [currentPath, setCurrentPath]
+    [currentPath, setCurrentPath],
   );
 
   const goBack = useCallback(() => {
-    const parts = currentPath.split('/').filter(Boolean);
+    const parts = currentPath.split("/").filter(Boolean);
     parts.pop();
-    const newPath = parts.join('/');
+    const newPath = parts.join("/");
     setCurrentPath(newPath);
   }, [currentPath, setCurrentPath]);
 

@@ -1,7 +1,7 @@
-import type { StorageItem } from '../../types/storage';
-import { isImageFile, isVideoFile } from '../../utils/fileTypes';
-import { ThumbnailImage } from './ThumbnailImage';
-import './FileList.css';
+import type { StorageItem } from "../../types/storage";
+import { isImageFile, isVideoFile } from "../../utils/fileTypes";
+import { ThumbnailImage } from "./ThumbnailImage";
+import "./FileList.css";
 
 /** Delay in ms before fetching thumbnails for newly uploaded files */
 const THUMBNAIL_FETCH_DELAY = 3000;
@@ -22,22 +22,21 @@ interface FileListProps {
   onRename?: (item: StorageItem) => void;
 }
 
-
 function getFileIcon(item: StorageItem): string {
-  if (item.type === 'folder') return '📁';
-  if (isImageFile(item.name)) return '🖼️';
-  if (isVideoFile(item.name)) return '🎬';
-  return '📄';
+  if (item.type === "folder") return "📁";
+  if (isImageFile(item.name)) return "🖼️";
+  if (isVideoFile(item.name)) return "🎬";
+  return "📄";
 }
 
-function getFileType(item: StorageItem): 'image' | 'video' | null {
-  if (isImageFile(item.name)) return 'image';
-  if (isVideoFile(item.name)) return 'video';
+function getFileType(item: StorageItem): "image" | "video" | null {
+  if (isImageFile(item.name)) return "image";
+  if (isVideoFile(item.name)) return "video";
   return null;
 }
 
 function shouldShowThumbnail(item: StorageItem): boolean {
-  return item.type === 'file' && getFileType(item) !== null;
+  return item.type === "file" && getFileType(item) !== null;
 }
 
 export function FileList({
@@ -61,7 +60,7 @@ export function FileList({
   const handleItemClick = (item: StorageItem) => {
     if (isSelectionMode && onToggleSelection) {
       onToggleSelection(item.key);
-    } else if (item.type === 'folder') {
+    } else if (item.type === "folder") {
       onFolderClick(item.name);
     } else {
       onFileClick(item);
@@ -85,7 +84,7 @@ export function FileList({
         return (
           <li
             key={item.key}
-            className={`file-list-item${isSelected ? ' file-list-item--selected' : ''}`}
+            className={`file-list-item${isSelected ? " file-list-item--selected" : ""}`}
             data-type={item.type}
             onClick={() => handleItemClick(item)}
             role="listitem"
@@ -105,7 +104,9 @@ export function FileList({
                 originalKey={item.key}
                 fileName={item.name}
                 fileType={getFileType(item)!}
-                initialDelay={recentlyUploadedKeys.includes(item.key) ? THUMBNAIL_FETCH_DELAY : undefined}
+                initialDelay={
+                  recentlyUploadedKeys.includes(item.key) ? THUMBNAIL_FETCH_DELAY : undefined
+                }
               />
             ) : (
               <span className="file-icon">{getFileIcon(item)}</span>

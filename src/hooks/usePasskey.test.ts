@@ -1,31 +1,31 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
-import { usePasskey } from './usePasskey';
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { renderHook, waitFor, act } from "@testing-library/react";
+import { usePasskey } from "./usePasskey";
 import {
   listWebAuthnCredentials,
   associateWebAuthnCredential,
   deleteWebAuthnCredential,
-} from 'aws-amplify/auth';
+} from "aws-amplify/auth";
 
-vi.mock('aws-amplify/auth', () => ({
+vi.mock("aws-amplify/auth", () => ({
   listWebAuthnCredentials: vi.fn(),
   associateWebAuthnCredential: vi.fn(),
   deleteWebAuthnCredential: vi.fn(),
 }));
 
-describe('usePasskey', () => {
+describe("usePasskey", () => {
   const mockCredentials = [
     {
-      credentialId: 'cred-1',
-      friendlyCredentialName: 'My MacBook',
-      relyingPartyId: 'localhost',
-      createdAt: new Date('2024-01-01T00:00:00Z'),
+      credentialId: "cred-1",
+      friendlyCredentialName: "My MacBook",
+      relyingPartyId: "localhost",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
     },
     {
-      credentialId: 'cred-2',
-      friendlyCredentialName: 'My iPhone',
-      relyingPartyId: 'localhost',
-      createdAt: new Date('2024-01-02T00:00:00Z'),
+      credentialId: "cred-2",
+      friendlyCredentialName: "My iPhone",
+      relyingPartyId: "localhost",
+      createdAt: new Date("2024-01-02T00:00:00Z"),
     },
   ];
 
@@ -37,8 +37,8 @@ describe('usePasskey', () => {
     });
   });
 
-  describe('initial state', () => {
-    it('should fetch credentials on mount', async () => {
+  describe("initial state", () => {
+    it("should fetch credentials on mount", async () => {
       const { result } = renderHook(() => usePasskey());
 
       // Initially loading
@@ -54,20 +54,18 @@ describe('usePasskey', () => {
     });
   });
 
-  describe('listWebAuthnCredentials', () => {
-    it('should handle pagination with nextToken', async () => {
+  describe("listWebAuthnCredentials", () => {
+    it("should handle pagination with nextToken", async () => {
       const page1 = {
         credentials: [mockCredentials[0]],
-        nextToken: 'token-1',
+        nextToken: "token-1",
       };
       const page2 = {
         credentials: [mockCredentials[1]],
         nextToken: undefined,
       };
 
-      (listWebAuthnCredentials as Mock)
-        .mockResolvedValueOnce(page1)
-        .mockResolvedValueOnce(page2);
+      (listWebAuthnCredentials as Mock).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
       const { result } = renderHook(() => usePasskey());
 
@@ -79,8 +77,8 @@ describe('usePasskey', () => {
       expect(result.current.credentials).toHaveLength(2);
     });
 
-    it('should handle errors', async () => {
-      const error = new Error('Failed to fetch');
+    it("should handle errors", async () => {
+      const error = new Error("Failed to fetch");
       (listWebAuthnCredentials as Mock).mockRejectedValue(error);
 
       const { result } = renderHook(() => usePasskey());
@@ -94,8 +92,8 @@ describe('usePasskey', () => {
     });
   });
 
-  describe('registerPasskey', () => {
-    it('should register a new passkey and refresh the list', async () => {
+  describe("registerPasskey", () => {
+    it("should register a new passkey and refresh the list", async () => {
       (associateWebAuthnCredential as Mock).mockResolvedValue(undefined);
 
       const { result } = renderHook(() => usePasskey());
@@ -113,7 +111,7 @@ describe('usePasskey', () => {
       expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
     });
 
-    it('should set registering state during registration', async () => {
+    it("should set registering state during registration", async () => {
       let resolveRegistration: () => void;
       const registrationPromise = new Promise<void>((resolve) => {
         resolveRegistration = resolve;
@@ -146,8 +144,8 @@ describe('usePasskey', () => {
       });
     });
 
-    it('should handle registration errors', async () => {
-      const error = new Error('Registration failed');
+    it("should handle registration errors", async () => {
+      const error = new Error("Registration failed");
       (associateWebAuthnCredential as Mock).mockRejectedValue(error);
 
       const { result } = renderHook(() => usePasskey());
@@ -164,8 +162,8 @@ describe('usePasskey', () => {
     });
   });
 
-  describe('deletePasskey', () => {
-    it('should delete a passkey and refresh the list', async () => {
+  describe("deletePasskey", () => {
+    it("should delete a passkey and refresh the list", async () => {
       (deleteWebAuthnCredential as Mock).mockResolvedValue(undefined);
 
       const { result } = renderHook(() => usePasskey());
@@ -175,18 +173,18 @@ describe('usePasskey', () => {
       });
 
       await act(async () => {
-        await result.current.deletePasskey('cred-1');
+        await result.current.deletePasskey("cred-1");
       });
 
       expect(deleteWebAuthnCredential).toHaveBeenCalledWith({
-        credentialId: 'cred-1',
+        credentialId: "cred-1",
       });
       // Should refresh credentials after deletion
       expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle deletion errors', async () => {
-      const error = new Error('Deletion failed');
+    it("should handle deletion errors", async () => {
+      const error = new Error("Deletion failed");
       (deleteWebAuthnCredential as Mock).mockRejectedValue(error);
 
       const { result } = renderHook(() => usePasskey());
@@ -196,15 +194,15 @@ describe('usePasskey', () => {
       });
 
       await act(async () => {
-        await result.current.deletePasskey('cred-1');
+        await result.current.deletePasskey("cred-1");
       });
 
       expect(result.current.error).toBe(error);
     });
   });
 
-  describe('refreshCredentials', () => {
-    it('should manually refresh the credentials list', async () => {
+  describe("refreshCredentials", () => {
+    it("should manually refresh the credentials list", async () => {
       const { result } = renderHook(() => usePasskey());
 
       await waitFor(() => {
