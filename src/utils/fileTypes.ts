@@ -47,3 +47,41 @@ export function getFileType(filename: string): "image" | "video" | "other" {
   if (isVideoFile(filename)) return "video";
   return "other";
 }
+
+/**
+ * Check if content type is an image MIME type
+ */
+export function isImageContentType(contentType?: string): boolean {
+  if (!contentType) return false;
+  return contentType.startsWith("image/");
+}
+
+/**
+ * Check if content type is a video MIME type
+ */
+export function isVideoContentType(contentType?: string): boolean {
+  if (!contentType) return false;
+  return contentType.startsWith("video/");
+}
+
+/**
+ * StorageItem に基づいてファイルカテゴリを判定
+ * contentType を優先し、未設定または判定不能な場合は拡張子にフォールバック
+ */
+export function getFileCategory(item: {
+  name: string;
+  type: "file" | "folder";
+  contentType?: string;
+}): "folder" | "image" | "video" | "file" {
+  if (item.type === "folder") return "folder";
+
+  // contentType を優先
+  if (isImageContentType(item.contentType)) return "image";
+  if (isVideoContentType(item.contentType)) return "video";
+
+  // 拡張子にフォールバック
+  if (isImageFile(item.name)) return "image";
+  if (isVideoFile(item.name)) return "video";
+
+  return "file";
+}

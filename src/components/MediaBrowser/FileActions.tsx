@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FileUploader } from "@aws-amplify/ui-react-storage";
+import { FolderPlus, Upload, X } from "lucide-react";
 import "./FileActions.css";
 
 interface FileActionsProps {
@@ -31,14 +32,14 @@ export function FileActions({
         onClick={onCreateFolder}
         aria-label="フォルダを作成"
       >
-        📁+
+        <FolderPlus size={24} aria-hidden="true" />
       </button>
       <button
         className="action-button upload-button"
         onClick={() => setShowUploader(!showUploader)}
         aria-label="ファイルをアップロード"
       >
-        ⬆️
+        <Upload size={24} aria-hidden="true" />
       </button>
 
       {showUploader && (
@@ -52,7 +53,7 @@ export function FileActions({
                 onClick={() => setShowUploader(false)}
                 aria-label="閉じる"
               >
-                ✕
+                <X size={24} aria-hidden="true" />
               </button>
             </div>
             <FileUploader

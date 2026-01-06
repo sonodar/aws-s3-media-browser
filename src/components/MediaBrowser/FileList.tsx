@@ -1,6 +1,8 @@
+import { Folder, Image, Film, File } from "lucide-react";
 import type { StorageItem } from "../../types/storage";
-import { isImageFile, isVideoFile } from "../../utils/fileTypes";
+import { getFileCategory } from "../../utils/fileTypes";
 import { ThumbnailImage } from "./ThumbnailImage";
+import { FileActionMenu } from "./FileActionMenu";
 import "./FileList.css";
 
 /** Delay in ms before fetching thumbnails for newly uploaded files */
@@ -20,18 +22,28 @@ interface FileListProps {
   onToggleSelection?: (key: string) => void;
   /** リネームコールバック */
   onRename?: (item: StorageItem) => void;
+  /** 削除コールバック */
+  onDelete?: (item: StorageItem) => void;
 }
 
-function getFileIcon(item: StorageItem): string {
-  if (item.type === "folder") return "📁";
-  if (isImageFile(item.name)) return "🖼️";
-  if (isVideoFile(item.name)) return "🎬";
-  return "📄";
+function FileIcon({ item }: { item: StorageItem }) {
+  const category = getFileCategory(item);
+  switch (category) {
+    case "folder":
+      return <Folder aria-hidden="true" />;
+    case "image":
+      return <Image aria-hidden="true" />;
+    case "video":
+      return <Film aria-hidden="true" />;
+    default:
+      return <File aria-hidden="true" />;
+  }
 }
 
 function getFileType(item: StorageItem): "image" | "video" | null {
-  if (isImageFile(item.name)) return "image";
-  if (isVideoFile(item.name)) return "video";
+  const category = getFileCategory(item);
+  if (category === "image") return "image";
+  if (category === "video") return "video";
   return null;
 }
 
@@ -48,6 +60,7 @@ export function FileList({
   selectedKeys = new Set(),
   onToggleSelection,
   onRename,
+  onDelete,
 }: FileListProps) {
   if (items.length === 0) {
     return (
@@ -70,11 +83,6 @@ export function FileList({
   const handleCheckboxClick = (e: React.MouseEvent, key: string) => {
     e.stopPropagation();
     onToggleSelection?.(key);
-  };
-
-  const handleRenameClick = (e: React.MouseEvent, item: StorageItem) => {
-    e.stopPropagation();
-    onRename?.(item);
   };
 
   return (
@@ -109,18 +117,17 @@ export function FileList({
                 }
               />
             ) : (
-              <span className="file-icon">{getFileIcon(item)}</span>
+              <span className="file-icon">
+                <FileIcon item={item} />
+              </span>
             )}
             <span className="file-name">{item.name}</span>
-            {!isSelectionMode && onRename && (
-              <button
-                className="rename-button"
-                onClick={(e) => handleRenameClick(e, item)}
-                aria-label={`${item.name} の名前を変更`}
-                title="名前を変更"
-              >
-                ✏️
-              </button>
+            {!isSelectionMode && (onRename || onDelete) && (
+              <FileActionMenu
+                itemName={item.name}
+                onRename={() => onRename?.(item)}
+                onDelete={() => onDelete?.(item)}
+              />
             )}
           </li>
         );

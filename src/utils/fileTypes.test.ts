@@ -5,6 +5,9 @@ import {
   isVideoFile,
   isPreviewable,
   getFileType,
+  isImageContentType,
+  isVideoContentType,
+  getFileCategory,
 } from "./fileTypes";
 
 describe("fileTypes", () => {
@@ -79,6 +82,92 @@ describe("fileTypes", () => {
 
     it('should return "other" for other files', () => {
       expect(getFileType("document.pdf")).toBe("other");
+    });
+  });
+
+  describe("isImageContentType", () => {
+    it.each(["image/jpeg", "image/png", "image/gif", "image/webp"])(
+      "should return true for %s",
+      (contentType) => {
+        expect(isImageContentType(contentType)).toBe(true);
+      },
+    );
+
+    it("should return false for video content types", () => {
+      expect(isImageContentType("video/mp4")).toBe(false);
+    });
+
+    it("should return false for undefined", () => {
+      expect(isImageContentType(undefined)).toBe(false);
+    });
+  });
+
+  describe("isVideoContentType", () => {
+    it.each(["video/mp4", "video/webm", "video/quicktime"])(
+      "should return true for %s",
+      (contentType) => {
+        expect(isVideoContentType(contentType)).toBe(true);
+      },
+    );
+
+    it("should return false for image content types", () => {
+      expect(isVideoContentType("image/jpeg")).toBe(false);
+    });
+
+    it("should return false for undefined", () => {
+      expect(isVideoContentType(undefined)).toBe(false);
+    });
+  });
+
+  describe("getFileCategory", () => {
+    it('should return "folder" for folder items', () => {
+      const item = { key: "test/", name: "test", type: "folder" as const };
+      expect(getFileCategory(item)).toBe("folder");
+    });
+
+    it("should prioritize contentType over extension for images", () => {
+      const item = {
+        key: "unknown.xyz",
+        name: "unknown.xyz",
+        type: "file" as const,
+        contentType: "image/jpeg",
+      };
+      expect(getFileCategory(item)).toBe("image");
+    });
+
+    it("should prioritize contentType over extension for videos", () => {
+      const item = {
+        key: "unknown.xyz",
+        name: "unknown.xyz",
+        type: "file" as const,
+        contentType: "video/mp4",
+      };
+      expect(getFileCategory(item)).toBe("video");
+    });
+
+    it("should fallback to extension when contentType is undefined", () => {
+      const item = { key: "photo.jpg", name: "photo.jpg", type: "file" as const };
+      expect(getFileCategory(item)).toBe("image");
+    });
+
+    it("should fallback to extension when contentType is not image/video", () => {
+      const item = {
+        key: "photo.jpg",
+        name: "photo.jpg",
+        type: "file" as const,
+        contentType: "application/octet-stream",
+      };
+      expect(getFileCategory(item)).toBe("image");
+    });
+
+    it('should return "file" for unknown content types and extensions', () => {
+      const item = {
+        key: "document.pdf",
+        name: "document.pdf",
+        type: "file" as const,
+        contentType: "application/pdf",
+      };
+      expect(getFileCategory(item)).toBe("file");
     });
   });
 });

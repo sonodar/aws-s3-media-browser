@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getUrl } from "aws-amplify/storage";
+import { Image, Film } from "lucide-react";
 import { getThumbnailPath } from "../../utils/pathUtils";
 import "./ThumbnailImage.css";
 
@@ -16,10 +17,12 @@ export interface ThumbnailImageProps {
 
 type ThumbnailState = "loading" | "loaded" | "error";
 
-const FALLBACK_ICONS = {
-  image: "🖼️",
-  video: "🎬",
-} as const;
+function FallbackIcon({ fileType }: { fileType: "image" | "video" }) {
+  if (fileType === "video") {
+    return <Film aria-hidden="true" />;
+  }
+  return <Image aria-hidden="true" />;
+}
 
 export function ThumbnailImage({
   originalKey,
@@ -82,7 +85,7 @@ export function ThumbnailImage({
   if (state === "error") {
     return (
       <div className="thumbnail-container thumbnail-fallback">
-        <span>{FALLBACK_ICONS[fileType]}</span>
+        <FallbackIcon fileType={fileType} />
       </div>
     );
   }

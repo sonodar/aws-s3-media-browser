@@ -135,4 +135,45 @@ describe("parseStorageItems", () => {
     expect(result[1]).toMatchObject({ name: "work", type: "folder" });
     expect(result[2]).toMatchObject({ name: "sunset.jpg", type: "file" });
   });
+
+  it("should pass through contentType from S3 item", () => {
+    const items = [
+      {
+        path: `${basePath}photo.jpg`,
+        size: 1024,
+        lastModified: new Date("2024-01-15"),
+        contentType: "image/jpeg",
+      },
+    ];
+    const result = parseStorageItems(items, basePath);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].contentType).toBe("image/jpeg");
+  });
+
+  it("should handle items without contentType", () => {
+    const items = [
+      { path: `${basePath}photo.jpg`, size: 1024, lastModified: new Date("2024-01-15") },
+    ];
+    const result = parseStorageItems(items, basePath);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].contentType).toBeUndefined();
+  });
+
+  it("should not include contentType for folders", () => {
+    const items = [
+      {
+        path: `${basePath}subfolder/`,
+        size: 0,
+        lastModified: new Date(),
+        contentType: undefined,
+      },
+    ];
+    const result = parseStorageItems(items, basePath);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("folder");
+    expect(result[0].contentType).toBeUndefined();
+  });
 });

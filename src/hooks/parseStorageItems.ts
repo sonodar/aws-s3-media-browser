@@ -4,6 +4,7 @@ export interface S3ListItem {
   path: string;
   size?: number;
   lastModified?: Date;
+  contentType?: string;
 }
 
 /**
@@ -34,6 +35,7 @@ export function parseStorageItems(items: S3ListItem[], basePath: string): Storag
         type: isFolder ? "folder" : "file",
         size: item.size,
         lastModified: item.lastModified,
+        contentType: isFolder ? undefined : item.contentType,
       } as StorageItem;
     })
     .filter((item): item is StorageItem => item !== null);

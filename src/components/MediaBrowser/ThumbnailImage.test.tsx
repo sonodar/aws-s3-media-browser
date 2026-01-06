@@ -114,7 +114,7 @@ describe("ThumbnailImage", () => {
         url: new URL("https://example.com/thumbnail.jpg"),
       });
 
-      render(
+      const { container } = render(
         <ThumbnailImage
           originalKey="media/abc123/photos/image.jpg"
           fileName="image.jpg"
@@ -130,7 +130,9 @@ describe("ThumbnailImage", () => {
       // Simulate image load error
       fireEvent.error(screen.getByRole("img"));
 
-      expect(screen.getByText("🖼️")).toBeInTheDocument();
+      const fallbackContainer = container.querySelector(".thumbnail-fallback");
+      expect(fallbackContainer).toBeInTheDocument();
+      expect(fallbackContainer?.querySelector("svg")).toBeInTheDocument();
     });
 
     it("shows video fallback icon on error for video files", async () => {
@@ -138,7 +140,7 @@ describe("ThumbnailImage", () => {
         url: new URL("https://example.com/thumbnail.jpg"),
       });
 
-      render(
+      const { container } = render(
         <ThumbnailImage
           originalKey="media/abc123/videos/video.mp4"
           fileName="video.mp4"
@@ -154,13 +156,15 @@ describe("ThumbnailImage", () => {
       // Simulate image load error
       fireEvent.error(screen.getByRole("img"));
 
-      expect(screen.getByText("🎬")).toBeInTheDocument();
+      const fallbackContainer = container.querySelector(".thumbnail-fallback");
+      expect(fallbackContainer).toBeInTheDocument();
+      expect(fallbackContainer?.querySelector("svg")).toBeInTheDocument();
     });
 
     it("shows fallback icon when getUrl fails", async () => {
       mockGetUrl.mockRejectedValue(new Error("Network error"));
 
-      render(
+      const { container } = render(
         <ThumbnailImage
           originalKey="media/abc123/photos/image.jpg"
           fileName="image.jpg"
@@ -169,7 +173,9 @@ describe("ThumbnailImage", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText("🖼️")).toBeInTheDocument();
+        const fallbackContainer = container.querySelector(".thumbnail-fallback");
+        expect(fallbackContainer).toBeInTheDocument();
+        expect(fallbackContainer?.querySelector("svg")).toBeInTheDocument();
       });
     });
   });
@@ -200,7 +206,7 @@ describe("ThumbnailImage", () => {
         url: new URL("https://example.com/thumbnail.jpg"),
       });
 
-      render(
+      const { container } = render(
         <ThumbnailImage
           originalKey="media/abc123/photos/image.jpg"
           fileName="image.jpg"
@@ -210,7 +216,9 @@ describe("ThumbnailImage", () => {
       );
 
       // Should show fallback icon initially
-      expect(screen.getByText("🖼️")).toBeInTheDocument();
+      const fallbackContainer = container.querySelector(".thumbnail-fallback");
+      expect(fallbackContainer).toBeInTheDocument();
+      expect(fallbackContainer?.querySelector("svg")).toBeInTheDocument();
       // getUrl should not be called yet
       expect(mockGetUrl).not.toHaveBeenCalled();
 
@@ -223,7 +231,7 @@ describe("ThumbnailImage", () => {
         url: new URL("https://example.com/thumbnail.jpg"),
       });
 
-      render(
+      const { container } = render(
         <ThumbnailImage
           originalKey="media/abc123/photos/image.jpg"
           fileName="image.jpg"
@@ -233,7 +241,9 @@ describe("ThumbnailImage", () => {
       );
 
       // Initially shows fallback
-      expect(screen.getByText("🖼️")).toBeInTheDocument();
+      const fallbackContainer = container.querySelector(".thumbnail-fallback");
+      expect(fallbackContainer).toBeInTheDocument();
+      expect(fallbackContainer?.querySelector("svg")).toBeInTheDocument();
 
       // Advance timers using act
       await act(async () => {

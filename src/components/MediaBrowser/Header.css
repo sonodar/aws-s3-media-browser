@@ -36,41 +36,13 @@
   background-color: #f5f5f5;
 }
 
-.header-title {
-  overflow: hidden;
-}
-
-.header-title h1 {
+h1.header-title {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.current-folder {
-  display: block;
-  font-size: 0.875rem;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.signout-button {
-  background-color: transparent;
-  border: 1px solid #ccc;
-  padding: 8px 16px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  border-radius: 4px;
-  min-height: 44px;
-  flex-shrink: 0;
-}
-
-.signout-button:hover {
-  background-color: #f5f5f5;
 }
 
 .header-right {
@@ -154,4 +126,27 @@
 .delete-button:disabled {
   background-color: #bdbdbd;
   cursor: not-allowed;
+}
+
+/* Icon button common styles */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Override text-based styles for icon buttons */
+.cancel-button.icon-button,
+.select-all-button.icon-button {
+  padding: 8px;
+}
+
+.selection-mode-button.icon-button {
+  padding: 8px;
+}
+
+.delete-button.icon-button {
+  padding: 8px;
 }
