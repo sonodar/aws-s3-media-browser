@@ -1,7 +1,7 @@
-import { defineBackend } from '@aws-amplify/backend';
-import { auth } from './auth/resource';
-import { storage } from './storage/resource';
-import { thumbnailFunction } from './functions/thumbnail';
+import { defineBackend } from "@aws-amplify/backend";
+import { auth } from "./auth/resource";
+import { storage } from "./storage/resource";
+import { thumbnailFunction } from "./functions/thumbnail";
 
 const backend = defineBackend({
   auth,

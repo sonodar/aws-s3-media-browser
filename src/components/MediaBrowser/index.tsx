@@ -1,19 +1,19 @@
-import { useState, useMemo } from 'react';
-import { useIdentityId } from '../../hooks/useIdentityId';
-import { useStoragePath } from '../../hooks/useStoragePath';
-import { useUploadTracker } from '../../hooks/useUploadTracker';
-import { useStorageOperations } from '../../hooks/useStorageOperations';
-import { useSelection } from '../../hooks/useSelection';
-import type { StorageItem } from '../../types/storage';
-import { Header } from './Header';
-import { FileList } from './FileList';
-import { FileActions } from './FileActions';
-import { CreateFolderDialog } from './CreateFolderDialog';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import { PreviewModal } from './PreviewModal';
-import { RenameDialog } from './RenameDialog';
-import { isPreviewable } from '../../utils/fileTypes';
-import './MediaBrowser.css';
+import { useState, useMemo } from "react";
+import { useIdentityId } from "../../hooks/useIdentityId";
+import { useStoragePath } from "../../hooks/useStoragePath";
+import { useUploadTracker } from "../../hooks/useUploadTracker";
+import { useStorageOperations } from "../../hooks/useStorageOperations";
+import { useSelection } from "../../hooks/useSelection";
+import type { StorageItem } from "../../types/storage";
+import { Header } from "./Header";
+import { FileList } from "./FileList";
+import { FileActions } from "./FileActions";
+import { CreateFolderDialog } from "./CreateFolderDialog";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { PreviewModal } from "./PreviewModal";
+import { RenameDialog } from "./RenameDialog";
+import { isPreviewable } from "../../utils/fileTypes";
+import "./MediaBrowser.css";
 
 interface MediaBrowserProps {
   onSignOut: () => void;
@@ -22,11 +22,7 @@ interface MediaBrowserProps {
 
 export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   // Individual hooks
-  const {
-    identityId,
-    loading: identityLoading,
-    error: identityError,
-  } = useIdentityId();
+  const { identityId, loading: identityLoading, error: identityError } = useIdentityId();
 
   const { currentPath, navigate, goBack } = useStoragePath();
 
@@ -71,7 +67,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   // Get selected items for deletion
   const selectedItems = useMemo(
     () => items.filter((item) => selectedKeys.has(item.key)),
-    [items, selectedKeys]
+    [items, selectedKeys],
   );
 
   const handleFileClick = (item: StorageItem) => {
@@ -205,8 +201,8 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   );
 }
 
-export { Header } from './Header';
-export { FileList } from './FileList';
-export { FileActions } from './FileActions';
-export { CreateFolderDialog } from './CreateFolderDialog';
-export { PreviewModal } from './PreviewModal';
+export { Header } from "./Header";
+export { FileList } from "./FileList";
+export { FileActions } from "./FileActions";
+export { CreateFolderDialog } from "./CreateFolderDialog";
+export { PreviewModal } from "./PreviewModal";

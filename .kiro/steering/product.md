@@ -24,4 +24,5 @@ AWS S3 Photo Browser は、AWS Amplify を活用した写真・動画ブラウ�
 - **即座のデプロイ**: Amplify Hosting による CI/CD 統合
 
 ---
+
 _Focus on patterns and purpose, not exhaustive feature lists_

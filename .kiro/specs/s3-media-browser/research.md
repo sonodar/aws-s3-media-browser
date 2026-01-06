@@ -1,6 +1,7 @@
 # Research & Design Decisions
 
 ## Summary
+
 - **Feature**: `s3-media-browser`
 - **Discovery Scope**: New Feature（グリーンフィールド）
 - **Key Findings**:
@@ -11,6 +12,7 @@
 ## Research Log
 
 ### StorageBrowser コンポーネント（重要）
+
 - **Context**: Amplify UI が提供する S3 ファイルブラウザコンポーネントの調査
 - **Sources Consulted**:
   - [Storage Browser for Amazon S3 | Amplify UI](https://ui.docs.amplify.aws/react/connected-components/storage/storage-browser)
@@ -33,13 +35,14 @@
   - Amplify Auth との統合が標準サポートされている
 
 ### StorageBrowser セットアップコード
+
 ```typescript
 // StorageBrowser.tsx
 import {
   createAmplifyAuthAdapter,
   createStorageBrowser,
-} from '@aws-amplify/ui-react-storage/browser';
-import '@aws-amplify/ui-react-storage/styles.css';
+} from "@aws-amplify/ui-react-storage/browser";
+import "@aws-amplify/ui-react-storage/styles.css";
 
 export const { StorageBrowser } = createStorageBrowser({
   config: createAmplifyAuthAdapter(),
@@ -47,6 +50,7 @@ export const { StorageBrowser } = createStorageBrowser({
 ```
 
 ### Amplify Gen2 アーキテクチャ
+
 - **Context**: Amplify Gen2 のプロジェクト構造と設定方法を調査
 - **Sources Consulted**:
   - AWS Amplify Docs: `/aws-amplify/docs`
@@ -62,6 +66,7 @@ export const { StorageBrowser } = createStorageBrowser({
   - TypeScript で型安全なリソース定義が可能
 
 ### Amplify Auth（Cognito 認証）
+
 - **Context**: Cognito 認証の設定と UI 統合方法
 - **Sources Consulted**:
   - Amplify UI React Authenticator
@@ -74,6 +79,7 @@ export const { StorageBrowser } = createStorageBrowser({
   - 認証 UI の実装工数を大幅に削減
 
 ### Amplify Storage（S3 アクセス）
+
 - **Context**: S3 ファイル操作の API と権限設定
 - **Sources Consulted**:
   - Amplify Storage API v6.2.0+
@@ -82,10 +88,8 @@ export const { StorageBrowser } = createStorageBrowser({
   - StorageBrowser 用のアクセスパターン定義:
     ```typescript
     access: (allow) => ({
-      'media/*': [
-        allow.authenticated.to(['read', 'write', 'delete'])
-      ]
-    })
+      "media/*": [allow.authenticated.to(["read", "write", "delete"])],
+    });
     ```
   - CORS 設定が必要（クライアントからの直接 S3 アクセスのため）
 - **Implications**:
@@ -93,15 +97,16 @@ export const { StorageBrowser } = createStorageBrowser({
 
 ## Architecture Pattern Evaluation
 
-| Option | Description | Strengths | Risks / Limitations | Notes |
-|--------|-------------|-----------|---------------------|-------|
-| StorageBrowser 活用 | Amplify UI 提供コンポーネントをそのまま使用 | 実装工数最小、保守性高 | プレビュー機能なし | **採用** |
-| 自前 FileBrowser 実装 | カスタム UI コンポーネント開発 | 完全なカスタマイズ性 | 開発工数大 | 不採用 |
-| ハイブリッド | StorageBrowser + カスタム拡張 | 段階的拡張可能 | 複雑性増加 | Phase 2 で検討 |
+| Option                | Description                                 | Strengths              | Risks / Limitations | Notes          |
+| --------------------- | ------------------------------------------- | ---------------------- | ------------------- | -------------- |
+| StorageBrowser 活用   | Amplify UI 提供コンポーネントをそのまま使用 | 実装工数最小、保守性高 | プレビュー機能なし  | **採用**       |
+| 自前 FileBrowser 実装 | カスタム UI コンポーネント開発              | 完全なカスタマイズ性   | 開発工数大          | 不採用         |
+| ハイブリッド          | StorageBrowser + カスタム拡張               | 段階的拡張可能         | 複雑性増加          | Phase 2 で検討 |
 
 ## Design Decisions
 
 ### Decision: Amplify 提供コンポーネントの最大活用
+
 - **Context**: 開発効率とメンテナンス性を最大化したい
 - **Alternatives Considered**:
   1. 全て自前実装 - 完全なカスタマイズ性
@@ -115,6 +120,7 @@ export const { StorageBrowser } = createStorageBrowser({
 - **Follow-up**: プレビュー機能は Phase 2 で StorageBrowser の拡張またはカスタムモーダルとして追加
 
 ### Decision: プレビュー機能の Phase 2 延期
+
 - **Context**: StorageBrowser にはプレビュー機能が含まれていない
 - **Alternatives Considered**:
   1. 最初からプレビュー機能を自前実装
@@ -127,11 +133,13 @@ export const { StorageBrowser } = createStorageBrowser({
 - **Follow-up**: Phase 2 でカスタムプレビューモーダルを実装
 
 ### Decision: ストレージパス構造
+
 - **Context**: S3 バケット内のファイル構造をどのように設計するか
 - **Selected Approach**: `media/*` パスで認証済みユーザーのみアクセス可能
 - **Rationale**: 個人用アプリのため、シンプルな構造を優先
 
 ## Risks & Mitigations
+
 - **Risk 1**: StorageBrowser の UI カスタマイズ制限
   - **Mitigation**: Amplify UI テーマでブランディング対応、必要に応じて CSS オーバーライド
 - **Risk 2**: プレビュー機能なしによる UX 低下
@@ -140,6 +148,7 @@ export const { StorageBrowser } = createStorageBrowser({
   - **Mitigation**: Amplify Gen2 が CORS を自動設定、ドキュメントに設定手順を明記
 
 ## References
+
 - [Storage Browser for Amazon S3 | Amplify UI](https://ui.docs.amplify.aws/react/connected-components/storage/storage-browser) - StorageBrowser 公式ドキュメント
 - [AWS News Blog - Storage Browser](https://aws.amazon.com/blogs/aws/connect-users-to-data-through-your-apps-with-storage-browser-for-amazon-s3/) - 機能紹介
 - [GitHub - sample-amplify-storage-browser](https://github.com/aws-samples/sample-amplify-storage-browser) - サンプルプロジェクト

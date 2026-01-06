@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   listWebAuthnCredentials,
   associateWebAuthnCredential,
   deleteWebAuthnCredential,
   ListWebAuthnCredentialsOutput,
   AuthWebAuthnCredential,
-} from 'aws-amplify/auth';
+} from "aws-amplify/auth";
 
 export interface WebAuthnCredential {
   credentialId: string;
@@ -14,11 +14,8 @@ export interface WebAuthnCredential {
   createdAt: Date;
 }
 
-function toWebAuthnCredential(
-  credential: AuthWebAuthnCredential
-): WebAuthnCredential | null {
-  const { credentialId, friendlyCredentialName, relyingPartyId, createdAt } =
-    credential;
+function toWebAuthnCredential(credential: AuthWebAuthnCredential): WebAuthnCredential | null {
+  const { credentialId, friendlyCredentialName, relyingPartyId, createdAt } = credential;
 
   if (
     credentialId === undefined ||
@@ -62,10 +59,9 @@ export function usePasskey(): UsePasskeyReturn {
       let nextToken: string | undefined;
 
       do {
-        const response: ListWebAuthnCredentialsOutput =
-          await listWebAuthnCredentials(
-            nextToken ? { nextToken } : undefined
-          );
+        const response: ListWebAuthnCredentialsOutput = await listWebAuthnCredentials(
+          nextToken ? { nextToken } : undefined,
+        );
 
         if (response.credentials) {
           const validCredentials = response.credentials
@@ -110,7 +106,7 @@ export function usePasskey(): UsePasskeyReturn {
         setError(err as Error);
       }
     },
-    [fetchCredentials]
+    [fetchCredentials],
   );
 
   const refreshCredentials = useCallback(async () => {

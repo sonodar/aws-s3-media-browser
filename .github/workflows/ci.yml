@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   schedule:
-    - cron: '0 0 * * 0' # 毎週日曜日 00:00 UTC
+    - cron: "0 0 * * 0" # 毎週日曜日 00:00 UTC
 
 jobs:
   check:
@@ -13,8 +13,8 @@ jobs:
 
       - uses: actions/setup-node@v6.1.0
         with:
-          node-version-file: '.tool-versions'
-          cache: 'npm'
+          node-version-file: ".tool-versions"
+          cache: "npm"
 
       - run: npm ci
 
@@ -54,5 +54,6 @@ jobs:
           }
           EOF
 
+      - run: npm run lint
       - run: npm run build
       - run: npm run test

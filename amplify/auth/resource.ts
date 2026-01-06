@@ -1,4 +1,4 @@
-import { defineAuth } from '@aws-amplify/backend';
+import { defineAuth } from "@aws-amplify/backend";
 
 /**
  * Define and configure your auth resource
@@ -13,7 +13,7 @@ export const auth = defineAuth({
     webAuthn: process.env.WEBAUTHN_RELYING_PARTY_ID
       ? {
           relyingPartyId: process.env.WEBAUTHN_RELYING_PARTY_ID,
-          userVerification: 'preferred',
+          userVerification: "preferred",
         }
       : true,
   },

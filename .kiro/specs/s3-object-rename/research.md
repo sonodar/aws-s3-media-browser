@@ -1,6 +1,7 @@
 # Research & Design Decisions
 
 ## Summary
+
 - **Feature**: `s3-object-rename`
 - **Discovery Scope**: Extension（既存システムへの機能追加）
 - **Key Findings**:
@@ -12,6 +13,7 @@
 ## Research Log
 
 ### Amplify Storage copy API
+
 - **Context**: S3 オブジェクトのリネームには copy + remove が必要
 - **Sources Consulted**:
   - [Amplify Docs - Copy Files](https://docs.amplify.aws/react/build-a-backend/storage/copy-files/)
@@ -26,6 +28,7 @@
   - リネーム = copy → remove の2ステップで実装
 
 ### 既存コードベース分析
+
 - **Context**: 統合ポイントと既存パターンの特定
 - **Sources Consulted**: プロジェクト内ソースコード
 - **Findings**:
@@ -40,6 +43,7 @@
   - 既存のダイアログスタイル（`CreateFolderDialog.css`）を再利用
 
 ### ディレクトリリネームの実装戦略
+
 - **Context**: フォルダ配下の全オブジェクトのキー変更が必要
 - **Sources Consulted**: 既存の `removeItems` 実装
 - **Findings**:
@@ -52,14 +56,15 @@
 
 ## Architecture Pattern Evaluation
 
-| Option | Description | Strengths | Risks / Limitations | Notes |
-|--------|-------------|-----------|---------------------|-------|
-| Hook 拡張 | 既存 useStorageOperations に rename 機能追加 | 一貫性、低リスク | フックが肥大化する可能性 | 選択：既存パターンとの整合性を優先 |
-| 別フック | useRename 専用フック作成 | 関心の分離 | 状態管理の重複、refresh 連携が複雑 | 不採用 |
+| Option    | Description                                  | Strengths        | Risks / Limitations                | Notes                              |
+| --------- | -------------------------------------------- | ---------------- | ---------------------------------- | ---------------------------------- |
+| Hook 拡張 | 既存 useStorageOperations に rename 機能追加 | 一貫性、低リスク | フックが肥大化する可能性           | 選択：既存パターンとの整合性を優先 |
+| 別フック  | useRename 専用フック作成                     | 関心の分離       | 状態管理の重複、refresh 連携が複雑 | 不採用                             |
 
 ## Design Decisions
 
 ### Decision: Hook 拡張パターンの採用
+
 - **Context**: リネーム機能をどこに実装するか
 - **Alternatives Considered**:
   1. `useStorageOperations` を拡張
@@ -73,6 +78,7 @@
 - **Follow-up**: フックが大きくなりすぎた場合は将来的に分割を検討
 
 ### Decision: copy → remove の2ステップ実装
+
 - **Context**: S3 にはネイティブなリネーム API がない
 - **Alternatives Considered**:
   1. copy → remove（成功時のみ削除）
@@ -85,6 +91,7 @@
 - **Follow-up**: 削除失敗時のエラーメッセージを明確に
 
 ### Decision: サムネイルは Lambda に委任
+
 - **Context**: リネーム時にサムネイルをどう扱うか
 - **Alternatives Considered**:
   1. UI から直接サムネイルも copy する
@@ -98,6 +105,7 @@
 - **Follow-up**: 既存の ThumbnailImage コンポーネントは error 時にフォールバックアイコンを表示するため UX 上問題なし
 
 ### Decision: RenameDialog コンポーネントの新規作成
+
 - **Context**: リネーム用 UI の実装方法
 - **Alternatives Considered**:
   1. CreateFolderDialog を汎用化
@@ -111,6 +119,7 @@
 - **Follow-up**: なし
 
 ### Decision: 2層重複チェック（UI + S3 API）
+
 - **Context**: 重複チェックをどこで実行するか
 - **Alternatives Considered**:
   1. UI の items 状態のみでチェック（即時フィードバック優先）
@@ -127,6 +136,7 @@
 - **Follow-up**: なし
 
 ### Decision: フォルダリネーム時は事前に全重複チェック
+
 - **Context**: フォルダリネーム時に配下オブジェクトが新プレフィックス配下の既存オブジェクトと重複する場合の対応
 - **Alternatives Considered**:
   1. 重複オブジェクトをスキップして続行
@@ -141,6 +151,7 @@
 - **Follow-up**: 重複解消のためのヘルプメッセージを検討
 
 ### Decision: フォルダリネーム重複チェックのアルゴリズム最適化
+
 - **Context**: フォルダリネーム時の重複チェック処理のパフォーマンス
 - **Alternatives Considered**:
   1. 各ソースオブジェクトごとに S3 API を呼び出してチェック（O(n) API calls）
@@ -154,6 +165,7 @@
 - **Follow-up**: なし
 
 ### Decision: フォルダリネームのファイル数制限（1000件）
+
 - **Context**: 配下に大量のファイルがあるフォルダのリネーム
 - **Alternatives Considered**:
   1. 制限なし（処理時間がかかっても実行）
@@ -168,6 +180,7 @@
 - **Follow-up**: 将来的にバックグラウンド処理やバッチ処理の検討
 
 ### Decision: 大文字小文字は区別する（case-sensitive）
+
 - **Context**: リネーム時の名前比較ルール
 - **Alternatives Considered**:
   1. case-sensitive（S3 準拠）
@@ -181,6 +194,7 @@
 - **Follow-up**: なし
 
 ### Decision: 拡張子変更は許可する
+
 - **Context**: ファイルリネーム時の拡張子変更可否
 - **Alternatives Considered**:
   1. 拡張子変更を禁止（安全優先）
@@ -195,6 +209,7 @@
 - **Follow-up**: なし
 
 ### Decision: バリデーション関数を独立ユーティリティとして実装
+
 - **Context**: バリデーションロジックの配置場所
 - **Alternatives Considered**:
   1. RenameDialog 内にインライン実装（CreateFolderDialog と同様）
@@ -208,11 +223,13 @@
 - **Follow-up**: CreateFolderDialog も将来的に同様のパターンに統一することを検討
 
 ## Risks & Mitigations
+
 - **削除失敗時のデータ不整合**: コピー成功・削除失敗の場合、新旧両方のファイルが存在 → ユーザーに明確なエラーメッセージで通知
 - **大量ファイルのディレクトリリネーム**: 配下に多数のファイルがある場合の処理時間 → **1000件超はエラーで拒否**、1000件以下は進捗表示で対応
 - **同名ファイルの上書き**: 既存ファイル名と同じ名前への変更 → **2層バリデーション**（UI 層で即時フィードバック + フック層で S3 API チェック）で事前に検出・拒否
 
 ## References
+
 - [Amplify Storage - Copy Files](https://docs.amplify.aws/react/build-a-backend/storage/copy-files/) — Amplify copy API 公式ドキュメント
 - プロジェクト内 `src/hooks/useStorageOperations.ts` — 既存ストレージ操作パターン
 - プロジェクト内 `src/components/MediaBrowser/CreateFolderDialog.tsx` — ダイアログ UI パターン

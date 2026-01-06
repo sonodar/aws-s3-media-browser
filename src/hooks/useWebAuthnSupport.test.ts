@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useWebAuthnSupport } from './useWebAuthnSupport';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { useWebAuthnSupport } from "./useWebAuthnSupport";
 
-describe('useWebAuthnSupport', () => {
+describe("useWebAuthnSupport", () => {
   const originalPublicKeyCredential = window.PublicKeyCredential;
 
   afterEach(() => {
     // Restore original
     if (originalPublicKeyCredential) {
-      Object.defineProperty(window, 'PublicKeyCredential', {
+      Object.defineProperty(window, "PublicKeyCredential", {
         value: originalPublicKeyCredential,
         writable: true,
         configurable: true,
@@ -19,32 +19,30 @@ describe('useWebAuthnSupport', () => {
     }
   });
 
-  describe('when WebAuthn is not supported', () => {
+  describe("when WebAuthn is not supported", () => {
     beforeEach(() => {
       // @ts-expect-error - deleting property for test
       delete window.PublicKeyCredential;
     });
 
-    it('should return isSupported as false', () => {
+    it("should return isSupported as false", () => {
       const { result } = renderHook(() => useWebAuthnSupport());
       expect(result.current.isSupported).toBe(false);
     });
   });
 
-  describe('when WebAuthn is supported but platform authenticator is not available', () => {
+  describe("when WebAuthn is supported but platform authenticator is not available", () => {
     beforeEach(() => {
-      Object.defineProperty(window, 'PublicKeyCredential', {
+      Object.defineProperty(window, "PublicKeyCredential", {
         value: {
-          isUserVerifyingPlatformAuthenticatorAvailable: vi
-            .fn()
-            .mockResolvedValue(false),
+          isUserVerifyingPlatformAuthenticatorAvailable: vi.fn().mockResolvedValue(false),
         },
         writable: true,
         configurable: true,
       });
     });
 
-    it('should return isSupported as false', async () => {
+    it("should return isSupported as false", async () => {
       const { result } = renderHook(() => useWebAuthnSupport());
 
       await waitFor(() => {
@@ -53,20 +51,18 @@ describe('useWebAuthnSupport', () => {
     });
   });
 
-  describe('when WebAuthn and platform authenticator are available', () => {
+  describe("when WebAuthn and platform authenticator are available", () => {
     beforeEach(() => {
-      Object.defineProperty(window, 'PublicKeyCredential', {
+      Object.defineProperty(window, "PublicKeyCredential", {
         value: {
-          isUserVerifyingPlatformAuthenticatorAvailable: vi
-            .fn()
-            .mockResolvedValue(true),
+          isUserVerifyingPlatformAuthenticatorAvailable: vi.fn().mockResolvedValue(true),
         },
         writable: true,
         configurable: true,
       });
     });
 
-    it('should return isSupported as true', async () => {
+    it("should return isSupported as true", async () => {
       const { result } = renderHook(() => useWebAuthnSupport());
 
       await waitFor(() => {
@@ -75,20 +71,20 @@ describe('useWebAuthnSupport', () => {
     });
   });
 
-  describe('when isUserVerifyingPlatformAuthenticatorAvailable throws', () => {
+  describe("when isUserVerifyingPlatformAuthenticatorAvailable throws", () => {
     beforeEach(() => {
-      Object.defineProperty(window, 'PublicKeyCredential', {
+      Object.defineProperty(window, "PublicKeyCredential", {
         value: {
           isUserVerifyingPlatformAuthenticatorAvailable: vi
             .fn()
-            .mockRejectedValue(new Error('Not supported')),
+            .mockRejectedValue(new Error("Not supported")),
         },
         writable: true,
         configurable: true,
       });
     });
 
-    it('should return isSupported as false', async () => {
+    it("should return isSupported as false", async () => {
       const { result } = renderHook(() => useWebAuthnSupport());
 
       await waitFor(() => {

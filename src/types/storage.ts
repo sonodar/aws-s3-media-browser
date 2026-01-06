@@ -5,7 +5,7 @@
 export interface StorageItem {
   key: string;
   name: string;
-  type: 'file' | 'folder';
+  type: "file" | "folder";
   size?: number;
   lastModified?: Date;
 }

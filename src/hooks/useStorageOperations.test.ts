@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
-import { useStorageOperations } from './useStorageOperations';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor, act } from "@testing-library/react";
+import { useStorageOperations } from "./useStorageOperations";
 
 // Mock aws-amplify/storage
-vi.mock('aws-amplify/storage', () => ({
+vi.mock("aws-amplify/storage", () => ({
   list: vi.fn(),
   remove: vi.fn(),
   uploadData: vi.fn(),
@@ -12,37 +12,33 @@ vi.mock('aws-amplify/storage', () => ({
 }));
 
 // Mock aws-amplify/auth to prevent interference with other test files
-vi.mock('aws-amplify/auth', () => ({
+vi.mock("aws-amplify/auth", () => ({
   fetchAuthSession: vi.fn(),
 }));
 
-import { list, remove, uploadData, getUrl, copy } from 'aws-amplify/storage';
+import { list, remove, uploadData, getUrl, copy } from "aws-amplify/storage";
 
-describe('useStorageOperations', () => {
-  const identityId = 'test-identity-id';
-  const currentPath = '';
+describe("useStorageOperations", () => {
+  const identityId = "test-identity-id";
+  const currentPath = "";
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('initialization', () => {
-    it('should start with loading true when identityId is provided', () => {
+  describe("initialization", () => {
+    it("should start with loading true when identityId is provided", () => {
       vi.mocked(list).mockImplementation(() => new Promise(() => {}));
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       expect(result.current.loading).toBe(true);
       expect(result.current.items).toEqual([]);
       expect(result.current.error).toBeNull();
     });
 
-    it('should not fetch when identityId is null', () => {
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId: null, currentPath })
-      );
+    it("should not fetch when identityId is null", () => {
+      const { result } = renderHook(() => useStorageOperations({ identityId: null, currentPath }));
 
       expect(result.current.loading).toBe(false);
       expect(result.current.items).toEqual([]);
@@ -50,8 +46,8 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('fetchItems', () => {
-    it('should fetch and parse items correctly', async () => {
+  describe("fetchItems", () => {
+    it("should fetch and parse items correctly", async () => {
       const basePath = `media/${identityId}/`;
       vi.mocked(list).mockResolvedValue({
         items: [
@@ -60,26 +56,22 @@ describe('useStorageOperations', () => {
         ],
       });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       expect(result.current.items).toHaveLength(2);
-      expect(result.current.items[0].type).toBe('folder');
-      expect(result.current.items[1].type).toBe('file');
+      expect(result.current.items[0].type).toBe("folder");
+      expect(result.current.items[1].type).toBe("file");
     });
 
-    it('should set error on list failure', async () => {
-      const mockError = new Error('Network error');
+    it("should set error on list failure", async () => {
+      const mockError = new Error("Network error");
       vi.mocked(list).mockRejectedValue(mockError);
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -88,12 +80,12 @@ describe('useStorageOperations', () => {
       expect(result.current.error).toBe(mockError);
     });
 
-    it('should refetch when currentPath changes', async () => {
+    it("should refetch when currentPath changes", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
       const { result, rerender } = renderHook(
         ({ path }) => useStorageOperations({ identityId, currentPath: path }),
-        { initialProps: { path: '' } }
+        { initialProps: { path: "" } },
       );
 
       await waitFor(() => {
@@ -102,7 +94,7 @@ describe('useStorageOperations', () => {
 
       expect(list).toHaveBeenCalledTimes(1);
 
-      rerender({ path: 'subfolder' });
+      rerender({ path: "subfolder" });
 
       await waitFor(() => {
         expect(list).toHaveBeenCalledTimes(2);
@@ -110,21 +102,22 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('uploadFiles', () => {
-    it('should upload files and return uploaded keys', async () => {
+  describe("uploadFiles", () => {
+    it("should upload files and return uploaded keys", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(uploadData).mockResolvedValue({ path: 'test', result: Promise.resolve({}) } as never);
+      vi.mocked(uploadData).mockResolvedValue({
+        path: "test",
+        result: Promise.resolve({}),
+      } as never);
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const file1 = new File(['content1'], 'file1.txt', { type: 'text/plain' });
-      const file2 = new File(['content2'], 'file2.txt', { type: 'text/plain' });
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const file2 = new File(["content2"], "file2.txt", { type: "text/plain" });
 
       let uploadedKeys: string[] = [];
       await act(async () => {
@@ -138,19 +131,20 @@ describe('useStorageOperations', () => {
       ]);
     });
 
-    it('should refresh items after upload', async () => {
+    it("should refresh items after upload", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(uploadData).mockResolvedValue({ path: 'test', result: Promise.resolve({}) } as never);
+      vi.mocked(uploadData).mockResolvedValue({
+        path: "test",
+        result: Promise.resolve({}),
+      } as never);
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const file = new File(['content'], 'file.txt', { type: 'text/plain' });
+      const file = new File(["content"], "file.txt", { type: "text/plain" });
 
       await act(async () => {
         await result.current.uploadFiles([file]);
@@ -161,60 +155,62 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('removeItem', () => {
-    it('should remove item and refresh list', async () => {
+  describe("removeItem", () => {
+    it("should remove item and refresh list", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       await act(async () => {
-        await result.current.removeItem('some/key/file.jpg');
+        await result.current.removeItem("some/key/file.jpg");
       });
 
-      expect(remove).toHaveBeenCalledWith({ path: 'some/key/file.jpg' });
+      expect(remove).toHaveBeenCalledWith({ path: "some/key/file.jpg" });
       // Initial fetch + refresh after remove
       expect(list).toHaveBeenCalledTimes(2);
     });
   });
 
-  describe('createFolder', () => {
-    it('should create folder and refresh list', async () => {
+  describe("createFolder", () => {
+    it("should create folder and refresh list", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(uploadData).mockResolvedValue({ path: 'test', result: Promise.resolve({}) } as never);
+      vi.mocked(uploadData).mockResolvedValue({
+        path: "test",
+        result: Promise.resolve({}),
+      } as never);
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       await act(async () => {
-        await result.current.createFolder('new-folder');
+        await result.current.createFolder("new-folder");
       });
 
       expect(uploadData).toHaveBeenCalledWith({
         path: `media/${identityId}/new-folder/`,
-        data: '',
+        data: "",
       });
       // Initial fetch + refresh after create
       expect(list).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle nested path for folder creation', async () => {
+    it("should handle nested path for folder creation", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(uploadData).mockResolvedValue({ path: 'test', result: Promise.resolve({}) } as never);
+      vi.mocked(uploadData).mockResolvedValue({
+        path: "test",
+        result: Promise.resolve({}),
+      } as never);
 
       const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath: 'photos/travel' })
+        useStorageOperations({ identityId, currentPath: "photos/travel" }),
       );
 
       await waitFor(() => {
@@ -222,49 +218,45 @@ describe('useStorageOperations', () => {
       });
 
       await act(async () => {
-        await result.current.createFolder('japan');
+        await result.current.createFolder("japan");
       });
 
       expect(uploadData).toHaveBeenCalledWith({
         path: `media/${identityId}/photos/travel/japan/`,
-        data: '',
+        data: "",
       });
     });
   });
 
-  describe('getFileUrl', () => {
-    it('should return signed URL for file', async () => {
+  describe("getFileUrl", () => {
+    it("should return signed URL for file", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
       vi.mocked(getUrl).mockResolvedValue({
-        url: new URL('https://s3.amazonaws.com/bucket/file.jpg?signed=xxx'),
+        url: new URL("https://s3.amazonaws.com/bucket/file.jpg?signed=xxx"),
         expiresAt: new Date(),
       });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      let url: string = '';
+      let url: string = "";
       await act(async () => {
-        url = await result.current.getFileUrl('some/key/file.jpg');
+        url = await result.current.getFileUrl("some/key/file.jpg");
       });
 
-      expect(getUrl).toHaveBeenCalledWith({ path: 'some/key/file.jpg' });
-      expect(url).toBe('https://s3.amazonaws.com/bucket/file.jpg?signed=xxx');
+      expect(getUrl).toHaveBeenCalledWith({ path: "some/key/file.jpg" });
+      expect(url).toBe("https://s3.amazonaws.com/bucket/file.jpg?signed=xxx");
     });
   });
 
-  describe('refresh', () => {
-    it('should refetch items when called', async () => {
+  describe("refresh", () => {
+    it("should refetch items when called", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -280,11 +272,11 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('basePath construction', () => {
-    it('should construct correct basePath for root', async () => {
+  describe("basePath construction", () => {
+    it("should construct correct basePath for root", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
-      renderHook(() => useStorageOperations({ identityId, currentPath: '' }));
+      renderHook(() => useStorageOperations({ identityId, currentPath: "" }));
 
       await waitFor(() => {
         expect(list).toHaveBeenCalledWith({
@@ -294,12 +286,10 @@ describe('useStorageOperations', () => {
       });
     });
 
-    it('should construct correct basePath for nested path', async () => {
+    it("should construct correct basePath for nested path", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
-      renderHook(() =>
-        useStorageOperations({ identityId, currentPath: 'photos/vacation' })
-      );
+      renderHook(() => useStorageOperations({ identityId, currentPath: "photos/vacation" }));
 
       await waitFor(() => {
         expect(list).toHaveBeenCalledWith({
@@ -310,47 +300,43 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('removeItems (複数削除)', () => {
-    it('should delete a single file', async () => {
+  describe("removeItems (複数削除)", () => {
+    it("should delete a single file", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const items = [{ key: 'media/id/file.jpg', name: 'file.jpg', type: 'file' as const }];
+      const items = [{ key: "media/id/file.jpg", name: "file.jpg", type: "file" as const }];
 
       let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
       await act(async () => {
         deleteResult = await result.current.removeItems(items);
       });
 
-      expect(remove).toHaveBeenCalledWith({ path: 'media/id/file.jpg' });
-      expect(deleteResult!.succeeded).toEqual(['media/id/file.jpg']);
+      expect(remove).toHaveBeenCalledWith({ path: "media/id/file.jpg" });
+      expect(deleteResult!.succeeded).toEqual(["media/id/file.jpg"]);
       expect(deleteResult!.failed).toHaveLength(0);
     });
 
-    it('should delete multiple files in parallel', async () => {
+    it("should delete multiple files in parallel", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       const items = [
-        { key: 'media/id/file1.jpg', name: 'file1.jpg', type: 'file' as const },
-        { key: 'media/id/file2.jpg', name: 'file2.jpg', type: 'file' as const },
-        { key: 'media/id/file3.jpg', name: 'file3.jpg', type: 'file' as const },
+        { key: "media/id/file1.jpg", name: "file1.jpg", type: "file" as const },
+        { key: "media/id/file2.jpg", name: "file2.jpg", type: "file" as const },
+        { key: "media/id/file3.jpg", name: "file3.jpg", type: "file" as const },
       ];
 
       let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
@@ -363,26 +349,24 @@ describe('useStorageOperations', () => {
       expect(deleteResult!.failed).toHaveLength(0);
     });
 
-    it('should handle partial failure', async () => {
+    it("should handle partial failure", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      const mockError = new Error('Permission denied');
+      const mockError = new Error("Permission denied");
       vi.mocked(remove)
-        .mockResolvedValueOnce({ path: 'test' })
+        .mockResolvedValueOnce({ path: "test" })
         .mockRejectedValueOnce(mockError)
-        .mockResolvedValueOnce({ path: 'test' });
+        .mockResolvedValueOnce({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       const items = [
-        { key: 'media/id/file1.jpg', name: 'file1.jpg', type: 'file' as const },
-        { key: 'media/id/file2.jpg', name: 'file2.jpg', type: 'file' as const },
-        { key: 'media/id/file3.jpg', name: 'file3.jpg', type: 'file' as const },
+        { key: "media/id/file1.jpg", name: "file1.jpg", type: "file" as const },
+        { key: "media/id/file2.jpg", name: "file2.jpg", type: "file" as const },
+        { key: "media/id/file3.jpg", name: "file3.jpg", type: "file" as const },
       ];
 
       let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
@@ -392,11 +376,11 @@ describe('useStorageOperations', () => {
 
       expect(deleteResult!.succeeded).toHaveLength(2);
       expect(deleteResult!.failed).toHaveLength(1);
-      expect(deleteResult!.failed[0].key).toBe('media/id/file2.jpg');
+      expect(deleteResult!.failed[0].key).toBe("media/id/file2.jpg");
       expect(deleteResult!.failed[0].error).toBe(mockError);
     });
 
-    it('should delete folder contents recursively', async () => {
+    it("should delete folder contents recursively", async () => {
       const basePath = `media/${identityId}/`;
       // Initial list for hook mount
       vi.mocked(list)
@@ -412,17 +396,15 @@ describe('useStorageOperations', () => {
         // Final refresh
         .mockResolvedValueOnce({ items: [] });
 
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const items = [{ key: `${basePath}folder/`, name: 'folder', type: 'folder' as const }];
+      const items = [{ key: `${basePath}folder/`, name: "folder", type: "folder" as const }];
 
       await act(async () => {
         await result.current.removeItems(items);
@@ -438,34 +420,30 @@ describe('useStorageOperations', () => {
       expect(remove).toHaveBeenCalledTimes(4);
     });
 
-    it('should handle folder that does not exist as object', async () => {
+    it("should handle folder that does not exist as object", async () => {
       const basePath = `media/${identityId}/`;
       // Initial list for hook mount
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] })
         // Folder contents list - no folder object, just files inside
         .mockResolvedValueOnce({
-          items: [
-            { path: `${basePath}folder/file1.jpg`, size: 100 },
-          ],
+          items: [{ path: `${basePath}folder/file1.jpg`, size: 100 }],
         })
         // Final refresh
         .mockResolvedValueOnce({ items: [] });
 
       // First call succeeds (file), second call fails (folder object doesn't exist)
       vi.mocked(remove)
-        .mockResolvedValueOnce({ path: 'test' })
-        .mockRejectedValueOnce(new Error('NotFound'));
+        .mockResolvedValueOnce({ path: "test" })
+        .mockRejectedValueOnce(new Error("NotFound"));
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const items = [{ key: `${basePath}folder/`, name: 'folder', type: 'folder' as const }];
+      const items = [{ key: `${basePath}folder/`, name: "folder", type: "folder" as const }];
 
       let deleteResult: { succeeded: string[]; failed: Array<{ key: string; error: Error }> };
       await act(async () => {
@@ -476,16 +454,17 @@ describe('useStorageOperations', () => {
       expect(deleteResult!.succeeded).toContain(`${basePath}folder/file1.jpg`);
     });
 
-    it('should set isDeleting to true during deletion', async () => {
+    it("should set isDeleting to true during deletion", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
       let resolveRemove: () => void;
       vi.mocked(remove).mockImplementation(
-        () => new Promise((resolve) => { resolveRemove = () => resolve({ path: 'test' }); })
+        () =>
+          new Promise((resolve) => {
+            resolveRemove = () => resolve({ path: "test" });
+          }),
       );
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -493,7 +472,7 @@ describe('useStorageOperations', () => {
 
       expect(result.current.isDeleting).toBe(false);
 
-      const items = [{ key: 'media/id/file.jpg', name: 'file.jpg', type: 'file' as const }];
+      const items = [{ key: "media/id/file.jpg", name: "file.jpg", type: "file" as const }];
 
       let deletePromise: Promise<unknown>;
       act(() => {
@@ -511,13 +490,11 @@ describe('useStorageOperations', () => {
       expect(result.current.isDeleting).toBe(false);
     });
 
-    it('should refresh items after deletion', async () => {
+    it("should refresh items after deletion", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -525,7 +502,7 @@ describe('useStorageOperations', () => {
 
       expect(list).toHaveBeenCalledTimes(1);
 
-      const items = [{ key: 'media/id/file.jpg', name: 'file.jpg', type: 'file' as const }];
+      const items = [{ key: "media/id/file.jpg", name: "file.jpg", type: "file" as const }];
 
       await act(async () => {
         await result.current.removeItems(items);
@@ -536,8 +513,8 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('renameItem (単一ファイルリネーム)', () => {
-    it('should rename file successfully when target does not exist', async () => {
+  describe("renameItem (単一ファイルリネーム)", () => {
+    it("should rename file successfully when target does not exist", async () => {
       const basePath = `media/${identityId}/`;
       // Initial list
       vi.mocked(list)
@@ -550,9 +527,7 @@ describe('useStorageOperations', () => {
       vi.mocked(copy).mockResolvedValue({ path: `${basePath}new.jpg` });
       vi.mocked(remove).mockResolvedValue({ path: `${basePath}old.jpg` });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -560,7 +535,7 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string };
       await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       expect(renameResult!.success).toBe(true);
@@ -571,7 +546,7 @@ describe('useStorageOperations', () => {
       expect(remove).toHaveBeenCalledWith({ path: `${basePath}old.jpg` });
     });
 
-    it('should return error when target file already exists', async () => {
+    it("should return error when target file already exists", async () => {
       const basePath = `media/${identityId}/`;
       // Initial list
       vi.mocked(list)
@@ -579,9 +554,7 @@ describe('useStorageOperations', () => {
         // Check for duplicate - file exists
         .mockResolvedValueOnce({ items: [{ path: `${basePath}new.jpg`, size: 100 }] });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -589,26 +562,24 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string };
       await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toBe('同じ名前のファイルが既に存在します');
+      expect(renameResult!.error).toBe("同じ名前のファイルが既に存在します");
       expect(copy).not.toHaveBeenCalled();
       expect(remove).not.toHaveBeenCalled();
     });
 
-    it('should return error when list API fails during duplicate check', async () => {
+    it("should return error when list API fails during duplicate check", async () => {
       const basePath = `media/${identityId}/`;
       // Initial list
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] })
         // Check for duplicate - API error
-        .mockRejectedValueOnce(new Error('Network error'));
+        .mockRejectedValueOnce(new Error("Network error"));
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -616,25 +587,21 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string };
       await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toContain('リネーム前のチェックに失敗しました');
+      expect(renameResult!.error).toContain("リネーム前のチェックに失敗しました");
       expect(copy).not.toHaveBeenCalled();
     });
 
-    it('should return error when copy fails', async () => {
+    it("should return error when copy fails", async () => {
       const basePath = `media/${identityId}/`;
-      vi.mocked(list)
-        .mockResolvedValueOnce({ items: [] })
-        .mockResolvedValueOnce({ items: [] });
+      vi.mocked(list).mockResolvedValueOnce({ items: [] }).mockResolvedValueOnce({ items: [] });
 
-      vi.mocked(copy).mockRejectedValueOnce(new Error('Copy failed'));
+      vi.mocked(copy).mockRejectedValueOnce(new Error("Copy failed"));
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -642,16 +609,16 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string };
       await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toContain('コピーに失敗しました');
+      expect(renameResult!.error).toContain("コピーに失敗しました");
       // Original file should remain (no remove called)
       expect(remove).not.toHaveBeenCalled();
     });
 
-    it('should return success with warning when delete fails after copy', async () => {
+    it("should return success with warning when delete fails after copy", async () => {
       const basePath = `media/${identityId}/`;
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] })
@@ -659,11 +626,9 @@ describe('useStorageOperations', () => {
         .mockResolvedValueOnce({ items: [] });
 
       vi.mocked(copy).mockResolvedValueOnce({ path: `${basePath}new.jpg` });
-      vi.mocked(remove).mockRejectedValueOnce(new Error('Delete failed'));
+      vi.mocked(remove).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -671,15 +636,15 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string; warning?: string };
       await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       // Rename is considered successful even if delete fails
       expect(renameResult!.success).toBe(true);
-      expect(renameResult!.warning).toContain('元ファイルの削除に失敗');
+      expect(renameResult!.warning).toContain("元ファイルの削除に失敗");
     });
 
-    it('should set isRenaming to true during rename', async () => {
+    it("should set isRenaming to true during rename", async () => {
       const basePath = `media/${identityId}/`;
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] })
@@ -691,11 +656,9 @@ describe('useStorageOperations', () => {
         resolveCopy = resolve;
       });
       vi.mocked(copy).mockReturnValueOnce(copyPromise);
-      vi.mocked(remove).mockResolvedValueOnce({ path: 'test' });
+      vi.mocked(remove).mockResolvedValueOnce({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -705,7 +668,7 @@ describe('useStorageOperations', () => {
 
       let renamePromise: Promise<unknown>;
       act(() => {
-        renamePromise = result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        renamePromise = result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       expect(result.current.isRenaming).toBe(true);
@@ -718,7 +681,7 @@ describe('useStorageOperations', () => {
       expect(result.current.isRenaming).toBe(false);
     });
 
-    it('should refresh items after successful rename', async () => {
+    it("should refresh items after successful rename", async () => {
       const basePath = `media/${identityId}/`;
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] })
@@ -726,11 +689,9 @@ describe('useStorageOperations', () => {
         .mockResolvedValueOnce({ items: [] });
 
       vi.mocked(copy).mockResolvedValueOnce({ path: `${basePath}new.jpg` });
-      vi.mocked(remove).mockResolvedValueOnce({ path: 'test' });
+      vi.mocked(remove).mockResolvedValueOnce({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -739,7 +700,7 @@ describe('useStorageOperations', () => {
       expect(list).toHaveBeenCalledTimes(1);
 
       await act(async () => {
-        await result.current.renameItem(`${basePath}old.jpg`, 'new.jpg');
+        await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
       // Initial + duplicate check + refresh after rename
@@ -747,25 +708,26 @@ describe('useStorageOperations', () => {
     });
   });
 
-  describe('renameFolder (フォルダリネーム)', () => {
+  describe("renameFolder (フォルダリネーム)", () => {
     const basePath = `media/${identityId}/`;
 
-    it('should rename folder successfully when target does not exist', async () => {
+    it("should rename folder successfully when target does not exist", async () => {
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] }) // Initial hook mount
         .mockResolvedValueOnce({ items: [] }) // Check target prefix empty
-        .mockResolvedValueOnce({ items: [ // List source folder contents
-          { path: `${basePath}old/file1.jpg`, size: 100 },
-          { path: `${basePath}old/file2.jpg`, size: 200 },
-        ]})
+        .mockResolvedValueOnce({
+          items: [
+            // List source folder contents
+            { path: `${basePath}old/file1.jpg`, size: 100 },
+            { path: `${basePath}old/file2.jpg`, size: 200 },
+          ],
+        })
         .mockResolvedValueOnce({ items: [] }); // Refresh after rename
 
-      vi.mocked(copy).mockResolvedValue({ path: 'test' });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -773,7 +735,7 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; succeeded?: number; failed?: number };
       await act(async () => {
-        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+        renameResult = await result.current.renameFolder(`${basePath}old/`, "new");
       });
 
       expect(renameResult!.success).toBe(true);
@@ -785,7 +747,7 @@ describe('useStorageOperations', () => {
       });
     });
 
-    it('should return error when folder has more than 1000 items', async () => {
+    it("should return error when folder has more than 1000 items", async () => {
       const manyItems = Array.from({ length: 1001 }, (_, i) => ({
         path: `${basePath}old/file${i}.jpg`,
         size: 100,
@@ -796,9 +758,7 @@ describe('useStorageOperations', () => {
         .mockResolvedValueOnce({ items: [] }) // Check target prefix empty
         .mockResolvedValueOnce({ items: manyItems }); // List source - too many items
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -806,29 +766,33 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string };
       await act(async () => {
-        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+        renameResult = await result.current.renameFolder(`${basePath}old/`, "new");
       });
 
       expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toContain('ファイル数が多すぎます');
-      expect(renameResult!.error).toContain('1001');
+      expect(renameResult!.error).toContain("ファイル数が多すぎます");
+      expect(renameResult!.error).toContain("1001");
       expect(copy).not.toHaveBeenCalled();
     });
 
-    it('should abort rename when duplicate files exist in target', async () => {
+    it("should abort rename when duplicate files exist in target", async () => {
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] }) // Initial
-        .mockResolvedValueOnce({ items: [ // Target folder has files
-          { path: `${basePath}new/file1.jpg`, size: 100 },
-        ]})
-        .mockResolvedValueOnce({ items: [ // Source folder contents
-          { path: `${basePath}old/file1.jpg`, size: 100 },
-          { path: `${basePath}old/file2.jpg`, size: 200 },
-        ]});
+        .mockResolvedValueOnce({
+          items: [
+            // Target folder has files
+            { path: `${basePath}new/file1.jpg`, size: 100 },
+          ],
+        })
+        .mockResolvedValueOnce({
+          items: [
+            // Source folder contents
+            { path: `${basePath}old/file1.jpg`, size: 100 },
+            { path: `${basePath}old/file2.jpg`, size: 200 },
+          ],
+        });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -836,95 +800,96 @@ describe('useStorageOperations', () => {
 
       let renameResult: { success: boolean; error?: string; duplicates?: string[] };
       await act(async () => {
-        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+        renameResult = await result.current.renameFolder(`${basePath}old/`, "new");
       });
 
       expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toContain('重複するファイルが存在します');
-      expect(renameResult!.duplicates).toContain('file1.jpg');
+      expect(renameResult!.error).toContain("重複するファイルが存在します");
+      expect(renameResult!.duplicates).toContain("file1.jpg");
       expect(copy).not.toHaveBeenCalled();
     });
 
-    it('should skip duplicate check when target is empty (fast path)', async () => {
+    it("should skip duplicate check when target is empty (fast path)", async () => {
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] }) // Initial
         .mockResolvedValueOnce({ items: [] }) // Target empty - fast path
-        .mockResolvedValueOnce({ items: [
-          { path: `${basePath}old/file1.jpg`, size: 100 },
-        ]})
+        .mockResolvedValueOnce({ items: [{ path: `${basePath}old/file1.jpg`, size: 100 }] })
         .mockResolvedValueOnce({ items: [] }); // Refresh
 
-      vi.mocked(copy).mockResolvedValue({ path: 'test' });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       await act(async () => {
-        await result.current.renameFolder(`${basePath}old/`, 'new');
+        await result.current.renameFolder(`${basePath}old/`, "new");
       });
 
       // Should proceed without additional duplicate checks
       expect(copy).toHaveBeenCalledTimes(1);
     });
 
-    it('should report partial failure when some copies fail', async () => {
+    it("should report partial failure when some copies fail", async () => {
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] }) // Initial
         .mockResolvedValueOnce({ items: [] }) // Target empty
-        .mockResolvedValueOnce({ items: [
-          { path: `${basePath}old/file1.jpg`, size: 100 },
-          { path: `${basePath}old/file2.jpg`, size: 200 },
-        ]})
+        .mockResolvedValueOnce({
+          items: [
+            { path: `${basePath}old/file1.jpg`, size: 100 },
+            { path: `${basePath}old/file2.jpg`, size: 200 },
+          ],
+        })
         .mockResolvedValueOnce({ items: [] }); // Refresh
 
       vi.mocked(copy)
-        .mockResolvedValueOnce({ path: 'test' })
-        .mockRejectedValueOnce(new Error('Copy failed'));
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+        .mockResolvedValueOnce({ path: "test" })
+        .mockRejectedValueOnce(new Error("Copy failed"));
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      let renameResult: { success: boolean; succeeded?: number; failed?: number; failedFiles?: string[] };
+      let renameResult: {
+        success: boolean;
+        succeeded?: number;
+        failed?: number;
+        failedFiles?: string[];
+      };
       await act(async () => {
-        renameResult = await result.current.renameFolder(`${basePath}old/`, 'new');
+        renameResult = await result.current.renameFolder(`${basePath}old/`, "new");
       });
 
       expect(renameResult!.success).toBe(false);
       expect(renameResult!.succeeded).toBe(1);
       expect(renameResult!.failed).toBe(1);
-      expect(renameResult!.failedFiles).toContain('file2.jpg');
+      expect(renameResult!.failedFiles).toContain("file2.jpg");
       // Only successful copy should have remove called
       expect(remove).toHaveBeenCalledTimes(1);
     });
 
-    it('should call progress callback during folder rename', async () => {
+    it("should call progress callback during folder rename", async () => {
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] }) // Initial
         .mockResolvedValueOnce({ items: [] }) // Target empty
-        .mockResolvedValueOnce({ items: [
-          { path: `${basePath}old/file1.jpg`, size: 100 },
-          { path: `${basePath}old/file2.jpg`, size: 200 },
-        ]})
+        .mockResolvedValueOnce({
+          items: [
+            { path: `${basePath}old/file1.jpg`, size: 100 },
+            { path: `${basePath}old/file2.jpg`, size: 200 },
+          ],
+        })
         .mockResolvedValueOnce({ items: [] }); // Refresh
 
-      vi.mocked(copy).mockResolvedValue({ path: 'test' });
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(copy).mockResolvedValue({ path: "test" });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -933,7 +898,7 @@ describe('useStorageOperations', () => {
       const progressCallback = vi.fn();
 
       await act(async () => {
-        await result.current.renameFolder(`${basePath}old/`, 'new', progressCallback);
+        await result.current.renameFolder(`${basePath}old/`, "new", progressCallback);
       });
 
       expect(progressCallback).toHaveBeenCalled();
@@ -942,13 +907,11 @@ describe('useStorageOperations', () => {
       expect(progressCallback).toHaveBeenCalledWith({ current: 2, total: 2 });
     });
 
-    it('should set isRenaming during folder rename', async () => {
+    it("should set isRenaming during folder rename", async () => {
       vi.mocked(list)
         .mockResolvedValueOnce({ items: [] }) // Initial
         .mockResolvedValueOnce({ items: [] }) // Target check
-        .mockResolvedValueOnce({ items: [
-          { path: `${basePath}old/file1.jpg`, size: 100 },
-        ]}) // Source list
+        .mockResolvedValueOnce({ items: [{ path: `${basePath}old/file1.jpg`, size: 100 }] }) // Source list
         .mockResolvedValueOnce({ items: [] }); // Refresh
 
       // Create a deferred promise for copy
@@ -957,11 +920,9 @@ describe('useStorageOperations', () => {
         resolveCopy = resolve;
       });
       vi.mocked(copy).mockReturnValue(copyPromise);
-      vi.mocked(remove).mockResolvedValue({ path: 'test' });
+      vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath })
-      );
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -971,7 +932,7 @@ describe('useStorageOperations', () => {
 
       let renamePromise: Promise<unknown>;
       act(() => {
-        renamePromise = result.current.renameFolder(`${basePath}old/`, 'new');
+        renamePromise = result.current.renameFolder(`${basePath}old/`, "new");
       });
 
       // Wait a tick for the async operation to start
@@ -982,7 +943,7 @@ describe('useStorageOperations', () => {
       expect(result.current.isRenaming).toBe(true);
 
       await act(async () => {
-        resolveCopy!({ path: 'test' });
+        resolveCopy!({ path: "test" });
         await renamePromise;
       });
 

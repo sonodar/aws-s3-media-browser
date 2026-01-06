@@ -101,7 +101,7 @@
   - StorageItem 型の import パスを新しい types/storage.ts に更新する
   - _Requirements: 6.4_
 
-- [x] 7.2* 個別フックのユニットテスト作成
+- [x] 7.2\* 個別フックのユニットテスト作成
   - useIdentityId: 認証成功/失敗/ローディング状態のテスト
   - useStoragePath: パス変更、URL 同期、popstate のテスト
   - useUploadTracker: 追跡/クリア、タイマー動作のテスト

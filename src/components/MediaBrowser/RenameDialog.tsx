@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { validateRename } from '../../utils/validateRename';
-import type { StorageItem } from '../../types/storage';
-import type { RenameItemResult, RenameFolderResult, RenameProgress } from '../../hooks/useStorageOperations';
-import './CreateFolderDialog.css';
+import { useState, useEffect, useCallback } from "react";
+import { validateRename } from "../../utils/validateRename";
+import type { StorageItem } from "../../types/storage";
+import type {
+  RenameItemResult,
+  RenameFolderResult,
+  RenameProgress,
+} from "../../hooks/useStorageOperations";
+import "./CreateFolderDialog.css";
 
 export interface RenameDialogProps {
   isOpen: boolean;
@@ -13,7 +17,7 @@ export interface RenameDialogProps {
   onRenameFolder: (
     currentPrefix: string,
     newName: string,
-    onProgress?: (progress: RenameProgress) => void
+    onProgress?: (progress: RenameProgress) => void,
   ) => Promise<RenameFolderResult>;
 }
 
@@ -60,7 +64,7 @@ export function RenameDialog({
     });
 
     if (!validationResult.valid) {
-      setError(validationResult.error || 'バリデーションエラー');
+      setError(validationResult.error || "バリデーションエラー");
       return;
     }
 
@@ -71,14 +75,14 @@ export function RenameDialog({
     setFolderErrorDetails(null);
 
     try {
-      if (item.type === 'folder') {
+      if (item.type === "folder") {
         // Folder rename with progress callback
         const result = await onRenameFolder(item.key, normalizedName, (p) => {
           setProgress(p);
         });
 
         if (!result.success) {
-          setError(result.error || 'フォルダのリネームに失敗しました');
+          setError(result.error || "フォルダのリネームに失敗しました");
           // Store folder error details for display
           setFolderErrorDetails({
             succeeded: result.succeeded,
@@ -93,7 +97,7 @@ export function RenameDialog({
         const result = await onRenameFile(item.key, normalizedName);
 
         if (!result.success) {
-          setError(result.error || 'ファイルのリネームに失敗しました');
+          setError(result.error || "ファイルのリネームに失敗しました");
           return;
         }
       }
@@ -111,12 +115,12 @@ export function RenameDialog({
       // IME 変換中は無視（変換確定の Enter でリネームが実行されるのを防ぐ）
       if (e.nativeEvent.isComposing) return;
 
-      if (e.key === 'Escape' && !isProcessing) {
+      if (e.key === "Escape" && !isProcessing) {
         onClose();
       }
       // Enter キーでのリネーム実行を削除（モバイルファーストのため不要、IME との相性も悪い）
     },
-    [isProcessing, onClose]
+    [isProcessing, onClose],
   );
 
   const handleClose = useCallback(() => {
@@ -127,8 +131,8 @@ export function RenameDialog({
 
   if (!isOpen) return null;
 
-  const dialogTitle = item.type === 'folder' ? 'フォルダ名を変更' : 'ファイル名を変更';
-  const submitButtonText = isProcessing ? '変更中...' : '変更';
+  const dialogTitle = item.type === "folder" ? "フォルダ名を変更" : "ファイル名を変更";
+  const submitButtonText = isProcessing ? "変更中..." : "変更";
 
   return (
     <div className="dialog-overlay">
@@ -150,26 +154,29 @@ export function RenameDialog({
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder={item.type === 'folder' ? 'フォルダ名' : 'ファイル名'}
+            placeholder={item.type === "folder" ? "フォルダ名" : "ファイル名"}
             autoFocus
             disabled={isProcessing}
-            aria-label={item.type === 'folder' ? 'フォルダ名' : 'ファイル名'}
+            aria-label={item.type === "folder" ? "フォルダ名" : "ファイル名"}
           />
           {error && <p className="error-message">{error}</p>}
-          {folderErrorDetails && (folderErrorDetails.succeeded !== undefined || folderErrorDetails.failed !== undefined) && (
-            <div className="folder-error-details">
-              <p className="error-summary">
-                成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗: {folderErrorDetails.failed ?? 0}件
-              </p>
-              {folderErrorDetails.failedFiles && folderErrorDetails.failedFiles.length > 0 && (
-                <ul className="failed-files-list">
-                  {folderErrorDetails.failedFiles.map((file) => (
-                    <li key={file}>{file}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+          {folderErrorDetails &&
+            (folderErrorDetails.succeeded !== undefined ||
+              folderErrorDetails.failed !== undefined) && (
+              <div className="folder-error-details">
+                <p className="error-summary">
+                  成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
+                  {folderErrorDetails.failed ?? 0}件
+                </p>
+                {folderErrorDetails.failedFiles && folderErrorDetails.failedFiles.length > 0 && (
+                  <ul className="failed-files-list">
+                    {folderErrorDetails.failedFiles.map((file) => (
+                      <li key={file}>{file}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
             <ul className="duplicate-files-list">
               {folderErrorDetails.duplicates.map((file) => (
@@ -189,11 +196,7 @@ export function RenameDialog({
             >
               キャンセル
             </button>
-            <button
-              type="submit"
-              disabled={isProcessing}
-              className="submit-button"
-            >
+            <button type="submit" disabled={isProcessing} className="submit-button">
               {submitButtonText}
             </button>
           </div>

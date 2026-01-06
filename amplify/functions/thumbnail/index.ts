@@ -1,1 +1,1 @@
-export { thumbnailFunction } from './resource';
+export { thumbnailFunction } from "./resource";

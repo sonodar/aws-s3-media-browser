@@ -9,12 +9,14 @@
 **Impact**: 既存の `useStorageOperations` フックを拡張し、新規 UI コンポーネント `RenameDialog` を追加する。
 
 ### Goals
+
 - 単一ファイルのリネーム機能を提供する
 - ディレクトリ（プレフィックス）配下の全オブジェクトを一括リネームする
 - 適切なバリデーションとエラーハンドリングを実装する
 - 既存 UI パターンと一貫性のあるユーザー体験を提供する
 
 ### Non-Goals
+
 - ファイルの移動（別ディレクトリへの移動）
 - 複数ファイルの一括リネーム（バッチリネーム）
 - リネーム履歴・Undo 機能
@@ -25,6 +27,7 @@
 ### Existing Architecture Analysis
 
 既存システムは以下の構成を持つ：
+
 - **useStorageOperations**: S3 操作（list, remove, upload, getUrl）を提供するカスタムフック
 - **MediaBrowser コンポーネント群**: FileList, FileActions, CreateFolderDialog 等の UI コンポーネント
 - **StorageItem 型**: ファイル/フォルダを表現する共通型
@@ -59,6 +62,7 @@ graph TB
 ```
 
 **Architecture Integration**:
+
 - **Selected pattern**: Hook 拡張パターン — 既存の useStorageOperations に renameItem, renameFolder メソッドを追加
 - **Domain/feature boundaries**: UI 層（表示・入力）と Hook 層（ビジネスロジック・API 呼び出し）を分離
 - **Existing patterns preserved**: CreateFolderDialog のバリデーション・状態管理パターンを踏襲
@@ -67,11 +71,11 @@ graph TB
 
 ### Technology Stack
 
-| Layer | Choice / Version | Role in Feature | Notes |
-|-------|------------------|-----------------|-------|
-| Frontend | React 19 + TypeScript 5.x | UI コンポーネント、状態管理 | 既存スタック維持 |
-| Storage API | aws-amplify/storage (copy, remove, list) | S3 操作 | copy API を新規使用 |
-| Testing | Vitest + Testing Library | ユニット・コンポーネントテスト | 既存スタック維持 |
+| Layer       | Choice / Version                         | Role in Feature                | Notes               |
+| ----------- | ---------------------------------------- | ------------------------------ | ------------------- |
+| Frontend    | React 19 + TypeScript 5.x                | UI コンポーネント、状態管理    | 既存スタック維持    |
+| Storage API | aws-amplify/storage (copy, remove, list) | S3 操作                        | copy API を新規使用 |
+| Testing     | Vitest + Testing Library                 | ユニット・コンポーネントテスト | 既存スタック維持    |
 
 ## System Flows
 
@@ -130,6 +134,7 @@ sequenceDiagram
 ```
 
 **Key Decisions**:
+
 - copy 成功後に remove を実行することで、失敗時も元ファイルを維持
 - ディレクトリリネームは順次処理し進捗を表示
 - サムネイルは UI から操作せず Lambda に委任（UI にはサムネイルパスへの Write 権限がない）
@@ -138,42 +143,44 @@ sequenceDiagram
 
 ## Requirements Traceability
 
-| Requirement | Summary | Components | Interfaces | Flows |
-|-------------|---------|------------|------------|-------|
-| 1.1, 1.2, 1.3 | ファイルリネーム | RenameDialog, useStorageOperations | renameItem | ファイルリネームフロー |
-| 1.4 | ローディング状態 | RenameDialog | isRenaming | - |
-| 1.5 | キャンセル | RenameDialog | onClose | - |
-| 2.1, 2.2, 2.3 | ディレクトリリネーム | RenameDialog, useStorageOperations | renameFolder | ディレクトリリネームフロー |
-| 2.4 | 進捗表示 | RenameDialog | progress | - |
-| 2.5 | 一覧更新 | useStorageOperations | fetchItems | - |
-| 3.1, 3.2, 3.3, 3.4 | バリデーション | RenameDialog | validateName | - |
-| 4.1, 4.2, 4.3, 4.4 | エラーハンドリング | useStorageOperations, RenameDialog | RenameResult | - |
-| 5.1 | アクションボタン | FileList, MediaBrowser | onRename | - |
-| 5.2, 5.3, 5.4 | ダイアログ UI/UX | RenameDialog | - | - |
+| Requirement        | Summary              | Components                         | Interfaces   | Flows                      |
+| ------------------ | -------------------- | ---------------------------------- | ------------ | -------------------------- |
+| 1.1, 1.2, 1.3      | ファイルリネーム     | RenameDialog, useStorageOperations | renameItem   | ファイルリネームフロー     |
+| 1.4                | ローディング状態     | RenameDialog                       | isRenaming   | -                          |
+| 1.5                | キャンセル           | RenameDialog                       | onClose      | -                          |
+| 2.1, 2.2, 2.3      | ディレクトリリネーム | RenameDialog, useStorageOperations | renameFolder | ディレクトリリネームフロー |
+| 2.4                | 進捗表示             | RenameDialog                       | progress     | -                          |
+| 2.5                | 一覧更新             | useStorageOperations               | fetchItems   | -                          |
+| 3.1, 3.2, 3.3, 3.4 | バリデーション       | RenameDialog                       | validateName | -                          |
+| 4.1, 4.2, 4.3, 4.4 | エラーハンドリング   | useStorageOperations, RenameDialog | RenameResult | -                          |
+| 5.1                | アクションボタン     | FileList, MediaBrowser             | onRename     | -                          |
+| 5.2, 5.3, 5.4      | ダイアログ UI/UX     | RenameDialog                       | -            | -                          |
 
 ## Components and Interfaces
 
-| Component | Domain/Layer | Intent | Req Coverage | Key Dependencies | Contracts |
-|-----------|--------------|--------|--------------|------------------|-----------|
-| useStorageOperations | Hook Layer | S3 ストレージ操作 | 1.2, 1.3, 2.2, 2.3, 2.5, 4.1-4.4 | Amplify Storage (P0) | Service |
-| RenameDialog | UI Layer | リネームダイアログ UI | 1.1, 1.4, 1.5, 2.1, 2.4, 3.1-3.4, 5.2-5.4 | useStorageOperations (P0) | State |
-| FileList | UI Layer | リネームボタン追加 | 5.1 | - | - |
+| Component            | Domain/Layer | Intent                | Req Coverage                              | Key Dependencies          | Contracts |
+| -------------------- | ------------ | --------------------- | ----------------------------------------- | ------------------------- | --------- |
+| useStorageOperations | Hook Layer   | S3 ストレージ操作     | 1.2, 1.3, 2.2, 2.3, 2.5, 4.1-4.4          | Amplify Storage (P0)      | Service   |
+| RenameDialog         | UI Layer     | リネームダイアログ UI | 1.1, 1.4, 1.5, 2.1, 2.4, 3.1-3.4, 5.2-5.4 | useStorageOperations (P0) | State     |
+| FileList             | UI Layer     | リネームボタン追加    | 5.1                                       | -                         | -         |
 
 ### Hook Layer
 
 #### useStorageOperations（拡張）
 
-| Field | Detail |
-|-------|--------|
-| Intent | S3 ストレージ操作（既存 + リネーム機能追加） |
-| Requirements | 1.2, 1.3, 2.2, 2.3, 2.5, 4.1, 4.2, 4.3, 4.4 |
+| Field        | Detail                                       |
+| ------------ | -------------------------------------------- |
+| Intent       | S3 ストレージ操作（既存 + リネーム機能追加） |
+| Requirements | 1.2, 1.3, 2.2, 2.3, 2.5, 4.1, 4.2, 4.3, 4.4  |
 
 **Responsibilities & Constraints**
+
 - ファイル・ディレクトリのリネーム処理（copy + remove）
 - 既存の list, remove, upload 操作との一貫性を維持
 - エラー発生時は元ファイルを維持
 
 **Dependencies**
+
 - Outbound: Amplify Storage API (copy, remove, list) — S3 操作 (P0)
 
 **Contracts**: Service [x]
@@ -223,7 +230,7 @@ interface UseStorageOperationsReturn {
   renameFolder: (
     item: StorageItem,
     newName: string,
-    onProgress?: (progress: FolderRenameProgress) => void
+    onProgress?: (progress: FolderRenameProgress) => void,
   ) => Promise<FolderRenameResult>;
 
   /** リネーム処理中フラグ */
@@ -236,6 +243,7 @@ interface UseStorageOperationsReturn {
 - **Invariants**: コピー失敗時は元オブジェクトを維持
 
 **Implementation Notes**
+
 - Integration: 既存の `listFolderContents` を再利用してディレクトリ配下を取得
 - Validation: フック内ではパスの整合性のみ検証、名前バリデーションは UI 側
 - Risks: 削除失敗時はユーザーに明示的に通知が必要
@@ -244,18 +252,20 @@ interface UseStorageOperationsReturn {
 
 #### RenameDialog
 
-| Field | Detail |
-|-------|--------|
-| Intent | リネーム用モーダルダイアログ |
+| Field        | Detail                                                     |
+| ------------ | ---------------------------------------------------------- |
+| Intent       | リネーム用モーダルダイアログ                               |
 | Requirements | 1.1, 1.4, 1.5, 2.1, 2.4, 3.1, 3.2, 3.3, 3.4, 5.2, 5.3, 5.4 |
 
 **Responsibilities & Constraints**
+
 - 新しい名前の入力 UI を提供
 - 入力値のバリデーション（空、重複、無効文字）
 - ローディング状態と進捗表示
 - キーボード操作（Enter 確定、Escape キャンセル）
 
 **Dependencies**
+
 - Inbound: MediaBrowser — ダイアログ表示制御 (P0)
 - Outbound: useStorageOperations.renameItem/renameFolder — リネーム実行 (P0)
 
@@ -287,6 +297,7 @@ interface RenameDialogProps {
 - **Concurrency strategy**: isRenaming フラグで二重送信防止
 
 **Implementation Notes**
+
 - Integration: CreateFolderDialog.css を再利用してスタイル統一
 - Risks: なし
 
@@ -294,10 +305,10 @@ interface RenameDialogProps {
 
 #### validateRename 関数
 
-| Field | Detail |
-|-------|--------|
-| Intent | リネーム名の入力バリデーション |
-| Requirements | 3.1, 3.2, 3.3, 3.4 |
+| Field        | Detail                         |
+| ------------ | ------------------------------ |
+| Intent       | リネーム名の入力バリデーション |
+| Requirements | 3.1, 3.2, 3.3, 3.4             |
 
 ##### 関数シグネチャ
 
@@ -327,12 +338,13 @@ function validateRename(options: ValidateRenameOptions): ValidationResult;
 
 **バリデーションの2層構成**:
 
-| 層 | 目的 | 実行タイミング | チェック内容 |
-|---|------|---------------|-------------|
-| UI 層 | 即時フィードバック（UX） | 入力中 | 形式チェック + 重複チェック（early return） |
-| フック層 | 整合性保証（データ安全性） | リネーム実行直前 | S3 上での重複チェック |
+| 層       | 目的                       | 実行タイミング   | チェック内容                                |
+| -------- | -------------------------- | ---------------- | ------------------------------------------- |
+| UI 層    | 即時フィードバック（UX）   | 入力中           | 形式チェック + 重複チェック（early return） |
+| フック層 | 整合性保証（データ安全性） | リネーム実行直前 | S3 上での重複チェック                       |
 
 **⚠️ 2層チェックの目的の違い**:
+
 - **UI 層**: UX 向上のための即時フィードバック（items 状態を使用、古い可能性あり）
 - **フック層**: データ整合性保証（S3 API で実際の状態を確認、上書き防止）
 
@@ -340,25 +352,26 @@ function validateRename(options: ValidateRenameOptions): ValidationResult;
 
 **UI 層バリデーション（validateRename 関数）**:
 
-| # | ルール | 条件 | エラーメッセージ | 優先度 |
-|---|--------|------|------------------|--------|
-| 1 | 空文字チェック | `newName.trim() === ''` | 「名前を入力してください」 | 最優先 |
-| 2 | 無効文字チェック | `/` or `\\` を含む | 「名前にスラッシュは使用できません」 | 高 |
-| 3 | 長さ制限 | `newName.trim().length > 100` | 「名前は100文字以内にしてください」 | 中 |
-| 4 | 同一名チェック | `newName.trim() === item.name` | 「名前が変更されていません」 | 中 |
-| 5 | 重複チェック（UI） | `existingItems` に同タイプ同名が存在 | 「同じ名前の{ファイル/フォルダ}が既に存在します」 | 低 |
+| #   | ルール             | 条件                                 | エラーメッセージ                                  | 優先度 |
+| --- | ------------------ | ------------------------------------ | ------------------------------------------------- | ------ |
+| 1   | 空文字チェック     | `newName.trim() === ''`              | 「名前を入力してください」                        | 最優先 |
+| 2   | 無効文字チェック   | `/` or `\\` を含む                   | 「名前にスラッシュは使用できません」              | 高     |
+| 3   | 長さ制限           | `newName.trim().length > 100`        | 「名前は100文字以内にしてください」               | 中     |
+| 4   | 同一名チェック     | `newName.trim() === item.name`       | 「名前が変更されていません」                      | 中     |
+| 5   | 重複チェック（UI） | `existingItems` に同タイプ同名が存在 | 「同じ名前の{ファイル/フォルダ}が既に存在します」 | 低     |
 
 **UI 層重複チェックの詳細**:
+
 - 比較対象: `existingItems.filter(i => i.type === item.type && i.key !== item.key)`
 - 比較方法: `normalizedName === existingItem.name`（case-sensitive）
 - 注意: この段階では UI の items 状態を使用（古い可能性あり、フック層で再チェック）
 
 **フック層バリデーション（S3 API で実行）**:
 
-| # | ルール | 条件 | エラーメッセージ |
-|---|--------|------|------------------|
-| 5 | ファイル重複チェック | S3 上に新キーが存在 | 「同じ名前のファイルが既に存在します」 |
-| 6 | フォルダ重複チェック | 新プレフィックス配下に重複オブジェクト | 「以下のファイルが既に存在します: {list}」 |
+| #   | ルール               | 条件                                   | エラーメッセージ                           |
+| --- | -------------------- | -------------------------------------- | ------------------------------------------ |
+| 5   | ファイル重複チェック | S3 上に新キーが存在                    | 「同じ名前のファイルが既に存在します」     |
+| 6   | フォルダ重複チェック | 新プレフィックス配下に重複オブジェクト | 「以下のファイルが既に存在します: {list}」 |
 
 ##### 重複チェックの詳細仕様
 
@@ -382,7 +395,7 @@ async function checkS3Exists(newKey: string): Promise<boolean> {
       options: { listAll: false },
     });
     // 完全一致するキーが存在するか確認
-    return result.items.some(item => item.path === newKey);
+    return result.items.some((item) => item.path === newKey);
   } catch {
     // エラー時は安全側に倒して重複ありとする
     return true;
@@ -391,13 +404,14 @@ async function checkS3Exists(newKey: string): Promise<boolean> {
 ```
 
 **ファイルリネーム時の重複チェック**:
+
 ```typescript
 // 新しいキーを生成
 const newKey = `${parentPath}${newName}`;
 
 // S3 上で存在確認
 if (await checkS3Exists(newKey)) {
-  return { success: false, error: new Error('同じ名前のファイルが既に存在します') };
+  return { success: false, error: new Error("同じ名前のファイルが既に存在します") };
 }
 
 // 存在しなければ copy 実行
@@ -420,7 +434,7 @@ const MAX_FOLDER_RENAME_ITEMS = 1000;
  */
 async function checkFolderRenameConflicts(
   oldPrefix: string,
-  newPrefix: string
+  newPrefix: string,
 ): Promise<{
   hasConflicts: boolean;
   conflicts: string[];
@@ -433,7 +447,7 @@ async function checkFolderRenameConflicts(
     path: newPrefix,
     options: { listAll: true },
   });
-  const destKeys = new Set(destResult.items.map(item => item.path));
+  const destKeys = new Set(destResult.items.map((item) => item.path));
 
   // 2. 元フォルダ配下のオブジェクト一覧を取得
   const sourceItems = await listFolderContents(oldPrefix);
@@ -461,7 +475,7 @@ async function checkFolderRenameConflicts(
   // 5. 各ソースオブジェクトの新キーが既存と重複するかチェック
   const conflicts: string[] = [];
   for (const sourceKey of sourceItems) {
-    const relativePath = sourceKey.replace(oldPrefix, '');
+    const relativePath = sourceKey.replace(oldPrefix, "");
     const newKey = `${newPrefix}${relativePath}`;
     if (destKeys.has(newKey)) {
       conflicts.push(relativePath);
@@ -487,11 +501,11 @@ async function checkFolderRenameConflicts(
 
 ##### 拡張子の扱い（ファイルリネーム時）
 
-| 決定事項 | 詳細 |
-|---------|------|
-| 拡張子変更 | **許可する** — ユーザーの意図を尊重 |
-| 警告表示 | **なし** — S3 はファイル拡張子に依存しない |
-| 理由 | S3 オブジェクトは Content-Type で MIME タイプを保持しており、拡張子は表示名のみの意味を持つ |
+| 決定事項   | 詳細                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| 拡張子変更 | **許可する** — ユーザーの意図を尊重                                                         |
+| 警告表示   | **なし** — S3 はファイル拡張子に依存しない                                                  |
+| 理由       | S3 オブジェクトは Content-Type で MIME タイプを保持しており、拡張子は表示名のみの意味を持つ |
 
 ##### データフロー
 
@@ -522,42 +536,43 @@ sequenceDiagram
 
 **UI 層バリデーション（validateRename 関数）**:
 
-| ケース | 入力 | 期待結果 |
-|--------|------|----------|
-| 空文字 | `""` | `{valid: false, error: "名前を入力してください"}` |
-| 空白のみ | `"   "` | `{valid: false, error: "名前を入力してください"}` |
-| スラッシュ含む | `"foo/bar"` | `{valid: false, error: "名前にスラッシュは使用できません"}` |
-| バックスラッシュ含む | `"foo\\bar"` | `{valid: false, error: "名前にスラッシュは使用できません"}` |
-| 101文字 | `"a" * 101` | `{valid: false, error: "名前は100文字以内にしてください"}` |
-| 同一名（変更なし） | 元の名前と同じ | `{valid: false, error: "名前が変更されていません"}` |
-| ファイル重複（UI） | 既存ファイル名 | `{valid: false, error: "同じ名前のファイルが既に存在します"}` |
-| フォルダ重複（UI） | 既存フォルダ名 | `{valid: false, error: "同じ名前のフォルダが既に存在します"}` |
-| 異タイプ同名 | ファイル→既存フォルダ名 | `{valid: true}` |
-| 大文字小文字違い | `"Photo.jpg"` vs `"photo.jpg"` | `{valid: true}` |
-| 前後空白 | `"  name  "` | `{valid: true, normalizedName: "name"}` |
-| 拡張子変更 | `"photo.png"` → `"photo.jpg"` | `{valid: true}` |
-| 正常（ファイル） | `"newname.jpg"` | `{valid: true, normalizedName: "newname.jpg"}` |
-| 正常（フォルダ） | `"newfolder"` | `{valid: true, normalizedName: "newfolder"}` |
+| ケース               | 入力                           | 期待結果                                                      |
+| -------------------- | ------------------------------ | ------------------------------------------------------------- |
+| 空文字               | `""`                           | `{valid: false, error: "名前を入力してください"}`             |
+| 空白のみ             | `"   "`                        | `{valid: false, error: "名前を入力してください"}`             |
+| スラッシュ含む       | `"foo/bar"`                    | `{valid: false, error: "名前にスラッシュは使用できません"}`   |
+| バックスラッシュ含む | `"foo\\bar"`                   | `{valid: false, error: "名前にスラッシュは使用できません"}`   |
+| 101文字              | `"a" * 101`                    | `{valid: false, error: "名前は100文字以内にしてください"}`    |
+| 同一名（変更なし）   | 元の名前と同じ                 | `{valid: false, error: "名前が変更されていません"}`           |
+| ファイル重複（UI）   | 既存ファイル名                 | `{valid: false, error: "同じ名前のファイルが既に存在します"}` |
+| フォルダ重複（UI）   | 既存フォルダ名                 | `{valid: false, error: "同じ名前のフォルダが既に存在します"}` |
+| 異タイプ同名         | ファイル→既存フォルダ名        | `{valid: true}`                                               |
+| 大文字小文字違い     | `"Photo.jpg"` vs `"photo.jpg"` | `{valid: true}`                                               |
+| 前後空白             | `"  name  "`                   | `{valid: true, normalizedName: "name"}`                       |
+| 拡張子変更           | `"photo.png"` → `"photo.jpg"`  | `{valid: true}`                                               |
+| 正常（ファイル）     | `"newname.jpg"`                | `{valid: true, normalizedName: "newname.jpg"}`                |
+| 正常（フォルダ）     | `"newfolder"`                  | `{valid: true, normalizedName: "newfolder"}`                  |
 
 **フック層バリデーション（S3 API チェック）**:
 
-| ケース | 条件 | 期待結果 |
-|--------|------|----------|
-| S3 重複なし | 新キーが存在しない | リネーム続行 |
-| S3 重複あり | 新キーが存在する | エラー返却（コピー実行されない） |
-| list API エラー | API 呼び出し失敗 | エラー返却（安全側に倒す） |
-| フォルダ: ファイル数超過 | 1001件以上 | エラー返却（「ファイル数が多すぎます」） |
-| フォルダ: リネーム先が空 | destKeys.size === 0 | 重複チェックスキップ（高速パス） |
-| フォルダ: 1件でも重複 | conflicts.length > 0 | エラー返却（部分実行しない） |
+| ケース                   | 条件                 | 期待結果                                 |
+| ------------------------ | -------------------- | ---------------------------------------- |
+| S3 重複なし              | 新キーが存在しない   | リネーム続行                             |
+| S3 重複あり              | 新キーが存在する     | エラー返却（コピー実行されない）         |
+| list API エラー          | API 呼び出し失敗     | エラー返却（安全側に倒す）               |
+| フォルダ: ファイル数超過 | 1001件以上           | エラー返却（「ファイル数が多すぎます」） |
+| フォルダ: リネーム先が空 | destKeys.size === 0  | 重複チェックスキップ（高速パス）         |
+| フォルダ: 1件でも重複    | conflicts.length > 0 | エラー返却（部分実行しない）             |
 
 #### FileList（軽微な拡張）
 
-| Field | Detail |
-|-------|--------|
-| Intent | ファイル一覧表示（リネームボタン追加） |
-| Requirements | 5.1 |
+| Field        | Detail                                 |
+| ------------ | -------------------------------------- |
+| Intent       | ファイル一覧表示（リネームボタン追加） |
+| Requirements | 5.1                                    |
 
 **Implementation Notes**
+
 - 各アイテムにリネームアイコンボタンを追加
 - クリック時に `onRename(item)` コールバックを呼び出し
 - 選択モード中はリネームボタンを非表示
@@ -570,9 +585,9 @@ sequenceDiagram
 
 ```typescript
 interface StorageItem {
-  key: string;        // S3 オブジェクトキー（フルパス）
-  name: string;       // 表示名（ファイル名/フォルダ名）
-  type: 'file' | 'folder';
+  key: string; // S3 オブジェクトキー（フルパス）
+  name: string; // 表示名（ファイル名/フォルダ名）
+  type: "file" | "folder";
   size?: number;
   lastModified?: Date;
 }
@@ -586,22 +601,24 @@ interface StorageItem {
 
 ### Error Strategy
 
-| エラー種別 | 発生箇所 | 対応 |
-|-----------|---------|------|
-| バリデーションエラー | RenameDialog | フィールド下にエラーメッセージ表示、送信ブロック |
-| コピー失敗 | useStorageOperations | エラーメッセージ表示、元ファイル維持 |
-| 削除失敗 | useStorageOperations | エラーメッセージ表示（新旧両方存在を通知） |
-| ネットワークエラー | useStorageOperations | エラーメッセージ表示、リトライ可能 |
-| 部分失敗（フォルダ） | useStorageOperations | 失敗ファイル一覧を表示 |
+| エラー種別           | 発生箇所             | 対応                                             |
+| -------------------- | -------------------- | ------------------------------------------------ |
+| バリデーションエラー | RenameDialog         | フィールド下にエラーメッセージ表示、送信ブロック |
+| コピー失敗           | useStorageOperations | エラーメッセージ表示、元ファイル維持             |
+| 削除失敗             | useStorageOperations | エラーメッセージ表示（新旧両方存在を通知）       |
+| ネットワークエラー   | useStorageOperations | エラーメッセージ表示、リトライ可能               |
+| 部分失敗（フォルダ） | useStorageOperations | 失敗ファイル一覧を表示                           |
 
 ### Error Categories and Responses
 
 **User Errors (4xx)**:
+
 - 空のファイル名 → 「ファイル名を入力してください」
 - 既存名と重複 → 「同じ名前のファイルが既に存在します」
 - 無効な文字 → 「ファイル名にスラッシュは使用できません」
 
 **System Errors (5xx)**:
+
 - S3 コピー失敗 → 「リネームに失敗しました。再度お試しください」
 - S3 削除失敗 → 「元のファイルの削除に失敗しました。手動で削除してください」
 - ネットワークエラー → 「ネットワークエラーが発生しました」
@@ -609,19 +626,23 @@ interface StorageItem {
 ## Testing Strategy
 
 ### Unit Tests
+
 - `validateName`: 空文字、重複、無効文字、トリムのテスト
 - `renameItem`: copy → remove の正常フロー
 - `renameFolder`: 配下オブジェクトの一括処理
 
 ### Integration Tests
+
 - `useStorageOperations.renameItem`: Amplify Storage mock でのエンドツーエンド
 - `useStorageOperations.renameFolder`: 複数ファイル処理と進捗コールバック
 
 ### E2E/UI Tests
+
 - RenameDialog: 入力、バリデーション、確定、キャンセル
 - FileList: リネームボタンクリック → ダイアログ表示
 
 ### Error Scenario Tests
+
 - コピー失敗時の元ファイル維持確認
 - 削除失敗時のエラーメッセージ表示
 - フォルダリネーム部分失敗時の結果表示

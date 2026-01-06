@@ -1,17 +1,14 @@
-import { MouseEvent } from 'react';
-import { Flex, Card, Button, Heading } from '@aws-amplify/ui-react';
-import { PasskeyManagement } from '../PasskeyManagement';
-import './PasskeySettingsModal.css';
+import { MouseEvent } from "react";
+import { Flex, Card, Button, Heading } from "@aws-amplify/ui-react";
+import { PasskeyManagement } from "../PasskeyManagement";
+import "./PasskeySettingsModal.css";
 
 export interface PasskeySettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function PasskeySettingsModal({
-  isOpen,
-  onClose,
-}: PasskeySettingsModalProps) {
+export function PasskeySettingsModal({ isOpen, onClose }: PasskeySettingsModalProps) {
   if (!isOpen) {
     return null;
   }

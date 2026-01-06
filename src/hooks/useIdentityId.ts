@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { useState, useEffect } from "react";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 export interface UseIdentityIdReturn {
   identityId: string | null;

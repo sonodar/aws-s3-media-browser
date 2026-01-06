@@ -1,6 +1,7 @@
 # Research & Design Decisions - Phase 3
 
 ## Summary
+
 - **Feature**: `s3-media-browser-phase3`
 - **Discovery Scope**: Extension（既存システムへの機能追加）
 - **Key Findings**:
@@ -13,6 +14,7 @@
 ## Research Log
 
 ### Amplify Gen2 での S3 Lambda トリガー設定（更新: 2026-01-04）
+
 - **Context**: Phase 3 でファイルアップロード時にサムネイルを自動生成するためのトリガー機構が必要
 - **Sources Consulted**:
   - [Amplify Gen2 Lambda Triggers Documentation](https://docs.amplify.aws/react/build-a-backend/storage/lambda-triggers/)
@@ -29,6 +31,7 @@
   - x86_64 アーキテクチャを使用（SAR の Sharp Layer が x86_64 のみ対応）
 
 ### Lambda Layer による画像・動画処理（更新: 2026-01-04）
+
 - **Context**: Sharp + FFmpeg をどのように Lambda に提供するか
 - **Sources Consulted**:
   - [SAR nodejs-sharp-lambda-layer](https://serverlessrepo.aws.amazon.com/applications/us-east-1/987481058235/nodejs-sharp-lambda-layer)
@@ -44,6 +47,7 @@
   - OSS ユーザーは SAR から Layer をデプロイし、環境変数に ARN を設定
 
 ### 環境変数の設定方法（更新: 2026-01-04）
+
 - **Context**: Lambda Layer ARN をどのように設定するか
 - **Sources Consulted**:
   - [Amplify Gen2 Environment Variables](https://docs.amplify.aws/react/build-a-backend/functions/environment-variables-and-secrets/)
@@ -56,6 +60,7 @@
   - README に SAR デプロイ手順と環境変数設定手順を記載
 
 ### 画像処理ライブラリ選定
+
 - **Context**: 画像サムネイル生成に最適なライブラリを選定
 - **Sources Consulted**:
   - [Sharp npm package](https://www.npmjs.com/package/sharp)
@@ -70,6 +75,7 @@
   - Sharp はプロジェクトの依存関係として追加
 
 ### FFmpeg Lambda Layer（動画サムネイル）
+
 - **Context**: 動画ファイルから先頭フレームを抽出してサムネイル生成
 - **Sources Consulted**:
   - [serverlesspub/ffmpeg-aws-lambda-layer](https://github.com/serverlesspub/ffmpeg-aws-lambda-layer)
@@ -84,6 +90,7 @@
   - 動画処理は画像処理より時間がかかるため、Lambda タイムアウトを 30 秒に設定
 
 ### サムネイル削除の連動
+
 - **Context**: オリジナルファイル削除時にサムネイルも削除
 - **Sources Consulted**: 既存の useStorage.ts 実装
 - **Findings**:
@@ -96,16 +103,17 @@
 
 ## Architecture Pattern Evaluation
 
-| Option | Description | Strengths | Risks / Limitations | Notes |
-|--------|-------------|-----------|---------------------|-------|
-| defineFunction + Layer | S3 → Lambda (Layer) → S3 | シンプル、Amplify Gen2 ネイティブ、Docker 不要 | Layer ARN の設定が必要 | **採用** |
-| NodejsFunction + Docker | S3 → Lambda (Docker bundling) → S3 | ネイティブモジュールのバンドルが可能 | Docker 必須、ビルド時間増加 | 不採用 |
-| Jimp (純粋 JS) | S3 → Lambda (JS のみ) → S3 | 設定不要、Docker 不要 | 動画処理非対応 | 不採用 |
-| Step Functions | S3 → EventBridge → Step Functions | 複雑なワークフロー対応 | オーバーエンジニアリング | 不採用 |
+| Option                  | Description                        | Strengths                                      | Risks / Limitations         | Notes    |
+| ----------------------- | ---------------------------------- | ---------------------------------------------- | --------------------------- | -------- |
+| defineFunction + Layer  | S3 → Lambda (Layer) → S3           | シンプル、Amplify Gen2 ネイティブ、Docker 不要 | Layer ARN の設定が必要      | **採用** |
+| NodejsFunction + Docker | S3 → Lambda (Docker bundling) → S3 | ネイティブモジュールのバンドルが可能           | Docker 必須、ビルド時間増加 | 不採用   |
+| Jimp (純粋 JS)          | S3 → Lambda (JS のみ) → S3         | 設定不要、Docker 不要                          | 動画処理非対応              | 不採用   |
+| Step Functions          | S3 → EventBridge → Step Functions  | 複雑なワークフロー対応                         | オーバーエンジニアリング    | 不採用   |
 
 ## Design Decisions
 
 ### Decision: Lambda Layer + defineFunction による統一アプローチ
+
 - **Context**: 画像・動画サムネイル生成のアーキテクチャを選定
 - **Alternatives Considered**:
   1. `defineFunction` + Lambda Layer（Sharp/FFmpeg）
@@ -124,6 +132,7 @@
 - **Follow-up**: README に SAR デプロイ手順と環境変数設定手順を記載
 
 ### Decision: 環境変数による Layer ARN パラメータ化（OSS 配布対応）
+
 - **Context**: OSS として配布する際に Layer ARN をどう扱うか
 - **Alternatives Considered**:
   1. 環境変数で Layer ARN を設定
@@ -139,6 +148,7 @@
   - デメリット: 初期設定の手順が増える（SAR デプロイ + 環境変数設定）
 
 ### Decision: Sharp + FFmpeg による画像/動画処理
+
 - **Context**: サムネイル生成に使用するライブラリを選定
 - **Alternatives Considered**:
   1. Sharp（画像）+ FFmpeg（動画）
@@ -155,6 +165,7 @@
   - デメリット: Layer デプロイが必要
 
 ### Decision: サムネイルパス構造
+
 - **Context**: サムネイルの保存先パスを設計
 - **Selected Approach**: `thumbnails/{entity_id}/.../{filename}.thumb.jpg`
 - **Rationale**:
@@ -163,6 +174,7 @@
   - フロントエンドでのパス変換が容易
 
 ## Risks & Mitigations
+
 - **Risk 1**: Lambda 同時実行数制限による処理遅延
   - Mitigation: 予約同時実行数の設定、将来的に SQS バッファリング
 - **Risk 2**: 大きな動画ファイルでのタイムアウト
@@ -173,6 +185,7 @@
   - Mitigation: 環境変数が未設定の場合は明確なエラーメッセージを出力
 
 ## References
+
 - [Amplify Gen2 Lambda Triggers](https://docs.amplify.aws/react/build-a-backend/storage/lambda-triggers/) - S3 トリガー設定方法（defineStorage.triggers）
 - [Amplify Gen2 Lambda Layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers/) - Lambda Layer の設定方法
 - [Amplify Gen2 Environment Variables](https://docs.amplify.aws/react/build-a-backend/functions/environment-variables-and-secrets/) - 環境変数の設定方法

@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import Lightbox, { type Slide } from 'yet-another-react-lightbox';
-import Video from 'yet-another-react-lightbox/plugins/video';
-import Zoom from 'yet-another-react-lightbox/plugins/zoom';
-import 'yet-another-react-lightbox/styles.css';
-import type { StorageItem } from '../../types/storage';
-import { isImageFile, isVideoFile } from '../../utils/fileTypes';
-import './PreviewModal.css';
+import { useState, useEffect, useRef } from "react";
+import Lightbox, { type Slide } from "yet-another-react-lightbox";
+import Video from "yet-another-react-lightbox/plugins/video";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+import type { StorageItem } from "../../types/storage";
+import { isImageFile, isVideoFile } from "../../utils/fileTypes";
+import "./PreviewModal.css";
 
 interface PreviewModalProps {
   isOpen: boolean;
@@ -17,13 +17,20 @@ interface PreviewModalProps {
 }
 
 function formatFileSize(bytes?: number): string {
-  if (!bytes) return '';
+  if (!bytes) return "";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRename }: PreviewModalProps) {
+export function PreviewModal({
+  isOpen,
+  onClose,
+  item,
+  getFileUrl,
+  onDelete,
+  onRename,
+}: PreviewModalProps) {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -42,15 +49,17 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRe
         if (isImageFile(item.name)) {
           setSlides([{ src: url }]);
         } else if (isVideoFile(item.name)) {
-          setSlides([{
-            type: 'video',
-            width: 1280,
-            height: 720,
-            sources: [{ src: url, type: 'video/mp4' }],
-          }]);
+          setSlides([
+            {
+              type: "video",
+              width: 1280,
+              height: 720,
+              sources: [{ src: url, type: "video/mp4" }],
+            },
+          ]);
         }
-      } catch (error) {
-        console.error('Failed to load file URL:', error);
+      } catch (error: unknown) {
+        console.error("Failed to load file URL:", error);
       } finally {
         setLoading(false);
       }
@@ -86,11 +95,7 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRe
 
   return (
     <>
-      {loading && (
-        <div className="preview-loading">
-          読み込み中...
-        </div>
-      )}
+      {loading && <div className="preview-loading">読み込み中...</div>}
       <Lightbox
         open={isOpen && slides.length > 0}
         close={onClose}
@@ -110,7 +115,7 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRe
         }}
         styles={{
           container: {
-            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            backgroundColor: "rgba(0, 0, 0, 0.95)",
           },
         }}
         toolbar={{
@@ -137,7 +142,7 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRe
                 🗑️
               </button>
             ),
-            'close',
+            "close",
           ].filter(Boolean),
         }}
         render={{
@@ -154,16 +159,10 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRe
       <dialog ref={dialogRef} className="preview-delete-dialog">
         <p>「{item.name}」を削除しますか？</p>
         <div className="preview-delete-dialog-actions">
-          <button
-            className="preview-delete-dialog-cancel"
-            onClick={handleDeleteCancel}
-          >
+          <button className="preview-delete-dialog-cancel" onClick={handleDeleteCancel}>
             キャンセル
           </button>
-          <button
-            className="preview-delete-dialog-delete"
-            onClick={handleDeleteConfirm}
-          >
+          <button className="preview-delete-dialog-delete" onClick={handleDeleteConfirm}>
             削除
           </button>
         </div>

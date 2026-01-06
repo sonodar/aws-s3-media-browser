@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react';
-import type { StorageItem } from '../../types/storage';
-import './CreateFolderDialog.css'; // Reuse dialog styles
+import { useEffect, useRef, useCallback } from "react";
+import type { StorageItem } from "../../types/storage";
+import "./CreateFolderDialog.css"; // Reuse dialog styles
 
 interface DeleteConfirmDialogProps {
   /** 削除対象アイテム（複数対応） */
@@ -29,16 +29,16 @@ export function DeleteConfirmDialog({
   // Handle Escape key
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape' && !isDeleting) {
+      if (e.key === "Escape" && !isDeleting) {
         onClose();
       }
     },
-    [isDeleting, onClose]
+    [isDeleting, onClose],
   );
 
   if (items.length === 0) return null;
 
-  const hasFolder = items.some((item) => item.type === 'folder');
+  const hasFolder = items.some((item) => item.type === "folder");
   const isSingleItem = items.length === 1;
 
   const handleDelete = async () => {
@@ -87,10 +87,10 @@ export function DeleteConfirmDialog({
             onClick={handleDelete}
             disabled={isDeleting}
             className="submit-button"
-            style={{ backgroundColor: '#d32f2f' }}
-            aria-label={isDeleting ? '削除中...' : '削除'}
+            style={{ backgroundColor: "#d32f2f" }}
+            aria-label={isDeleting ? "削除中..." : "削除"}
           >
-            {isDeleting ? '削除中...' : '削除'}
+            {isDeleting ? "削除中..." : "削除"}
           </button>
         </div>
       </div>

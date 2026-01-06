@@ -3,7 +3,7 @@
  * Manages bidirectional sync between browser URL and current folder path
  */
 
-export const PATH_PARAM = 'path';
+export const PATH_PARAM = "path";
 
 /**
  * Parse the current folder path from URL query parameters
@@ -13,10 +13,10 @@ export function parseUrlPath(): string {
   try {
     const params = new URLSearchParams(window.location.search);
     const path = params.get(PATH_PARAM);
-    return path ?? '';
+    return path ?? "";
   } catch {
     // Parse error: fallback to root
-    return '';
+    return "";
   }
 }
 
@@ -31,5 +31,5 @@ export function syncToUrl(path: string): void {
   } else {
     url.searchParams.delete(PATH_PARAM);
   }
-  window.history.pushState({ path }, '', url.toString());
+  window.history.pushState({ path }, "", url.toString());
 }

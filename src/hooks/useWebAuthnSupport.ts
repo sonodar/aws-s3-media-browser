@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export interface UseWebAuthnSupportReturn {
   isSupported: boolean;
@@ -12,7 +12,7 @@ export function useWebAuthnSupport(): UseWebAuthnSupportReturn {
   useEffect(() => {
     const checkSupport = async () => {
       // Check if PublicKeyCredential API exists
-      if (typeof window.PublicKeyCredential === 'undefined') {
+      if (typeof window.PublicKeyCredential === "undefined") {
         setIsSupported(false);
         setIsLoading(false);
         return;

@@ -7,10 +7,12 @@
 ## Background from Previous Phases
 
 ### Phase 1
+
 - Amplify Gen2 と Cognito 認証を使用した基本的なメディアブラウザを構築
 - StorageBrowser コンポーネントによるファイル操作
 
 ### Phase 2
+
 - カスタムファイルブラウザを実装（モバイルファーストUI）
 - 画像・動画プレビュー機能を実装
 - Out of Scope: サムネイル自動生成（Phase 3 で対応予定）
@@ -89,4 +91,3 @@ thumbnails/
 - サムネイル品質の調整
 - 既存ファイルの一括サムネイル生成（Migration）
 - PDF や Office ドキュメントのサムネイル生成
-

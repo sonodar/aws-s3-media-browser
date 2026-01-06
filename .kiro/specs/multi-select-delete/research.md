@@ -1,6 +1,7 @@
 # Research & Design Decisions
 
 ## Summary
+
 - **Feature**: multi-select-delete
 - **Discovery Scope**: Extension（既存システムへの機能追加）
 - **Key Findings**:
@@ -11,6 +12,7 @@
 ## Research Log
 
 ### AWS Amplify Storage 複数削除パターン
+
 - **Context**: 複数ファイルの一括削除 API の有無を確認
 - **Sources Consulted**:
   - AWS Amplify Storage ドキュメント
@@ -24,6 +26,7 @@
   - エラーハンドリングは `Promise.allSettled` で部分失敗対応が望ましい
 
 ### フォルダ削除（プレフィックス一括削除）
+
 - **Context**: S3 のフォルダ（プレフィックス）削除の実装方法
 - **Sources Consulted**:
   - AWS Amplify Storage 公式ドキュメント
@@ -38,6 +41,7 @@
   - フォルダ削除 = `list` で全オブジェクト取得 → `Promise.all` で並列削除
 
 ### 選択状態管理パターン
+
 - **Context**: React での複数選択 UI パターン
 - **Sources Consulted**:
   - React ベストプラクティス
@@ -52,15 +56,16 @@
 
 ## Architecture Pattern Evaluation
 
-| Option | Description | Strengths | Risks / Limitations | Notes |
-|--------|-------------|-----------|---------------------|-------|
-| 選択状態を MediaBrowser で管理 | 親コンポーネントで Set<string> 管理 | シンプル、既存パターン踏襲 | コンポーネントサイズ増加 | 採用 |
-| 専用 useSelection フック | 選択ロジックを独立フック化 | 再利用性、テスト容易性 | ファイル増加 | 採用（推奨） |
-| Context API | グローバル選択状態 | 深いネスト対応 | 過剰設計 | 不採用 |
+| Option                         | Description                         | Strengths                  | Risks / Limitations      | Notes        |
+| ------------------------------ | ----------------------------------- | -------------------------- | ------------------------ | ------------ |
+| 選択状態を MediaBrowser で管理 | 親コンポーネントで Set<string> 管理 | シンプル、既存パターン踏襲 | コンポーネントサイズ増加 | 採用         |
+| 専用 useSelection フック       | 選択ロジックを独立フック化          | 再利用性、テスト容易性     | ファイル増加             | 採用（推奨） |
+| Context API                    | グローバル選択状態                  | 深いネスト対応             | 過剰設計                 | 不採用       |
 
 ## Design Decisions
 
 ### Decision: 選択状態管理に useSelection フックを採用
+
 - **Context**: 複数選択の状態管理をどこで行うか
 - **Alternatives Considered**:
   1. MediaBrowser 内で直接 useState 管理
@@ -75,6 +80,7 @@
 - **Follow-up**: フックのユニットテスト追加
 
 ### Decision: 削除処理に Promise.allSettled を使用
+
 - **Context**: 複数削除時のエラーハンドリング
 - **Alternatives Considered**:
   1. Promise.all（1つでも失敗で全体失敗）
@@ -86,6 +92,7 @@
 - **Follow-up**: 失敗アイテムの表示 UI 設計
 
 ### Decision: 選択モード用ツールバーを Header に統合
+
 - **Context**: 選択モード時のアクション UI 配置
 - **Alternatives Considered**:
   1. Header に選択モードツールバー追加
@@ -100,10 +107,12 @@
 - **Follow-up**: Header props インターフェース拡張
 
 ## Risks & Mitigations
+
 - **大量ファイル削除時のパフォーマンス**: 進捗表示 + 並列処理上限設定（将来対応）
 - **フォルダ削除の誤操作**: 確認ダイアログでフォルダ内コンテンツ数表示
 - **ネットワークエラー時の中途半端な状態**: allSettled で部分成功対応、リフレッシュ推奨
 
 ## References
+
 - [AWS Amplify Storage - Remove files](https://docs.amplify.aws/gen2/build-a-backend/storage/remove-files/) — 単一ファイル削除 API
 - [AWS Amplify Storage - List files](https://docs.amplify.aws/gen2/build-a-backend/storage/list-files/) — ファイルリスト取得 API

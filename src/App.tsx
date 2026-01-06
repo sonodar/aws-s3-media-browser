@@ -1,18 +1,14 @@
-import { useState, useCallback } from 'react';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
-import { MediaBrowser } from './components/MediaBrowser';
-import { PasskeySignIn } from './components/PasskeySignIn';
-import { PasskeySettingsModal } from './components/PasskeySettingsModal';
-import { useWebAuthnSupport } from './hooks/useWebAuthnSupport';
-import '@aws-amplify/ui-react/styles.css';
+import { useState, useCallback } from "react";
+import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react";
+import { MediaBrowser } from "./components/MediaBrowser";
+import { PasskeySignIn } from "./components/PasskeySignIn";
+import { PasskeySettingsModal } from "./components/PasskeySettingsModal";
+import { useWebAuthnSupport } from "./hooks/useWebAuthnSupport";
+import "@aws-amplify/ui-react/styles.css";
 
-type AuthMode = 'passkey' | 'password';
+type AuthMode = "passkey" | "password";
 
-function AuthenticatedApp({
-  onSignOut,
-}: {
-  onSignOut: () => void;
-}) {
+function AuthenticatedApp({ onSignOut }: { onSignOut: () => void }) {
   const [showSettings, setShowSettings] = useState(false);
 
   const handleOpenSettings = useCallback(() => {
@@ -33,7 +29,7 @@ function AuthenticatedApp({
 
 function HybridAuthApp() {
   const { isSupported: isWebAuthnSupported } = useWebAuthnSupport();
-  const [authMode, setAuthMode] = useState<AuthMode>('passkey');
+  const [authMode, setAuthMode] = useState<AuthMode>("passkey");
   const [isPasskeyAuthenticated, setIsPasskeyAuthenticated] = useState(false);
   const { authStatus, signOut } = useAuthenticator((context) => [context.authStatus]);
 
@@ -42,31 +38,28 @@ function HybridAuthApp() {
   }, []);
 
   const handleSwitchToPassword = useCallback(() => {
-    setAuthMode('password');
+    setAuthMode("password");
   }, []);
 
   const handleSwitchToPasskey = useCallback(() => {
-    setAuthMode('passkey');
+    setAuthMode("passkey");
   }, []);
 
   const handleSignOut = useCallback(() => {
     setIsPasskeyAuthenticated(false);
-    setAuthMode('passkey');
+    setAuthMode("passkey");
     signOut();
   }, [signOut]);
 
   // If already authenticated (either via passkey or password)
-  if (isPasskeyAuthenticated || authStatus === 'authenticated') {
+  if (isPasskeyAuthenticated || authStatus === "authenticated") {
     return <AuthenticatedApp onSignOut={handleSignOut} />;
   }
 
   // Passkey authentication mode
-  if (isWebAuthnSupported && authMode === 'passkey') {
+  if (isWebAuthnSupported && authMode === "passkey") {
     return (
-      <PasskeySignIn
-        onSuccess={handlePasskeySuccess}
-        onSwitchToPassword={handleSwitchToPassword}
-      />
+      <PasskeySignIn onSuccess={handlePasskeySuccess} onSwitchToPassword={handleSwitchToPassword} />
     );
   }
 
@@ -74,16 +67,11 @@ function HybridAuthApp() {
   return (
     <div className="password-auth-container">
       <Authenticator hideSignUp>
-        {({ signOut: authSignOut }) => (
-          <AuthenticatedApp onSignOut={authSignOut ?? (() => {})} />
-        )}
+        {({ signOut: authSignOut }) => <AuthenticatedApp onSignOut={authSignOut ?? (() => {})} />}
       </Authenticator>
       {isWebAuthnSupported && (
         <div className="auth-switch-container">
-          <button
-            className="switch-auth-button"
-            onClick={handleSwitchToPasskey}
-          >
+          <button className="switch-auth-button" onClick={handleSwitchToPasskey}>
             パスキーでサインイン
           </button>
         </div>

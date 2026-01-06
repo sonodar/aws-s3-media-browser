@@ -1,2 +1,2 @@
-export { PasskeySignIn } from './PasskeySignIn';
-export type { PasskeySignInProps } from './PasskeySignIn';
+export { PasskeySignIn } from "./PasskeySignIn";
+export type { PasskeySignInProps } from "./PasskeySignIn";

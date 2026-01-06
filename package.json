@@ -1,18 +1,37 @@
 {
-  "name": "aws-s3-photo-browser",
+  "name": "aws-s3-media-browser",
   "version": "1.0.0",
+  "description": "AWS Amplify Gen2 を活用した S3 上の写真・動画ブラウザアプリケーション。ユーザーごとに独立したストレージ空間を提供し、メディアファイルの閲覧・管理を可能にします。",
+  "keywords": [
+    "aws-amplify",
+    "media-browser",
+    "react",
+    "s3",
+    "serverless",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "sonodar",
   "main": "index.js",
   "scripts": {
+    "prepare": "husky",
     "dev": "vite",
     "build": "tsc && tsc -p amplify --noEmit && vite build",
     "preview": "vite preview",
+    "lint": "oxlint .",
+    "format": "oxfmt --write .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "dependencies": {
+    "@aws-amplify/ui-react": "^6.13.2",
+    "@aws-amplify/ui-react-storage": "^3.14.0",
+    "aws-amplify": "^6.15.9",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-player": "^3.4.0",
+    "yet-another-react-lightbox": "^3.28.0"
+  },
   "devDependencies": {
     "@aws-amplify/backend": "^1.19.0",
     "@aws-amplify/backend-cli": "^1.8.1",
@@ -29,19 +48,23 @@
     "constructs": "^10.4.4",
     "esbuild": "^0.27.2",
     "happy-dom": "^20.0.11",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "oxfmt": "^0.22.0",
+    "oxlint": "^1.37.0",
     "sharp": "^0.34.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^6.4.1",
     "vitest": "^4.0.16"
   },
-  "dependencies": {
-    "@aws-amplify/ui-react": "^6.13.2",
-    "@aws-amplify/ui-react-storage": "^3.14.0",
-    "aws-amplify": "^6.15.9",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-player": "^3.4.0",
-    "yet-another-react-lightbox": "^3.28.0"
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "oxlint",
+      "oxfmt --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "oxfmt --write"
+    ]
   }
 }

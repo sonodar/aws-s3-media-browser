@@ -1,6 +1,7 @@
 # Research & Design Decisions
 
 ## Summary
+
 - **Feature**: `use-storage-refactor`
 - **Discovery Scope**: Extension（既存システムのリファクタリング）
 - **Key Findings**:
@@ -11,6 +12,7 @@
 ## Research Log
 
 ### 既存実装の構造分析
+
 - **Context**: `useStorage.ts` の現状把握と分離ポイントの特定
 - **Sources Consulted**: `src/hooks/useStorage.ts`, `src/hooks/urlSync.ts`, `src/utils/pathUtils.ts`
 - **Findings**:
@@ -28,6 +30,7 @@
   - アイテム変換は純粋関数として utils に分離可能
 
 ### 使用箇所の分析
+
 - **Context**: リファクタリングの影響範囲を把握
 - **Sources Consulted**: `src/components/MediaBrowser/index.tsx`, Grep検索結果
 - **Findings**:
@@ -42,6 +45,7 @@
   - 後方互換性を維持すれば影響範囲は限定的
 
 ### React Custom Hook ベストプラクティス
+
 - **Context**: フック分離のパターン確認
 - **Sources Consulted**: [React 公式ドキュメント](https://react.dev), Context7 ドキュメント
 - **Findings**:
@@ -55,6 +59,7 @@
   - 依存性注入パターンでテスト容易性を向上
 
 ### AWS Amplify Auth/Storage API 確認
+
 - **Context**: 外部 API の型定義と使用パターン
 - **Sources Consulted**: [AWS Amplify JS API Documentation](https://aws-amplify.github.io/amplify-js/api/), [Manage user sessions](https://docs.amplify.aws/react/build-a-backend/auth/connect-your-frontend/manage-user-sessions/)
 - **Findings**:
@@ -69,15 +74,16 @@
 
 ## Architecture Pattern Evaluation
 
-| Option | Description | Strengths | Risks / Limitations | Notes |
-|--------|-------------|-----------|---------------------|-------|
-| Composition | 個別フックを組み合わせて統合フックを構築 | 単一責任、テスト容易、再利用可能 | 初期実装コスト | ✅ 採用 |
-| Facade | 既存フックをラップして内部を隠蔽 | 後方互換性維持が容易 | 内部複雑性が残る | 検討対象外 |
-| Provider | Context でグローバル状態を管理 | グローバルアクセス可能 | 過剰設計、テスト複雑化 | 検討対象外 |
+| Option      | Description                              | Strengths                        | Risks / Limitations    | Notes      |
+| ----------- | ---------------------------------------- | -------------------------------- | ---------------------- | ---------- |
+| Composition | 個別フックを組み合わせて統合フックを構築 | 単一責任、テスト容易、再利用可能 | 初期実装コスト         | ✅ 採用    |
+| Facade      | 既存フックをラップして内部を隠蔽         | 後方互換性維持が容易             | 内部複雑性が残る       | 検討対象外 |
+| Provider    | Context でグローバル状態を管理           | グローバルアクセス可能           | 過剰設計、テスト複雑化 | 検討対象外 |
 
 ## Design Decisions
 
 ### Decision: 疎結合パターンの採用（統合フック廃止）
+
 - **Context**: 5つの責務を持つ単一フックを分離する方法
 - **Alternatives Considered**:
   1. Composition パターン — 統合フックで全てをまとめる
@@ -98,6 +104,7 @@
 - **Follow-up**: なし
 
 ### Decision: StorageItem 型の共有化
+
 - **Context**: 型定義の配置場所
 - **Alternatives Considered**:
   1. `useStorage.ts` に残す — 既存のまま
@@ -114,6 +121,7 @@
 - **Follow-up**: 移行時に既存 import の更新
 
 ### Decision: useIdentityId のエラー・ローディング状態設計
+
 - **Context**: 認証状態の取得と表現
 - **Alternatives Considered**:
   1. シンプルな `string | null` 返却
@@ -129,6 +137,7 @@
 - **Follow-up**: なし
 
 ### Decision: parseStorageItems を純粋関数として分離
+
 - **Context**: S3 レスポンス変換ロジックの配置
 - **Alternatives Considered**:
   1. フック内にインライン — 現状維持
@@ -144,6 +153,7 @@
 - **Follow-up**: なし
 
 ### テスト環境の分析
+
 - **Context**: リファクタリング前のテスト整備状況を把握
 - **Sources Consulted**: `src/components/MediaBrowser/*.test.tsx`、Glob検索結果
 - **Findings**:
@@ -161,12 +171,14 @@
   - 個別コンポーネントは単体テスト済みなので、振る舞いテストはフック連携に集中
 
 ## Risks & Mitigations
+
 - **Risk 1**: 後方互換性の破壊 — MediaBrowser 統合テストをリファクタリング前に整備し、リファクタリング後も同じテストがパスすることを保証
 - **Risk 2**: パフォーマンス低下（フック呼び出し増加）— React は複数フック呼び出しを最適化、実測で検証
 - **Risk 3**: 循環参照 — 型定義を専用ファイルに分離、依存グラフを単方向に維持
 - **Risk 4**: 統合テスト不足によるリグレッション — Requirement 8 で統合テスト整備を必須要件として定義
 
 ## References
+
 - [React Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks) — フック分離のベストプラクティス
 - [AWS Amplify JS API Documentation](https://aws-amplify.github.io/amplify-js/api/) — Auth/Storage API リファレンス
 - [Manage user sessions - AWS Amplify](https://docs.amplify.aws/react/build-a-backend/auth/connect-your-frontend/manage-user-sessions/) — fetchAuthSession の使用方法
