@@ -13,7 +13,7 @@ export const auth = defineAuth({
     webAuthn: process.env.WEBAUTHN_RELYING_PARTY_ID
       ? {
           relyingPartyId: process.env.WEBAUTHN_RELYING_PARTY_ID,
-          userVerification: 'required',
+          userVerification: 'preferred',
         }
       : true,
   },

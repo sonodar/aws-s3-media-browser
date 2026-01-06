@@ -3,6 +3,9 @@ import {
   getThumbnailPath,
   getOriginalPath,
   isThumbnailTarget,
+  getParentPath,
+  buildRenamedKey,
+  buildRenamedPrefix,
 } from './pathUtils';
 
 describe('pathUtils', () => {
@@ -106,6 +109,86 @@ describe('pathUtils', () => {
       it('should return false for files without extension', () => {
         expect(isThumbnailTarget('README')).toBe(false);
       });
+    });
+  });
+
+  describe('getParentPath', () => {
+    it('should return parent directory path for file', () => {
+      expect(getParentPath('photos/2024/image.jpg')).toBe('photos/2024/');
+    });
+
+    it('should return parent directory path for nested file', () => {
+      expect(getParentPath('media/abc123/photos/vacation/beach.jpg')).toBe(
+        'media/abc123/photos/vacation/'
+      );
+    });
+
+    it('should return empty string for root-level file', () => {
+      expect(getParentPath('image.jpg')).toBe('');
+    });
+
+    it('should handle file with dots in name', () => {
+      expect(getParentPath('photos/photo.backup.jpg')).toBe('photos/');
+    });
+
+    it('should return parent for folder path (trailing slash)', () => {
+      expect(getParentPath('photos/2024/')).toBe('photos/');
+    });
+
+    it('should return empty for single folder', () => {
+      expect(getParentPath('photos/')).toBe('');
+    });
+  });
+
+  describe('buildRenamedKey', () => {
+    it('should rename file in same directory', () => {
+      expect(buildRenamedKey('photos/old.jpg', 'new.jpg')).toBe('photos/new.jpg');
+    });
+
+    it('should rename file in nested directory', () => {
+      expect(buildRenamedKey('media/abc123/photos/old.jpg', 'renamed.jpg')).toBe(
+        'media/abc123/photos/renamed.jpg'
+      );
+    });
+
+    it('should rename file at root level', () => {
+      expect(buildRenamedKey('old.jpg', 'new.jpg')).toBe('new.jpg');
+    });
+
+    it('should handle new name with different extension', () => {
+      expect(buildRenamedKey('photos/image.png', 'image.jpg')).toBe(
+        'photos/image.jpg'
+      );
+    });
+
+    it('should handle files with multiple dots', () => {
+      expect(buildRenamedKey('photos/photo.backup.jpg', 'photo.new.jpg')).toBe(
+        'photos/photo.new.jpg'
+      );
+    });
+  });
+
+  describe('buildRenamedPrefix', () => {
+    it('should rename folder in same parent directory', () => {
+      expect(buildRenamedPrefix('photos/old/', 'new')).toBe('photos/new/');
+    });
+
+    it('should rename folder in nested directory', () => {
+      expect(buildRenamedPrefix('media/abc123/photos/vacation/', 'holiday')).toBe(
+        'media/abc123/photos/holiday/'
+      );
+    });
+
+    it('should rename folder at root level', () => {
+      expect(buildRenamedPrefix('old/', 'new')).toBe('new/');
+    });
+
+    it('should handle folder names with dots', () => {
+      expect(buildRenamedPrefix('projects/v1.0/', 'v2.0')).toBe('projects/v2.0/');
+    });
+
+    it('should handle new name with trailing slash trimmed', () => {
+      expect(buildRenamedPrefix('photos/old/', 'new/')).toBe('photos/new/');
     });
   });
 });

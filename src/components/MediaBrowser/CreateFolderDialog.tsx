@@ -4,6 +4,11 @@ import './CreateFolderDialog.css';
 interface CreateFolderDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  /**
+   * フォルダ作成コールバック
+   * 成功時はダイアログを閉じるので、呼び出し元で必要な後処理を行った後に
+   * Promise を resolve すること
+   */
   onCreate: (name: string) => Promise<void>;
 }
 

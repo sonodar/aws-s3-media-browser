@@ -13,6 +13,7 @@ interface PreviewModalProps {
   item: StorageItem | null;
   getFileUrl: (key: string) => Promise<string>;
   onDelete?: (item: StorageItem) => void;
+  onRename?: (item: StorageItem) => void;
 }
 
 function formatFileSize(bytes?: number): string {
@@ -22,7 +23,7 @@ function formatFileSize(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete }: PreviewModalProps) {
+export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete, onRename }: PreviewModalProps) {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -74,6 +75,13 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete }: Pr
     dialogRef.current?.close();
   };
 
+  const handleRenameClick = () => {
+    if (item && onRename) {
+      onClose();
+      onRename(item);
+    }
+  };
+
   if (!isOpen || !item) return null;
 
   return (
@@ -107,6 +115,17 @@ export function PreviewModal({ isOpen, onClose, item, getFileUrl, onDelete }: Pr
         }}
         toolbar={{
           buttons: [
+            onRename && (
+              <button
+                key="rename"
+                type="button"
+                className="yarl__button preview-rename-button"
+                onClick={handleRenameClick}
+                aria-label="リネーム"
+              >
+                ✏️
+              </button>
+            ),
             onDelete && (
               <button
                 key="delete"
