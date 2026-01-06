@@ -119,6 +119,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         onSignOut={onSignOut}
         isSelectionMode={isSelectionMode}
         selectedCount={selectedCount}
+        totalCount={items.length}
         isAllSelected={isAllSelected}
         onEnterSelectionMode={enterSelectionMode}
         onExitSelectionMode={exitSelectionMode}

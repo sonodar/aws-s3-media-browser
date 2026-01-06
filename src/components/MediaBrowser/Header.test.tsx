@@ -1,12 +1,18 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Header } from "./Header";
 
 describe("Header", () => {
-  it("should render app title", () => {
+  it("should render home title when at root", () => {
     render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />);
 
-    expect(screen.getByText("S3 Media Browser")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "ホーム" })).toBeInTheDocument();
+  });
+
+  it("should render folder name as title when in a folder", () => {
+    render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />);
+
+    expect(screen.getByRole("heading", { name: "folder1" })).toBeInTheDocument();
   });
 
   it("should show back button when currentPath is not empty", () => {
@@ -30,17 +36,22 @@ describe("Header", () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("should show sign out button", () => {
+  it("should show sign out in dropdown menu", () => {
     render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />);
 
-    expect(screen.getByRole("button", { name: /サインアウト/ })).toBeInTheDocument();
+    // メニューを開く
+    fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
+
+    expect(screen.getByRole("menuitem", { name: /サインアウト/ })).toBeInTheDocument();
   });
 
-  it("should call onSignOut when sign out button is clicked", () => {
+  it("should call onSignOut when sign out menu item is clicked", () => {
     const onSignOut = vi.fn();
     render(<Header currentPath="" onBack={vi.fn()} onSignOut={onSignOut} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /サインアウト/ }));
+    // メニューを開く
+    fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/ }));
 
     expect(onSignOut).toHaveBeenCalled();
   });
@@ -250,7 +261,7 @@ describe("Header", () => {
       expect(onDeleteSelected).toHaveBeenCalled();
     });
 
-    it("選択モード時は通常のサインアウトボタンが非表示", () => {
+    it("選択モード時はドロップダウンメニューが非表示", () => {
       render(
         <Header
           currentPath=""
@@ -262,7 +273,7 @@ describe("Header", () => {
         />,
       );
 
-      expect(screen.queryByRole("button", { name: /サインアウト/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "メニューを開く" })).not.toBeInTheDocument();
     });
 
     it("選択件数が aria-live 属性を持つ要素に表示される", () => {
@@ -279,6 +290,251 @@ describe("Header", () => {
 
       const liveRegion = screen.getByText("5件選択中");
       expect(liveRegion).toHaveAttribute("aria-live", "polite");
+    });
+  });
+
+  describe("ドロップダウンメニュー", () => {
+    const defaultProps = {
+      currentPath: "",
+      onBack: vi.fn(),
+      onSignOut: vi.fn(),
+      onOpenSettings: vi.fn(),
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("通常モード時にメニューボタンが表示される", () => {
+      render(<Header {...defaultProps} />);
+
+      expect(screen.getByRole("button", { name: "メニューを開く" })).toBeInTheDocument();
+    });
+
+    it("メニューをクリックすると設定・サインアウトが表示される", () => {
+      render(<Header {...defaultProps} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
+
+      expect(screen.getByRole("menuitem", { name: /設定/ })).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: /サインアウト/ })).toBeInTheDocument();
+    });
+
+    it("設定メニューをクリックすると onOpenSettings が呼ばれる", () => {
+      const onOpenSettings = vi.fn();
+      render(<Header {...defaultProps} onOpenSettings={onOpenSettings} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: /設定/ }));
+
+      expect(onOpenSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it("サインアウトメニューをクリックすると onSignOut が呼ばれる", () => {
+      const onSignOut = vi.fn();
+      render(<Header {...defaultProps} onSignOut={onSignOut} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/ }));
+
+      expect(onSignOut).toHaveBeenCalledTimes(1);
+    });
+
+    it("メニュートリガーに aria-haspopup 属性がある", () => {
+      render(<Header {...defaultProps} />);
+
+      expect(screen.getByRole("button", { name: "メニューを開く" })).toHaveAttribute(
+        "aria-haspopup",
+        "menu",
+      );
+    });
+
+    it("選択モード時にはメニューボタンが表示されない", () => {
+      render(
+        <Header
+          {...defaultProps}
+          isSelectionMode={true}
+          selectedCount={0}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      expect(screen.queryByRole("button", { name: "メニューを開く" })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("アイコンボタン", () => {
+    it("戻るボタンにアイコンが含まれる", () => {
+      render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />);
+
+      const backButton = screen.getByRole("button", { name: /戻る/ });
+      // アイコンは aria-hidden なので SVG が存在することを確認
+      expect(backButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("選択モード時のキャンセルボタンにアイコンが含まれる", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={0}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      const cancelButton = screen.getByRole("button", { name: /キャンセル/ });
+      expect(cancelButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("選択モード時の削除ボタンにアイコンが含まれる", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={1}
+          onExitSelectionMode={vi.fn()}
+          onDeleteSelected={vi.fn()}
+        />,
+      );
+
+      const deleteButton = screen.getByRole("button", { name: /削除/ });
+      expect(deleteButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("選択モードボタンにアイコンが含まれる", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={false}
+          onEnterSelectionMode={vi.fn()}
+        />,
+      );
+
+      const selectionButton = screen.getByRole("button", { name: /選択/ });
+      expect(selectionButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("全選択ボタンにアイコンが含まれる", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={0}
+          isAllSelected={false}
+          onToggleSelectAll={vi.fn()}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      const selectAllButton = screen.getByRole("button", { name: /全選択/ });
+      expect(selectAllButton.querySelector("svg")).toBeInTheDocument();
+    });
+  });
+
+  describe("3状態チェックボックス", () => {
+    it("選択件数が0の場合は空のチェックボックスアイコンが表示される", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={0}
+          totalCount={5}
+          isAllSelected={false}
+          onToggleSelectAll={vi.fn()}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      const selectAllButton = screen.getByRole("button", { name: /全選択/ });
+      expect(selectAllButton).toBeInTheDocument();
+      expect(selectAllButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("部分選択時（一部のアイテムのみ選択）はマイナスアイコンが表示される", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={2}
+          totalCount={5}
+          isAllSelected={false}
+          onToggleSelectAll={vi.fn()}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      // 部分選択時は「全選択」ラベルが表示される
+      const selectAllButton = screen.getByRole("button", { name: /全選択/ });
+      expect(selectAllButton).toBeInTheDocument();
+      expect(selectAllButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("全選択時はチェック済みアイコンと「全解除」ラベルが表示される", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={5}
+          totalCount={5}
+          isAllSelected={true}
+          onToggleSelectAll={vi.fn()}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      const selectAllButton = screen.getByRole("button", { name: /全解除/ });
+      expect(selectAllButton).toBeInTheDocument();
+      expect(selectAllButton.querySelector("svg")).toBeInTheDocument();
+    });
+
+    it("isAllSelected が true の場合は selectedCount と totalCount に関係なく全選択状態", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={3}
+          totalCount={5}
+          isAllSelected={true}
+          onToggleSelectAll={vi.fn()}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("button", { name: /全解除/ })).toBeInTheDocument();
+    });
+
+    it("totalCount が 0 の場合でも selectedCount が 0 なら未選択状態", () => {
+      render(
+        <Header
+          currentPath=""
+          onBack={vi.fn()}
+          onSignOut={vi.fn()}
+          isSelectionMode={true}
+          selectedCount={0}
+          totalCount={0}
+          isAllSelected={false}
+          onToggleSelectAll={vi.fn()}
+          onExitSelectionMode={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("button", { name: /全選択/ })).toBeInTheDocument();
     });
   });
 });

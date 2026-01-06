@@ -493,15 +493,19 @@ describe("MediaBrowser Behavior Tests", () => {
   });
 
   describe("7. Sign Out", () => {
-    it("should call onSignOut when sign out button is clicked", async () => {
+    it("should call onSignOut when sign out menu item is clicked", async () => {
       render(<MediaBrowser onSignOut={onSignOut} />);
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
       });
 
-      const signOutButton = screen.getByRole("button", { name: /サインアウト/ });
-      fireEvent.click(signOutButton);
+      // メニューを開いてサインアウトをクリック
+      const menuButton = screen.getByRole("button", { name: "メニューを開く" });
+      fireEvent.click(menuButton);
+
+      const signOutMenuItem = screen.getByRole("menuitem", { name: /サインアウト/ });
+      fireEvent.click(signOutMenuItem);
 
       expect(onSignOut).toHaveBeenCalled();
     });

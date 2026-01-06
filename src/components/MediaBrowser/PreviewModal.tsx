@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Lightbox, { type Slide } from "yet-another-react-lightbox";
 import Video from "yet-another-react-lightbox/plugins/video";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import { Pencil, Trash2 } from "lucide-react";
 import "yet-another-react-lightbox/styles.css";
 import type { StorageItem } from "../../types/storage";
 import { isImageFile, isVideoFile } from "../../utils/fileTypes";
@@ -128,7 +129,7 @@ export function PreviewModal({
                 onClick={handleRenameClick}
                 aria-label="リネーム"
               >
-                ✏️
+                <Pencil size={20} aria-hidden="true" />
               </button>
             ),
             onDelete && (
@@ -139,7 +140,7 @@ export function PreviewModal({
                 onClick={handleDeleteClick}
                 aria-label="削除"
               >
-                🗑️
+                <Trash2 size={20} aria-hidden="true" />
               </button>
             ),
             "close",
