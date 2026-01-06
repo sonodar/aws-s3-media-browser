@@ -48,6 +48,26 @@ export interface RenameProgress {
   total: number;
 }
 
+/**
+ * 移動操作の結果
+ */
+export interface MoveResult {
+  success: boolean;
+  succeeded: number;
+  failed: number;
+  failedItems?: string[];
+  duplicates?: string[];
+  error?: string;
+}
+
+/**
+ * 移動操作の進捗情報
+ */
+export interface MoveProgress {
+  current: number;
+  total: number;
+}
+
 /** フォルダリネーム時の最大アイテム数 */
 const MAX_FOLDER_RENAME_ITEMS = 1000;
 
@@ -86,6 +106,24 @@ export interface UseStorageOperationsReturn {
   ) => Promise<RenameFolderResult>;
   /** リネーム処理中フラグ */
   isRenaming: boolean;
+  /**
+   * ファイル/フォルダを別のフォルダに移動する
+   * @param items 移動対象アイテム
+   * @param destinationPath 移動先フォルダパス
+   * @param onProgress 進捗コールバック
+   */
+  moveItems: (
+    items: StorageItem[],
+    destinationPath: string,
+    onProgress?: (progress: MoveProgress) => void,
+  ) => Promise<MoveResult>;
+  /**
+   * 指定パス配下のフォルダ一覧を取得する
+   * @param path 取得対象パス
+   */
+  listFolders: (path: string) => Promise<StorageItem[]>;
+  /** 移動処理中フラグ */
+  isMoving: boolean;
 }
 
 /**
@@ -101,6 +139,7 @@ export function useStorageOperations({
   const [error, setError] = useState<Error | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
 
   const getBasePath = useCallback(() => {
     if (!identityId) return null;
@@ -446,6 +485,180 @@ export function useStorageOperations({
     [fetchItems],
   );
 
+  /**
+   * 指定パス配下のフォルダ一覧を取得する
+   */
+  const listFolders = useCallback(async (path: string): Promise<StorageItem[]> => {
+    const result = await list({
+      path,
+      options: { listAll: true },
+    });
+
+    // パス直下のフォルダのみを抽出
+    const folders: StorageItem[] = [];
+    const seen = new Set<string>();
+
+    for (const item of result.items) {
+      const relativePath = item.path.slice(path.length);
+      const slashIndex = relativePath.indexOf("/");
+
+      if (slashIndex > 0) {
+        // フォルダ配下のアイテム → フォルダとして抽出
+        const folderName = relativePath.slice(0, slashIndex);
+        const folderKey = `${path}${folderName}/`;
+
+        if (!seen.has(folderKey)) {
+          seen.add(folderKey);
+          folders.push({
+            key: folderKey,
+            name: folderName,
+            type: "folder",
+          });
+        }
+      } else if (relativePath.endsWith("/") && relativePath.length > 0) {
+        // フォルダオブジェクト自体
+        const folderName = relativePath.slice(0, -1);
+        const folderKey = `${path}${folderName}/`;
+
+        if (!seen.has(folderKey)) {
+          seen.add(folderKey);
+          folders.push({
+            key: folderKey,
+            name: folderName,
+            type: "folder",
+          });
+        }
+      }
+    }
+
+    return folders;
+  }, []);
+
+  /**
+   * ファイル/フォルダを別のフォルダに移動する
+   */
+  const moveItems = useCallback(
+    async (
+      itemsToMove: StorageItem[],
+      destinationPath: string,
+      onProgress?: (progress: MoveProgress) => void,
+    ): Promise<MoveResult> => {
+      setIsMoving(true);
+
+      // 末尾に / がなければ追加
+      const normalizedDestPath = destinationPath.endsWith("/")
+        ? destinationPath
+        : `${destinationPath}/`;
+
+      try {
+        // 移動対象のすべてのファイルを収集
+        const allFilesToMove: Array<{
+          sourcePath: string;
+          destPath: string;
+          relativeName: string;
+        }> = [];
+
+        for (const item of itemsToMove) {
+          if (item.type === "folder") {
+            // フォルダの場合は配下コンテンツを取得
+            const folderContents = await listFolderContents(item.key);
+            for (const sourcePath of folderContents) {
+              // フォルダ名を保持して移動先パスを構築
+              const folderName = item.name;
+              const relativeToFolder = sourcePath.slice(item.key.length);
+              const destPath = `${normalizedDestPath}${folderName}/${relativeToFolder}`;
+              allFilesToMove.push({
+                sourcePath,
+                destPath,
+                relativeName: `${folderName}/${relativeToFolder}`,
+              });
+            }
+          } else {
+            // ファイルの場合
+            const destPath = `${normalizedDestPath}${item.name}`;
+            allFilesToMove.push({
+              sourcePath: item.key,
+              destPath,
+              relativeName: item.name,
+            });
+          }
+        }
+
+        // 移動先での重複チェック
+        const destResult = await list({
+          path: normalizedDestPath,
+          options: { listAll: true },
+        });
+        const existingPaths = new Set(destResult.items.map((item) => item.path));
+        const duplicates: string[] = [];
+
+        for (const file of allFilesToMove) {
+          if (existingPaths.has(file.destPath)) {
+            duplicates.push(file.relativeName);
+          }
+        }
+
+        if (duplicates.length > 0) {
+          return {
+            success: false,
+            succeeded: 0,
+            failed: allFilesToMove.length,
+            duplicates,
+            error: `移動先に同名のファイルが存在します（${duplicates.length}件）`,
+          };
+        }
+
+        // コピー＆削除を実行
+        const total = allFilesToMove.length;
+        let succeeded = 0;
+        let failed = 0;
+        const failedItems: string[] = [];
+
+        for (let i = 0; i < allFilesToMove.length; i++) {
+          const { sourcePath, destPath, relativeName } = allFilesToMove[i];
+
+          try {
+            await copy({
+              source: { path: encodePathForCopy(sourcePath) },
+              destination: { path: destPath },
+            });
+
+            // コピー成功したら元ファイルを削除
+            try {
+              await remove({ path: sourcePath });
+            } catch {
+              // 削除失敗は無視（ファイルは両方に存在することになる）
+            }
+
+            succeeded++;
+          } catch {
+            failed++;
+            failedItems.push(relativeName);
+          }
+
+          onProgress?.({ current: i + 1, total });
+        }
+
+        // 一覧を更新
+        await fetchItems();
+
+        if (failed > 0) {
+          return {
+            success: false,
+            succeeded,
+            failed,
+            failedItems,
+          };
+        }
+
+        return { success: true, succeeded, failed: 0 };
+      } finally {
+        setIsMoving(false);
+      }
+    },
+    [listFolderContents, fetchItems],
+  );
+
   return {
     items,
     loading,
@@ -460,5 +673,8 @@ export function useStorageOperations({
     renameItem,
     renameFolder,
     isRenaming,
+    moveItems,
+    listFolders,
+    isMoving,
   };
 }

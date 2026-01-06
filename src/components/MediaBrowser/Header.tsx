@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   X,
   Trash2,
+  FolderInput,
   CopyCheck,
   Square,
   SquareCheck,
@@ -30,6 +31,8 @@ interface HeaderProps {
   onExitSelectionMode?: () => void;
   /** 全選択/解除トグル */
   onToggleSelectAll?: () => void;
+  /** 移動ボタン押下 */
+  onMoveSelected?: () => void;
   /** 削除ボタン押下 */
   onDeleteSelected?: () => void;
   /** 設定モーダルを開く */
@@ -47,6 +50,7 @@ export function Header({
   onEnterSelectionMode,
   onExitSelectionMode,
   onToggleSelectAll,
+  onMoveSelected,
   onDeleteSelected,
   onOpenSettings,
 }: HeaderProps) {
@@ -107,6 +111,16 @@ export function Header({
               aria-label={getSelectAllLabel()}
             >
               {getSelectAllIcon()}
+            </button>
+          )}
+          {onMoveSelected && (
+            <button
+              className="move-button icon-button"
+              onClick={onMoveSelected}
+              disabled={selectedCount === 0}
+              aria-label="移動"
+            >
+              <FolderInput size={20} aria-hidden="true" />
             </button>
           )}
           {onDeleteSelected && (

@@ -73,7 +73,8 @@ export function usePasskey(): UsePasskeyReturn {
       } while (nextToken);
 
       setCredentials(allCredentials);
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Failed to fetch WebAuthn credentials:", err);
       setError(err as Error);
       setCredentials([]);
     } finally {
@@ -88,7 +89,8 @@ export function usePasskey(): UsePasskeyReturn {
     try {
       await associateWebAuthnCredential();
       await fetchCredentials();
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Failed to register WebAuthn credential:", err);
       setError(err as Error);
     } finally {
       setRegistering(false);
@@ -102,7 +104,8 @@ export function usePasskey(): UsePasskeyReturn {
       try {
         await deleteWebAuthnCredential({ credentialId });
         await fetchCredentials();
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error("Failed to delete WebAuthn credential:", err);
         setError(err as Error);
       }
     },

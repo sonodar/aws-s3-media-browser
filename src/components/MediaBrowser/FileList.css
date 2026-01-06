@@ -105,3 +105,8 @@
   top: 4px;
   right: 4px;
 }
+
+/* メニューが開いているアイテムを最前面に表示 */
+.file-list-item:has(.dropdown-menu) {
+  z-index: 1;
+}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Lightbox, { type Slide } from "yet-another-react-lightbox";
 import Video from "yet-another-react-lightbox/plugins/video";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, FolderInput } from "lucide-react";
 import "yet-another-react-lightbox/styles.css";
 import type { StorageItem } from "../../types/storage";
 import { isImageFile, isVideoFile } from "../../utils/fileTypes";
@@ -15,6 +15,7 @@ interface PreviewModalProps {
   getFileUrl: (key: string) => Promise<string>;
   onDelete?: (item: StorageItem) => void;
   onRename?: (item: StorageItem) => void;
+  onMove?: (item: StorageItem) => void;
 }
 
 function formatFileSize(bytes?: number): string {
@@ -31,6 +32,7 @@ export function PreviewModal({
   getFileUrl,
   onDelete,
   onRename,
+  onMove,
 }: PreviewModalProps) {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(false);
@@ -92,6 +94,13 @@ export function PreviewModal({
     }
   };
 
+  const handleMoveClick = () => {
+    if (item && onMove) {
+      onClose();
+      onMove(item);
+    }
+  };
+
   if (!isOpen || !item) return null;
 
   return (
@@ -130,6 +139,17 @@ export function PreviewModal({
                 aria-label="リネーム"
               >
                 <Pencil size={20} aria-hidden="true" />
+              </button>
+            ),
+            onMove && (
+              <button
+                key="move"
+                type="button"
+                className="yarl__button preview-move-button"
+                onClick={handleMoveClick}
+                aria-label="移動"
+              >
+                <FolderInput size={20} aria-hidden="true" />
               </button>
             ),
             onDelete && (

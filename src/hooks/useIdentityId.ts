@@ -20,8 +20,9 @@ export function useIdentityId(): UseIdentityIdReturn {
       .then((session) => {
         setIdentityId(session.identityId ?? null);
       })
-      .catch((err) => {
-        setError(err);
+      .catch((err: unknown) => {
+        console.error("Failed to fetch auth session:", err);
+        setError(err as Error);
       })
       .finally(() => {
         setLoading(false);

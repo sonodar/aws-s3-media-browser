@@ -4,6 +4,7 @@ import { useStoragePath } from "../../hooks/useStoragePath";
 import { useUploadTracker } from "../../hooks/useUploadTracker";
 import { useStorageOperations } from "../../hooks/useStorageOperations";
 import { useSelection } from "../../hooks/useSelection";
+import { useMoveDialog } from "../../hooks/useMoveDialog";
 import type { StorageItem } from "../../types/storage";
 import { Header } from "./Header";
 import { FileList } from "./FileList";
@@ -12,6 +13,7 @@ import { CreateFolderDialog } from "./CreateFolderDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { PreviewModal } from "./PreviewModal";
 import { RenameDialog } from "./RenameDialog";
+import { MoveDialog } from "./MoveDialog";
 import { isPreviewable } from "../../utils/fileTypes";
 import "./MediaBrowser.css";
 
@@ -40,6 +42,8 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     getFileUrl,
     renameItem,
     renameFolder,
+    moveItems,
+    listFolders,
   } = useStorageOperations({ identityId, currentPath });
 
   // Selection management
@@ -55,6 +59,14 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     toggleSelectAll,
   } = useSelection({ itemKeys });
 
+  // Move dialog management
+  const {
+    isOpen: isMoveDialogOpen,
+    itemsToMove,
+    openMoveDialog,
+    closeMoveDialog,
+  } = useMoveDialog();
+
   // Aggregate loading and error states
   const loading = identityLoading || storageLoading;
   const error = identityError || storageError;
@@ -64,7 +76,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [renameTarget, setRenameTarget] = useState<StorageItem | null>(null);
 
-  // Get selected items for deletion
+  // Get selected items for deletion/move
   const selectedItems = useMemo(
     () => items.filter((item) => selectedKeys.has(item.key)),
     [items, selectedKeys],
@@ -102,6 +114,29 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     setRenameTarget(null);
   };
 
+  // 単一アイテムの移動（FileActionMenuから呼ばれる）
+  const handleMoveItem = (item: StorageItem) => {
+    openMoveDialog([item]);
+  };
+
+  // 一括移動（Headerの移動ボタンから呼ばれる）
+  const handleMoveSelected = () => {
+    if (selectedItems.length > 0) {
+      openMoveDialog(selectedItems);
+    }
+  };
+
+  // 移動完了時の処理
+  const handleMoveComplete = async () => {
+    closeMoveDialog();
+    await refresh();
+    exitSelectionMode();
+  };
+
+  // MoveDialog用のrootPath
+  const rootPath = identityId ? `media/${identityId}/` : "";
+  const fullCurrentPath = currentPath ? `${rootPath}${currentPath}/` : rootPath;
+
   if (error) {
     return (
       <div className="media-browser-error">
@@ -124,6 +159,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         onEnterSelectionMode={enterSelectionMode}
         onExitSelectionMode={exitSelectionMode}
         onToggleSelectAll={toggleSelectAll}
+        onMoveSelected={handleMoveSelected}
         onDeleteSelected={handleDeleteSelected}
         onOpenSettings={onOpenSettings}
       />
@@ -143,6 +179,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
             selectedKeys={selectedKeys}
             onToggleSelection={toggleSelection}
             onRename={handleRename}
+            onMove={handleMoveItem}
           />
         )}
       </main>
@@ -177,6 +214,10 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
           await refresh();
           setRenameTarget(item);
         }}
+        onMove={(item) => {
+          setPreviewItem(null);
+          openMoveDialog([item]);
+        }}
       />
 
       {showDeleteConfirm && (
@@ -198,6 +239,16 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
           onRenameFolder={renameFolder}
         />
       )}
+
+      <MoveDialog
+        isOpen={isMoveDialogOpen}
+        items={itemsToMove}
+        currentPath={fullCurrentPath}
+        rootPath={rootPath}
+        onClose={handleMoveComplete}
+        onMove={moveItems}
+        listFolders={listFolders}
+      />
     </div>
   );
 }

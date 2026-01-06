@@ -22,6 +22,8 @@ interface FileListProps {
   onToggleSelection?: (key: string) => void;
   /** リネームコールバック */
   onRename?: (item: StorageItem) => void;
+  /** 移動コールバック */
+  onMove?: (item: StorageItem) => void;
   /** 削除コールバック */
   onDelete?: (item: StorageItem) => void;
 }
@@ -60,6 +62,7 @@ export function FileList({
   selectedKeys = new Set(),
   onToggleSelection,
   onRename,
+  onMove,
   onDelete,
 }: FileListProps) {
   if (items.length === 0) {
@@ -122,10 +125,11 @@ export function FileList({
               </span>
             )}
             <span className="file-name">{item.name}</span>
-            {!isSelectionMode && (onRename || onDelete) && (
+            {!isSelectionMode && (onRename || onMove || onDelete) && (
               <FileActionMenu
                 itemName={item.name}
                 onRename={() => onRename?.(item)}
+                onMove={() => onMove?.(item)}
                 onDelete={() => onDelete?.(item)}
               />
             )}
