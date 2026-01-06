@@ -58,7 +58,7 @@ export function PreviewModal({
             },
           ]);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to load file URL:", error);
       } finally {
         setLoading(false);

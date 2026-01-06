@@ -48,7 +48,8 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
       await onCreate(folderName.trim());
       setFolderName("");
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Failed to create folder:", err);
       setError("フォルダの作成に失敗しました");
     } finally {
       setIsCreating(false);

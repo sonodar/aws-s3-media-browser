@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { parseUrlPath, syncToUrl, PATH_PARAM } from "./urlSync";
+import { parseUrlPath, syncToUrl } from "./urlSync";
 
 describe("urlSync utilities", () => {
   const originalLocation = window.location;

@@ -123,7 +123,8 @@ export function useStorageOperations({
 
       const parsed = parseStorageItems(result.items, basePath);
       setItems(parsed);
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Failed to fetch storage items:", err);
       setError(err as Error);
     } finally {
       setLoading(false);
@@ -281,7 +282,8 @@ export function useStorageOperations({
           if (existingItems.items.length > 0) {
             return { success: false, error: "同じ名前のファイルが既に存在します" };
           }
-        } catch (err) {
+        } catch (err: unknown) {
+          console.error("Error checking existing file for rename:", err);
           return {
             success: false,
             error: `リネーム前のチェックに失敗しました: ${(err as Error).message}`,
@@ -297,7 +299,8 @@ export function useStorageOperations({
             source: { path: encodePathForCopy(currentKey) },
             destination: { path: newKey },
           });
-        } catch (err) {
+        } catch (err: unknown) {
+          console.error("Error copying file for rename:", err);
           return {
             success: false,
             error: `コピーに失敗しました: ${(err as Error).message}`,
@@ -308,7 +311,8 @@ export function useStorageOperations({
         let warning: string | undefined;
         try {
           await remove({ path: currentKey });
-        } catch (err) {
+        } catch (err: unknown) {
+          console.warn("Error deleting file for rename:", err);
           // 削除失敗は警告として扱う（成功扱い）
           warning = `元ファイルの削除に失敗しました: ${(err as Error).message}`;
         }
@@ -413,7 +417,8 @@ export function useStorageOperations({
             }
 
             succeeded++;
-          } catch {
+          } catch (err: unknown) {
+            console.error("Error renaming folder item:", err);
             failed++;
             failedFiles.push(relativePath);
           }

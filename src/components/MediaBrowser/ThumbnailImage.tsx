@@ -56,7 +56,8 @@ export function ThumbnailImage({
         if (isMounted) {
           setUrl(result.url.toString());
         }
-      } catch {
+      } catch (err: unknown) {
+        console.error("Failed to fetch thumbnail url:", err);
         if (isMounted) {
           setState("error");
         }

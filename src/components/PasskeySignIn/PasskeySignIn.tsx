@@ -34,7 +34,8 @@ export function PasskeySignIn({ onSuccess, onSwitchToPassword }: PasskeySignInPr
       if (result.nextStep.signInStep === "DONE") {
         onSuccess();
       }
-    } catch {
+    } catch (err: unknown) {
+      console.error("Passkey sign-in failed:", err);
       setError("サインインに失敗しました。もう一度お試しください。");
     } finally {
       setLoading(false);
