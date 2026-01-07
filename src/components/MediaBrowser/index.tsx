@@ -189,6 +189,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         identityId={identityId}
         onUploadComplete={refresh}
         onCreateFolder={() => setShowCreateFolder(true)}
+        items={items}
       />
 
       <CreateFolderDialog
