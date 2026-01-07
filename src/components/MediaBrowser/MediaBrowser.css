@@ -8,7 +8,26 @@
 .media-browser-content {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 100px; /* Space for FAB buttons */
+}
+
+.media-browser-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 8px;
+}
+
+.media-browser-toolbar-left {
+  display: flex;
+  gap: 8px;
+}
+
+.media-browser-toolbar-right {
+  display: flex;
+  gap: 8px;
 }
 
 .media-browser-loading,

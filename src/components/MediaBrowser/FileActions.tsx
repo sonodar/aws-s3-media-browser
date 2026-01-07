@@ -86,18 +86,20 @@ export function FileActions({
   return (
     <div className="file-actions">
       <button
-        className="action-button create-folder-button"
-        onClick={onCreateFolder}
-        aria-label="フォルダを作成"
-      >
-        <FolderPlus size={24} aria-hidden="true" />
-      </button>
-      <button
         className="action-button upload-button"
         onClick={() => setShowUploader(!showUploader)}
         aria-label="ファイルをアップロード"
+        title="アップロード"
       >
-        <Upload size={24} aria-hidden="true" />
+        <Upload size={20} aria-hidden="true" />
+      </button>
+      <button
+        className="action-button create-folder-button"
+        onClick={onCreateFolder}
+        aria-label="フォルダを作成"
+        title="新規フォルダ"
+      >
+        <FolderPlus size={20} aria-hidden="true" />
       </button>
 
       {showUploader && (

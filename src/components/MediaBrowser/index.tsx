@@ -5,6 +5,8 @@ import { useUploadTracker } from "../../hooks/useUploadTracker";
 import { useStorageOperations } from "../../hooks/useStorageOperations";
 import { useSelection } from "../../hooks/useSelection";
 import { useMoveDialog } from "../../hooks/useMoveDialog";
+import { useSortOrder } from "../../hooks/useSortOrder";
+import { sortStorageItems } from "../../hooks/sortStorageItems";
 import type { StorageItem } from "../../types/storage";
 import { Header } from "./Header";
 import { FileList } from "./FileList";
@@ -14,6 +16,7 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { PreviewModal } from "./PreviewModal";
 import { RenameDialog } from "./RenameDialog";
 import { MoveDialog } from "./MoveDialog";
+import { SortSelector } from "./SortSelector";
 import { isPreviewable } from "../../utils/fileTypes";
 import "./MediaBrowser.css";
 
@@ -67,6 +70,12 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     closeMoveDialog,
   } = useMoveDialog();
 
+  // Sort order management
+  const { sortOrder, setSortOrder } = useSortOrder();
+
+  // Apply sort order to items
+  const sortedItems = useMemo(() => sortStorageItems(items, sortOrder), [items, sortOrder]);
+
   // Aggregate loading and error states
   const loading = identityLoading || storageLoading;
   const error = identityError || storageError;
@@ -78,8 +87,8 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
 
   // Get selected items for deletion/move
   const selectedItems = useMemo(
-    () => items.filter((item) => selectedKeys.has(item.key)),
-    [items, selectedKeys],
+    () => sortedItems.filter((item) => selectedKeys.has(item.key)),
+    [sortedItems, selectedKeys],
   );
 
   const handleFileClick = (item: StorageItem) => {
@@ -165,13 +174,29 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
       />
 
       <main className="media-browser-content">
+        {!loading && !isSelectionMode && (
+          <div className="media-browser-toolbar">
+            <div className="media-browser-toolbar-left">
+              <FileActions
+                currentPath={currentPath}
+                identityId={identityId}
+                onUploadComplete={refresh}
+                onCreateFolder={() => setShowCreateFolder(true)}
+                items={items}
+              />
+            </div>
+            <div className="media-browser-toolbar-right">
+              <SortSelector currentOrder={sortOrder} onChange={setSortOrder} />
+            </div>
+          </div>
+        )}
         {loading ? (
           <div className="media-browser-loading">
             <p>読み込み中...</p>
           </div>
         ) : (
           <FileList
-            items={items}
+            items={sortedItems}
             onFolderClick={navigate}
             onFileClick={handleFileClick}
             recentlyUploadedKeys={recentlyUploadedKeys}
@@ -183,14 +208,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
           />
         )}
       </main>
-
-      <FileActions
-        currentPath={currentPath}
-        identityId={identityId}
-        onUploadComplete={refresh}
-        onCreateFolder={() => setShowCreateFolder(true)}
-        items={items}
-      />
 
       <CreateFolderDialog
         isOpen={showCreateFolder}
@@ -234,7 +251,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         <RenameDialog
           isOpen={renameTarget !== null}
           item={renameTarget}
-          existingItems={items}
+          existingItems={sortedItems}
           onClose={handleCloseRenameDialog}
           onRenameFile={renameItem}
           onRenameFolder={renameFolder}

@@ -44,7 +44,8 @@
 
 - **Files**: PascalCase（コンポーネント）、camelCase（hooks/utils）
 - **Components**: PascalCase（例: `MediaBrowser`, `FileList`）
-- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`）
+- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`, `useMoveDialog`, `useSortOrder`）
+- **Utils**: 純粋関数ユーティリティ（例: `fileTypes`, `pathUtils`, `validateRename`, `generateUniqueFilename`, `sortStorageItems`）
 - **CSS**: コンポーネント名と同名（例: `Header.css`）
 
 ## Import Organization
