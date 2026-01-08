@@ -7,8 +7,8 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
-    // Disable file parallelism to avoid mock interference between test files
-    fileParallelism: false,
+    // Enable file parallelism - test files are now split and isolated
+    fileParallelism: true,
     // Force module isolation to reset mocks between test files
     isolate: true,
     coverage: {

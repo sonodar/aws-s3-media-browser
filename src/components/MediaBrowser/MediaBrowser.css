@@ -8,6 +8,18 @@
 .media-browser-content {
   flex: 1;
   overflow-y: auto;
+  /* Swipe navigation: allow vertical scroll, prevent horizontal swipe conflicts */
+  touch-action: pan-y;
+  /* Prevent overscroll bounce that conflicts with gesture navigation */
+  overscroll-behavior: none;
+  /* Enable smooth transition for swipe animation */
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+.media-browser-content--swiping {
+  /* Disable transition during active swipe for responsive drag */
+  transition: none;
 }
 
 .media-browser-toolbar {
