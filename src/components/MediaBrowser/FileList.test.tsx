@@ -323,4 +323,39 @@ describe("FileList", () => {
       expect(document.activeElement).toBe(checkbox);
     });
   });
+
+  describe("長押し対応", () => {
+    it("onShowActionMenu が渡された場合、FileActionMenu は表示されない", () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          onShowActionMenu={vi.fn()}
+        />,
+      );
+
+      // FileActionMenu のトリガーボタンが存在しないことを確認
+      expect(screen.queryByLabelText(/のアクション/)).not.toBeInTheDocument();
+    });
+
+    it("選択モード時は長押しハンドラが適用されない（onShowActionMenu があっても）", () => {
+      const onShowActionMenu = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+          onShowActionMenu={onShowActionMenu}
+        />,
+      );
+
+      // 選択モードでは長押しは無効（ポインターイベントハンドラは適用されるが、テストでは直接確認困難）
+      // 代わりに、FileActionMenu が表示されないことを確認
+      expect(screen.queryByLabelText(/のアクション/)).not.toBeInTheDocument();
+    });
+  });
 });

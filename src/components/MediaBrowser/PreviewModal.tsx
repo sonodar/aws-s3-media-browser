@@ -8,15 +8,35 @@ import type { StorageItem } from "../../types/storage";
 import { isImageFile, isVideoFile } from "../../utils/fileTypes";
 import "./PreviewModal.css";
 
-interface PreviewModalProps {
+/** Props for single-item mode (legacy) */
+interface SingleItemProps {
   isOpen: boolean;
   onClose: () => void;
   item: StorageItem | null;
+  items?: never;
+  currentIndex?: never;
+  onIndexChange?: never;
   getFileUrl: (key: string) => Promise<string>;
   onDelete?: (item: StorageItem) => void;
   onRename?: (item: StorageItem) => void;
   onMove?: (item: StorageItem) => void;
 }
+
+/** Props for multi-slide mode */
+interface MultiSlideProps {
+  isOpen: boolean;
+  onClose: () => void;
+  item?: never;
+  items: StorageItem[];
+  currentIndex: number;
+  onIndexChange: (index: number) => void;
+  getFileUrl: (key: string) => Promise<string>;
+  onDelete?: (item: StorageItem) => void;
+  onRename?: (item: StorageItem) => void;
+  onMove?: (item: StorageItem) => void;
+}
+
+type PreviewModalProps = SingleItemProps | MultiSlideProps;
 
 function formatFileSize(bytes?: number): string {
   if (!bytes) return "";
@@ -25,59 +45,71 @@ function formatFileSize(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function PreviewModal({
-  isOpen,
-  onClose,
-  item,
-  getFileUrl,
-  onDelete,
-  onRename,
-  onMove,
-}: PreviewModalProps) {
+/** Helper to determine if props are multi-slide mode */
+function isMultiSlideMode(props: PreviewModalProps): props is MultiSlideProps {
+  return "items" in props && Array.isArray(props.items);
+}
+
+export function PreviewModal(props: PreviewModalProps) {
+  const { isOpen, onClose, getFileUrl, onDelete, onRename, onMove } = props;
+
+  // Determine mode and derive current item
+  const isMulti = isMultiSlideMode(props);
+  const items = isMulti ? props.items : props.item ? [props.item] : [];
+  const currentIndex = isMulti ? props.currentIndex : 0;
+  const onIndexChange = isMulti ? props.onIndexChange : undefined;
+  const currentItem = items[currentIndex] ?? null;
+
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    if (!item || !isOpen) {
+    if (items.length === 0 || !isOpen) {
       setSlides([]);
       return;
     }
 
-    const loadUrl = async () => {
+    const loadUrls = async () => {
       setLoading(true);
       try {
-        const url = await getFileUrl(item.key);
+        const slidePromises = items.map(async (storageItem) => {
+          const url = await getFileUrl(storageItem.key);
 
-        if (isImageFile(item.name)) {
-          setSlides([{ src: url }]);
-        } else if (isVideoFile(item.name)) {
-          setSlides([
-            {
-              type: "video",
+          if (isImageFile(storageItem.name)) {
+            return { src: url } as Slide;
+          } else if (isVideoFile(storageItem.name)) {
+            return {
+              type: "video" as const,
               width: 1280,
               height: 720,
               sources: [{ src: url, type: "video/mp4" }],
-            },
-          ]);
-        }
+            } as Slide;
+          }
+          return null;
+        });
+
+        const loadedSlides = (await Promise.all(slidePromises)).filter(
+          (slide): slide is Slide => slide !== null,
+        );
+        setSlides(loadedSlides);
       } catch (error: unknown) {
-        console.error("Failed to load file URL:", error);
+        console.error("Failed to load file URLs:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUrl();
-  }, [item, isOpen, getFileUrl]);
+    loadUrls();
+  }, [items, isOpen, getFileUrl]);
 
   const handleDeleteClick = () => {
     dialogRef.current?.showModal();
   };
 
   const handleDeleteConfirm = () => {
-    if (item && onDelete) {
-      onDelete(item);
+    if (currentItem && onDelete) {
+      onDelete(currentItem);
       dialogRef.current?.close();
       onClose();
     }
@@ -88,20 +120,24 @@ export function PreviewModal({
   };
 
   const handleRenameClick = () => {
-    if (item && onRename) {
+    if (currentItem && onRename) {
       onClose();
-      onRename(item);
+      onRename(currentItem);
     }
   };
 
   const handleMoveClick = () => {
-    if (item && onMove) {
+    if (currentItem && onMove) {
       onClose();
-      onMove(item);
+      onMove(currentItem);
     }
   };
 
-  if (!isOpen || !item) return null;
+  const handleViewChange = ({ index }: { index: number }) => {
+    onIndexChange?.(index);
+  };
+
+  if (!isOpen || !currentItem) return null;
 
   return (
     <>
@@ -110,7 +146,14 @@ export function PreviewModal({
         open={isOpen && slides.length > 0}
         close={onClose}
         slides={slides}
+        index={currentIndex}
         plugins={[Video, Zoom]}
+        on={{
+          view: handleViewChange,
+        }}
+        controller={{
+          closeOnPullDown: true,
+        }}
         video={{
           autoPlay: true,
           controls: true,
@@ -166,19 +209,15 @@ export function PreviewModal({
             "close",
           ].filter(Boolean),
         }}
-        render={{
-          buttonPrev: () => null,
-          buttonNext: () => null,
-        }}
       />
-      {isOpen && slides.length > 0 && (
+      {isOpen && slides.length > 0 && currentItem && (
         <div className="preview-caption">
-          <div className="preview-caption-title">{item.name}</div>
-          <div className="preview-caption-size">{formatFileSize(item.size)}</div>
+          <div className="preview-caption-title">{currentItem.name}</div>
+          <div className="preview-caption-size">{formatFileSize(currentItem.size)}</div>
         </div>
       )}
       <dialog ref={dialogRef} className="preview-delete-dialog">
-        <p>「{item.name}」を削除しますか？</p>
+        <p>「{currentItem?.name}」を削除しますか？</p>
         <div className="preview-delete-dialog-actions">
           <button className="preview-delete-dialog-cancel" onClick={handleDeleteCancel}>
             キャンセル

@@ -21,6 +21,7 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 - **yet-another-react-lightbox**: 画像/動画プレビュー
 - **react-player**: 動画再生
 - **lucide-react**: アイコンライブラリ
+- **@use-gesture/react**: ジェスチャー検出（スワイプナビゲーション）
 
 ## Development Standards
 
@@ -75,6 +76,8 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 | OxLint + OxFmt               | ESLint より高速な Rust ベースの Linter/Formatter         |
 | localStorage 設定永続化      | ユーザー設定（ソート順等）のブラウザローカル保存         |
 | Intl.Collator 自然順ソート   | 数字を正しく扱う多言語対応ソート（file1, file2, file10） |
+| @use-gesture/react 採用      | タッチデバイス向けスワイプジェスチャーの高精度検出       |
+| 長押しコンテキストメニュー   | タッチデバイスでの右クリック相当操作（useLongPress）     |
 
 ---
 

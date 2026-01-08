@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useIdentityId } from "../../hooks/useIdentityId";
 import { useStoragePath } from "../../hooks/useStoragePath";
 import { useUploadTracker } from "../../hooks/useUploadTracker";
+import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
 import { useStorageOperations } from "../../hooks/useStorageOperations";
 import { useSelection } from "../../hooks/useSelection";
 import { useMoveDialog } from "../../hooks/useMoveDialog";
@@ -9,7 +10,7 @@ import { useSortOrder } from "../../hooks/useSortOrder";
 import { sortStorageItems } from "../../hooks/sortStorageItems";
 import type { StorageItem } from "../../types/storage";
 import { Header } from "./Header";
-import { FileList } from "./FileList";
+import { FileList, type ActionMenuData } from "./FileList";
 import { FileActions } from "./FileActions";
 import { CreateFolderDialog } from "./CreateFolderDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
@@ -17,6 +18,7 @@ import { PreviewModal } from "./PreviewModal";
 import { RenameDialog } from "./RenameDialog";
 import { MoveDialog } from "./MoveDialog";
 import { SortSelector } from "./SortSelector";
+import { ContextMenu } from "./ContextMenu";
 import { isPreviewable } from "../../utils/fileTypes";
 import "./MediaBrowser.css";
 
@@ -80,10 +82,37 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const loading = identityLoading || storageLoading;
   const error = identityError || storageError;
 
+  // Swipe navigation for back gesture
+  const {
+    bind: swipeBind,
+    offsetX,
+    isSwiping,
+  } = useSwipeNavigation({
+    onSwipeBack: goBack,
+    isAtRoot: currentPath === "",
+  });
+
   const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [previewItem, setPreviewItem] = useState<StorageItem | null>(null);
+  const [currentPreviewIndex, setCurrentPreviewIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [renameTarget, setRenameTarget] = useState<StorageItem | null>(null);
+
+  // Filter previewable items for multi-slide mode
+  const previewableItems = useMemo(
+    () => sortedItems.filter((item) => isPreviewable(item.name)),
+    [sortedItems],
+  );
+
+  // ContextMenu state for long press
+  const [contextMenuState, setContextMenuState] = useState<{
+    isOpen: boolean;
+    item: StorageItem | null;
+    position: { x: number; y: number };
+  }>({
+    isOpen: false,
+    item: null,
+    position: { x: 0, y: 0 },
+  });
 
   // Get selected items for deletion/move
   const selectedItems = useMemo(
@@ -93,13 +122,16 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
 
   const handleFileClick = (item: StorageItem) => {
     if (isPreviewable(item.name)) {
-      setPreviewItem(item);
+      const index = previewableItems.findIndex((previewable) => previewable.key === item.key);
+      if (index !== -1) {
+        setCurrentPreviewIndex(index);
+      }
     }
   };
 
   const handleDeleteFromPreview = async (item: StorageItem) => {
     await removeItem(item.key);
-    setPreviewItem(null);
+    setCurrentPreviewIndex(null);
   };
 
   const handleDeleteSelected = () => {
@@ -127,6 +159,42 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const handleMoveItem = (item: StorageItem) => {
     openMoveDialog([item]);
   };
+
+  // ContextMenu handlers for long press
+  const handleShowActionMenu = useCallback((data: ActionMenuData) => {
+    setContextMenuState({
+      isOpen: true,
+      item: data.item,
+      position: data.position,
+    });
+  }, []);
+
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenuState({
+      isOpen: false,
+      item: null,
+      position: { x: 0, y: 0 },
+    });
+  }, []);
+
+  const handleContextMenuRename = useCallback(() => {
+    if (contextMenuState.item) {
+      handleRename(contextMenuState.item);
+    }
+  }, [contextMenuState.item]);
+
+  const handleContextMenuMove = useCallback(() => {
+    if (contextMenuState.item) {
+      handleMoveItem(contextMenuState.item);
+    }
+  }, [contextMenuState.item]);
+
+  const handleContextMenuDelete = useCallback(async () => {
+    if (contextMenuState.item) {
+      await removeItem(contextMenuState.item.key);
+      await refresh();
+    }
+  }, [contextMenuState.item, removeItem, refresh]);
 
   // 一括移動（Headerの移動ボタンから呼ばれる）
   const handleMoveSelected = () => {
@@ -173,7 +241,13 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         onOpenSettings={onOpenSettings}
       />
 
-      <main className="media-browser-content">
+      <main
+        className={`media-browser-content${isSwiping ? " media-browser-content--swiping" : ""}`}
+        {...swipeBind()}
+        style={{
+          transform: isSwiping && offsetX > 0 ? `translateX(${offsetX}px)` : undefined,
+        }}
+      >
         {!loading && !isSelectionMode && (
           <div className="media-browser-toolbar">
             <div className="media-browser-toolbar-left">
@@ -203,8 +277,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
             isSelectionMode={isSelectionMode}
             selectedKeys={selectedKeys}
             onToggleSelection={toggleSelection}
-            onRename={handleRename}
-            onMove={handleMoveItem}
+            onShowActionMenu={handleShowActionMenu}
           />
         )}
       </main>
@@ -222,18 +295,20 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
       />
 
       <PreviewModal
-        isOpen={previewItem !== null}
-        onClose={() => setPreviewItem(null)}
-        item={previewItem}
+        isOpen={currentPreviewIndex !== null}
+        onClose={() => setCurrentPreviewIndex(null)}
+        items={previewableItems}
+        currentIndex={currentPreviewIndex ?? 0}
+        onIndexChange={setCurrentPreviewIndex}
         getFileUrl={getFileUrl}
         onDelete={handleDeleteFromPreview}
         onRename={async (item) => {
-          setPreviewItem(null);
+          setCurrentPreviewIndex(null);
           await refresh();
           setRenameTarget(item);
         }}
         onMove={(item) => {
-          setPreviewItem(null);
+          setCurrentPreviewIndex(null);
           openMoveDialog([item]);
         }}
       />
@@ -266,6 +341,16 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         onClose={handleMoveComplete}
         onMove={moveItems}
         listFolders={listFolders}
+      />
+
+      <ContextMenu
+        isOpen={contextMenuState.isOpen}
+        item={contextMenuState.item}
+        position={contextMenuState.position}
+        onClose={handleCloseContextMenu}
+        onRename={handleContextMenuRename}
+        onMove={handleContextMenuMove}
+        onDelete={handleContextMenuDelete}
       />
     </div>
   );

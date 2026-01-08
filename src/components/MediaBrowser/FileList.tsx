@@ -1,12 +1,19 @@
+import { useRef, useCallback } from "react";
 import { Folder, Image, Film, File } from "lucide-react";
 import type { StorageItem } from "../../types/storage";
 import { getFileCategory } from "../../utils/fileTypes";
 import { ThumbnailImage } from "./ThumbnailImage";
-import { FileActionMenu } from "./FileActionMenu";
+import { useLongPress } from "../../hooks/useLongPress";
 import "./FileList.css";
 
 /** Delay in ms before fetching thumbnails for newly uploaded files */
 const THUMBNAIL_FETCH_DELAY = 3000;
+
+/** アクションメニュー表示用のデータ */
+export interface ActionMenuData {
+  item: StorageItem;
+  position: { x: number; y: number };
+}
 
 interface FileListProps {
   items: StorageItem[];
@@ -20,12 +27,8 @@ interface FileListProps {
   selectedKeys?: ReadonlySet<string>;
   /** 選択トグル */
   onToggleSelection?: (key: string) => void;
-  /** リネームコールバック */
-  onRename?: (item: StorageItem) => void;
-  /** 移動コールバック */
-  onMove?: (item: StorageItem) => void;
-  /** 削除コールバック */
-  onDelete?: (item: StorageItem) => void;
+  /** 長押し時のアクションメニュー表示コールバック */
+  onShowActionMenu?: (data: ActionMenuData) => void;
 }
 
 function FileIcon({ item }: { item: StorageItem }) {
@@ -53,6 +56,91 @@ function shouldShowThumbnail(item: StorageItem): boolean {
   return item.type === "file" && getFileType(item) !== null;
 }
 
+/** 個別アイテムのコンポーネント（長押しフック使用のため分離） */
+function FileListItem({
+  item,
+  isSelected,
+  isSelectionMode,
+  recentlyUploadedKeys,
+  onItemClick,
+  onCheckboxClick,
+  onShowActionMenu,
+}: {
+  item: StorageItem;
+  isSelected: boolean;
+  isSelectionMode: boolean;
+  recentlyUploadedKeys: string[];
+  onItemClick: (item: StorageItem) => void;
+  onCheckboxClick: (e: React.MouseEvent, key: string) => void;
+  onShowActionMenu?: (data: ActionMenuData) => void;
+}) {
+  const longPressPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const handleLongPress = useCallback(
+    (pressedItem: StorageItem) => {
+      if (onShowActionMenu) {
+        onShowActionMenu({
+          item: pressedItem,
+          position: longPressPositionRef.current,
+        });
+      }
+    },
+    [onShowActionMenu],
+  );
+
+  const { handlers: longPressHandlers } = useLongPress<StorageItem>(item, {
+    onLongPress: handleLongPress,
+  });
+
+  // 選択モード時や onShowActionMenu がない場合は長押しを無効化
+  const shouldEnableLongPress = !isSelectionMode && !!onShowActionMenu;
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (shouldEnableLongPress) {
+      longPressPositionRef.current = { x: e.clientX, y: e.clientY };
+      longPressHandlers.onPointerDown(e);
+    }
+  };
+
+  return (
+    <li
+      key={item.key}
+      className={`file-list-item${isSelected ? " file-list-item--selected" : ""}`}
+      data-type={item.type}
+      onClick={() => onItemClick(item)}
+      role="listitem"
+      onPointerDown={handlePointerDown}
+      onPointerUp={shouldEnableLongPress ? longPressHandlers.onPointerUp : undefined}
+      onPointerMove={shouldEnableLongPress ? longPressHandlers.onPointerMove : undefined}
+      onPointerLeave={shouldEnableLongPress ? longPressHandlers.onPointerLeave : undefined}
+    >
+      {isSelectionMode && (
+        <input
+          type="checkbox"
+          className="file-list-checkbox"
+          checked={isSelected}
+          onChange={() => {}}
+          onClick={(e) => onCheckboxClick(e, item.key)}
+          aria-label={`${item.name} を選択`}
+        />
+      )}
+      {shouldShowThumbnail(item) ? (
+        <ThumbnailImage
+          originalKey={item.key}
+          fileName={item.name}
+          fileType={getFileType(item)!}
+          initialDelay={recentlyUploadedKeys.includes(item.key) ? THUMBNAIL_FETCH_DELAY : undefined}
+        />
+      ) : (
+        <span className="file-icon">
+          <FileIcon item={item} />
+        </span>
+      )}
+      <span className="file-name">{item.name}</span>
+    </li>
+  );
+}
+
 export function FileList({
   items,
   onFolderClick,
@@ -61,9 +149,7 @@ export function FileList({
   isSelectionMode = false,
   selectedKeys = new Set(),
   onToggleSelection,
-  onRename,
-  onMove,
-  onDelete,
+  onShowActionMenu,
 }: FileListProps) {
   if (items.length === 0) {
     return (
@@ -93,47 +179,16 @@ export function FileList({
       {items.map((item) => {
         const isSelected = selectedKeys.has(item.key);
         return (
-          <li
+          <FileListItem
             key={item.key}
-            className={`file-list-item${isSelected ? " file-list-item--selected" : ""}`}
-            data-type={item.type}
-            onClick={() => handleItemClick(item)}
-            role="listitem"
-          >
-            {isSelectionMode && (
-              <input
-                type="checkbox"
-                className="file-list-checkbox"
-                checked={isSelected}
-                onChange={() => {}}
-                onClick={(e) => handleCheckboxClick(e, item.key)}
-                aria-label={`${item.name} を選択`}
-              />
-            )}
-            {shouldShowThumbnail(item) ? (
-              <ThumbnailImage
-                originalKey={item.key}
-                fileName={item.name}
-                fileType={getFileType(item)!}
-                initialDelay={
-                  recentlyUploadedKeys.includes(item.key) ? THUMBNAIL_FETCH_DELAY : undefined
-                }
-              />
-            ) : (
-              <span className="file-icon">
-                <FileIcon item={item} />
-              </span>
-            )}
-            <span className="file-name">{item.name}</span>
-            {!isSelectionMode && (onRename || onMove || onDelete) && (
-              <FileActionMenu
-                itemName={item.name}
-                onRename={() => onRename?.(item)}
-                onMove={() => onMove?.(item)}
-                onDelete={() => onDelete?.(item)}
-              />
-            )}
-          </li>
+            item={item}
+            isSelected={isSelected}
+            isSelectionMode={isSelectionMode}
+            recentlyUploadedKeys={recentlyUploadedKeys}
+            onItemClick={handleItemClick}
+            onCheckboxClick={handleCheckboxClick}
+            onShowActionMenu={onShowActionMenu}
+          />
         );
       })}
     </ul>
