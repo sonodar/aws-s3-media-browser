@@ -18,6 +18,7 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 
 - **@aws-amplify/ui-react**: 認証 UI コンポーネント
 - **@aws-amplify/ui-react-storage**: ストレージ統合
+- **jotai**: 軽量アトミック状態管理（コンポーネント間の共有状態）
 - **yet-another-react-lightbox**: 画像/動画プレビュー
 - **react-player**: 動画再生
 - **lucide-react**: アイコンライブラリ
@@ -78,6 +79,7 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 | Intl.Collator 自然順ソート   | 数字を正しく扱う多言語対応ソート（file1, file2, file10） |
 | @use-gesture/react 採用      | タッチデバイス向けスワイプジェスチャーの高精度検出       |
 | 長押しコンテキストメニュー   | タッチデバイスでの右クリック相当操作（useLongPress）     |
+| Jotai アトミック状態管理     | 軽量・シンプルな共有状態管理（パス・選択・ソート状態）   |
 
 ---
 

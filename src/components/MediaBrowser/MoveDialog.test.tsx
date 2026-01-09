@@ -66,6 +66,26 @@ describe("MoveDialog", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
+    it("should start from currentPath, not rootPath", async () => {
+      const rootPath = "media/";
+      const currentPath = "media/user123/photos/";
+
+      render(
+        <MoveDialog
+          isOpen={true}
+          items={sampleItems}
+          currentPath={currentPath}
+          rootPath={rootPath}
+          onClose={mockOnClose}
+          onMove={mockOnMove}
+          listFolders={mockListFolders}
+        />,
+      );
+
+      // 初期表示は currentPath のフォルダ名（photos）であるべき
+      expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
+    });
+
     it("should display item count in header", async () => {
       render(
         <MoveDialog

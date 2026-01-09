@@ -43,8 +43,8 @@ export function MoveDialog({
   onMove,
   listFolders,
 }: MoveDialogProps) {
-  // 表示中のパス = 移動先（初期値は rootPath）
-  const [browsePath, setBrowsePath] = useState(rootPath);
+  // 表示中のパス = 移動先（初期値は currentPath = 移動元フォルダ）
+  const [browsePath, setBrowsePath] = useState(currentPath);
   const [isMoving, setIsMoving] = useState(false);
   const [progress, setProgress] = useState<MoveProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
