@@ -1,12 +1,35 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { useSetAtom } from "jotai";
 import { useStoragePath } from "./useStoragePath";
+import { TestProvider, currentPathAtom } from "../stores";
 
+/**
+ * useStoragePath テスト
+ *
+ * Jotai atoms に接続されたファサード hook のテスト。
+ * TestProvider でラップして atoms のスコープを提供する。
+ */
 describe("useStoragePath", () => {
   const originalLocation = window.location;
   const originalHistory = window.history;
 
+  // Helper hook to reset atoms between tests
+  function useResetAtoms() {
+    const setPath = useSetAtom(currentPathAtom);
+    return () => {
+      setPath("");
+    };
+  }
+
   beforeEach(() => {
+    // Reset atoms
+    const { result } = renderHook(() => useResetAtoms(), { wrapper: TestProvider });
+    act(() => {
+      result.current();
+    });
+
+    // Stub browser APIs
     vi.stubGlobal("location", {
       ...originalLocation,
       href: "http://localhost/",
@@ -23,7 +46,9 @@ describe("useStoragePath", () => {
   });
 
   it("should initialize with empty path at root", () => {
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     expect(result.current.currentPath).toBe("");
   });
@@ -35,13 +60,18 @@ describe("useStoragePath", () => {
       search: "?path=folder1%2Ffolder2",
     });
 
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
+    // Wait for initialization effect
     expect(result.current.currentPath).toBe("folder1/folder2");
   });
 
   it("should navigate to folder and update URL", () => {
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     act(() => {
       result.current.navigate("folder1");
@@ -56,7 +86,9 @@ describe("useStoragePath", () => {
   });
 
   it("should navigate to nested folder", () => {
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     act(() => {
       result.current.navigate("folder1");
@@ -76,7 +108,9 @@ describe("useStoragePath", () => {
       search: "?path=folder1%2Ffolder2",
     });
 
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     act(() => {
       result.current.goBack();
@@ -92,7 +126,9 @@ describe("useStoragePath", () => {
       search: "?path=folder1",
     });
 
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     act(() => {
       result.current.goBack();
@@ -102,7 +138,9 @@ describe("useStoragePath", () => {
   });
 
   it("should respond to popstate event", () => {
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     act(() => {
       result.current.navigate("folder1");
@@ -133,7 +171,9 @@ describe("useStoragePath", () => {
       search: `?path=${encodedPath}`,
     });
 
-    const { result } = renderHook(() => useStoragePath());
+    const { result } = renderHook(() => useStoragePath(), {
+      wrapper: TestProvider,
+    });
 
     expect(result.current.currentPath).toBe(japanesePath);
   });

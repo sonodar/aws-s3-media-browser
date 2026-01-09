@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
@@ -28,6 +28,11 @@ export interface MoveDialogProps {
 /**
  * ファイル/フォルダ移動ダイアログ
  * 表示中のフォルダが移動先となる
+ *
+ * Architecture Note:
+ * - 状態リセットは `key` 属性で行う（禁止用途 useEffect の排除）
+ * - 親コンポーネント（MediaBrowser）でダイアログを開くたびに新しい key を設定し、
+ *   コンポーネントを再マウントすることで内部状態を初期化する
  */
 export function MoveDialog({
   isOpen,
@@ -38,26 +43,13 @@ export function MoveDialog({
   onMove,
   listFolders,
 }: MoveDialogProps) {
-  // 表示中のパス = 移動先
+  // 表示中のパス = 移動先（初期値は rootPath）
   const [browsePath, setBrowsePath] = useState(rootPath);
   const [isMoving, setIsMoving] = useState(false);
   const [progress, setProgress] = useState<MoveProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [failedItems, setFailedItems] = useState<string[]>([]);
-
-  // ダイアログが開くたびに状態をリセット
-  useEffect(() => {
-    if (isOpen) {
-      // 移動元と同じパスにはならないようルートから開始
-      setBrowsePath(rootPath);
-      setIsMoving(false);
-      setProgress(null);
-      setError(null);
-      setSuccessMessage(null);
-      setFailedItems([]);
-    }
-  }, [isOpen, rootPath]);
 
   // 無効化するパス（循環移動防止）
   const disabledPaths = useMemo(() => {

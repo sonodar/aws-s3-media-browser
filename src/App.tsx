@@ -4,6 +4,7 @@ import { MediaBrowser } from "./components/MediaBrowser";
 import { PasskeySignIn } from "./components/PasskeySignIn";
 import { PasskeySettingsModal } from "./components/PasskeySettingsModal";
 import { useWebAuthnSupport } from "./hooks/useWebAuthnSupport";
+import { JotaiProvider } from "./stores/JotaiProvider";
 import "@aws-amplify/ui-react/styles.css";
 
 type AuthMode = "passkey" | "password";
@@ -82,9 +83,11 @@ function HybridAuthApp() {
 
 function App() {
   return (
-    <Authenticator.Provider>
-      <HybridAuthApp />
-    </Authenticator.Provider>
+    <JotaiProvider>
+      <Authenticator.Provider>
+        <HybridAuthApp />
+      </Authenticator.Provider>
+    </JotaiProvider>
   );
 }
 

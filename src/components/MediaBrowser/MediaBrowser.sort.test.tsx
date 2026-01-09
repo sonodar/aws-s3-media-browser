@@ -45,6 +45,7 @@ vi.mock("./ThumbnailImage", () => ({
 
 import {
   setupMediaBrowserTest,
+  MediaBrowserTestWrapper,
   sortTestItems,
   SORT_ORDER_STORAGE_KEY,
   list,
@@ -70,7 +71,7 @@ describe("MediaBrowser Sort Tests", () => {
 
   describe("9. Sort Order Feature", () => {
     it("should show sort selector when loaded", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByRole("combobox", { name: "並び順" })).toBeInTheDocument();
@@ -78,7 +79,7 @@ describe("MediaBrowser Sort Tests", () => {
     });
 
     it("should have 4 sort options available", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByRole("combobox", { name: "並び順" })).toBeInTheDocument();
@@ -93,7 +94,7 @@ describe("MediaBrowser Sort Tests", () => {
     });
 
     it("should default to newest order", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByRole("combobox", { name: "並び順" })).toBeInTheDocument();
@@ -104,7 +105,7 @@ describe("MediaBrowser Sort Tests", () => {
     });
 
     it("should hide sort selector in selection mode", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByRole("combobox", { name: "並び順" })).toBeInTheDocument();
@@ -119,7 +120,7 @@ describe("MediaBrowser Sort Tests", () => {
     });
 
     it("should change file order when sort order is changed to name", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByText("a-file.jpg")).toBeInTheDocument();
@@ -129,14 +130,14 @@ describe("MediaBrowser Sort Tests", () => {
       const select = screen.getByRole("combobox", { name: "並び順" });
       fireEvent.change(select, { target: { value: "name" } });
 
-      // Verify sort order is updated in localStorage
+      // Verify sort order is updated in localStorage (atomWithStorage uses JSON format)
       await waitFor(() => {
-        expect(localStorage.getItem(SORT_ORDER_STORAGE_KEY)).toBe("name");
+        expect(localStorage.getItem(SORT_ORDER_STORAGE_KEY)).toBe(JSON.stringify("name"));
       });
     });
 
     it("should change file order when sort order is changed to size", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByText("a-file.jpg")).toBeInTheDocument();
@@ -146,17 +147,17 @@ describe("MediaBrowser Sort Tests", () => {
       const select = screen.getByRole("combobox", { name: "並び順" });
       fireEvent.change(select, { target: { value: "size" } });
 
-      // Verify sort order is updated in localStorage
+      // Verify sort order is updated in localStorage (atomWithStorage uses JSON format)
       await waitFor(() => {
-        expect(localStorage.getItem(SORT_ORDER_STORAGE_KEY)).toBe("size");
+        expect(localStorage.getItem(SORT_ORDER_STORAGE_KEY)).toBe(JSON.stringify("size"));
       });
     });
 
     it("should persist sort order across remounts", async () => {
-      // Set sort order before render
-      localStorage.setItem(SORT_ORDER_STORAGE_KEY, "oldest");
+      // Set sort order before render (atomWithStorage uses JSON format)
+      localStorage.setItem(SORT_ORDER_STORAGE_KEY, JSON.stringify("oldest"));
 
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByRole("combobox", { name: "並び順" })).toBeInTheDocument();
@@ -168,7 +169,9 @@ describe("MediaBrowser Sort Tests", () => {
     });
 
     it("should restore sort order after page reload simulation", async () => {
-      const { unmount } = render(<MediaBrowser onSignOut={onSignOut} />);
+      const { unmount } = render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByRole("combobox", { name: "並び順" })).toBeInTheDocument();
@@ -178,14 +181,15 @@ describe("MediaBrowser Sort Tests", () => {
       const select = screen.getByRole("combobox", { name: "並び順" });
       fireEvent.change(select, { target: { value: "name" } });
 
+      // atomWithStorage uses JSON format
       await waitFor(() => {
-        expect(localStorage.getItem(SORT_ORDER_STORAGE_KEY)).toBe("name");
+        expect(localStorage.getItem(SORT_ORDER_STORAGE_KEY)).toBe(JSON.stringify("name"));
       });
 
       // Simulate page reload by unmounting and remounting
       unmount();
 
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         const newSelect = screen.getByRole("combobox", { name: "並び順" }) as HTMLSelectElement;
@@ -194,7 +198,7 @@ describe("MediaBrowser Sort Tests", () => {
     });
 
     it("should always display folders before files regardless of sort order", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />);
+      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();

@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
 import { vi } from "vitest";
 import { list, remove, uploadData } from "aws-amplify/storage";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { TestProvider } from "../../stores";
 
 // Test fixtures
 export const mockIdentityId = "test-identity-id";
@@ -132,6 +134,13 @@ export function setupMediaBrowserTest() {
       window.onunhandledrejection = originalOnUnhandledRejection;
     },
   };
+}
+
+/**
+ * Test wrapper that provides Jotai context
+ */
+export function MediaBrowserTestWrapper({ children }: { children: ReactNode }) {
+  return <TestProvider>{children}</TestProvider>;
 }
 
 // Re-export mocked modules for use in tests
