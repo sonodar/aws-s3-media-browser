@@ -1,57 +1,30 @@
-import { useState, useCallback } from "react";
-import { DEFAULT_SORT_ORDER } from "./sortStorageItems";
+import { useCallback } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import type { SortOrder } from "./sortStorageItems";
+import { sortOrderAtom, setSortOrderAtom, SORT_STORAGE_KEY } from "../stores/atoms";
 
 /**
- * localStorage のキー
+ * localStorage のキー（既存 API との互換性のためエクスポート）
  */
-export const STORAGE_KEY = "s3-photo-browser:sort-order";
+export const STORAGE_KEY = SORT_STORAGE_KEY;
 
 /**
- * 有効なソート順かどうかを検証する
- */
-function isValidSortOrder(value: unknown): value is SortOrder {
-  return value === "newest" || value === "oldest" || value === "name" || value === "size";
-}
-
-/**
- * localStorage からソート順を読み込む
- */
-function loadSortOrder(): SortOrder {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && isValidSortOrder(stored)) {
-      return stored;
-    }
-  } catch {
-    // localStorage が無効な場合はデフォルト値を使用
-  }
-  return DEFAULT_SORT_ORDER;
-}
-
-/**
- * localStorage にソート順を保存する
- */
-function saveSortOrder(order: SortOrder): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, order);
-  } catch {
-    // 保存に失敗してもエラーを投げない（サイレントフォールバック）
-  }
-}
-
-/**
- * ソート順の状態管理と localStorage への永続化を行うフック
+ * ソート順の状態管理と localStorage への永続化を行うファサード hook
+ *
+ * Jotai atoms に接続し、atomWithStorage で自動的に localStorage と同期する。
  *
  * @returns ソート順の状態と更新関数
  */
 export function useSortOrder() {
-  const [sortOrder, setSortOrderState] = useState<SortOrder>(loadSortOrder);
+  const sortOrder = useAtomValue(sortOrderAtom);
+  const setSortOrderAction = useSetAtom(setSortOrderAtom);
 
-  const setSortOrder = useCallback((order: SortOrder) => {
-    setSortOrderState(order);
-    saveSortOrder(order);
-  }, []);
+  const setSortOrder = useCallback(
+    (order: SortOrder) => {
+      setSortOrderAction(order);
+    },
+    [setSortOrderAction],
+  );
 
   return {
     sortOrder,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { validateRename } from "../../utils/validateRename";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -31,6 +31,14 @@ interface FolderErrorDetails {
   duplicates?: string[];
 }
 
+/**
+ * リネームダイアログ
+ *
+ * Architecture Note:
+ * - 状態リセットは `key` 属性で行う（禁止用途 useEffect の排除）
+ * - 親コンポーネント（MediaBrowser）でダイアログを開くたびに新しい key を設定し、
+ *   コンポーネントを再マウントすることで内部状態を初期化する
+ */
 export function RenameDialog({
   isOpen,
   item,
@@ -39,21 +47,12 @@ export function RenameDialog({
   onRenameFile,
   onRenameFolder,
 }: RenameDialogProps) {
+  // 初期値は item.name（コンポーネント再マウント時に設定される）
   const [newName, setNewName] = useState(item.name);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<RenameProgress | null>(null);
   const [folderErrorDetails, setFolderErrorDetails] = useState<FolderErrorDetails | null>(null);
-
-  // Reset state when item changes or dialog opens
-  useEffect(() => {
-    if (isOpen) {
-      setNewName(item.name);
-      setError(null);
-      setProgress(null);
-      setFolderErrorDetails(null);
-    }
-  }, [isOpen, item.name]);
 
   const handleSubmit = useCallback(async () => {
     // Validate using UI layer validation

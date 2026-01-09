@@ -68,6 +68,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const {
     isOpen: isMoveDialogOpen,
     itemsToMove,
+    dialogKey: moveDialogKey,
     openMoveDialog,
     closeMoveDialog,
   } = useMoveDialog();
@@ -95,7 +96,11 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [renameTarget, setRenameTarget] = useState<StorageItem | null>(null);
+  // RenameDialog state with key for remount（禁止用途 useEffect 排除のため）
+  const [renameDialogState, setRenameDialogState] = useState<{
+    target: StorageItem | null;
+    key: number;
+  }>({ target: null, key: 0 });
 
   // Filter previewable items for multi-slide mode
   const previewableItems = useMemo(
@@ -148,11 +153,12 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     // リネームダイアログを開く前に最新のアイテムリストを取得
     // これにより、前回のリネーム操作後の古いステートによる誤検知を防ぐ
     await refresh();
-    setRenameTarget(item);
+    // 新しい key を生成してダイアログを再マウント
+    setRenameDialogState((prev) => ({ target: item, key: prev.key + 1 }));
   };
 
   const handleCloseRenameDialog = () => {
-    setRenameTarget(null);
+    setRenameDialogState((prev) => ({ ...prev, target: null }));
   };
 
   // 単一アイテムの移動（FileActionMenuから呼ばれる）
@@ -305,7 +311,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         onRename={async (item) => {
           setCurrentPreviewIndex(null);
           await refresh();
-          setRenameTarget(item);
+          setRenameDialogState((prev) => ({ target: item, key: prev.key + 1 }));
         }}
         onMove={(item) => {
           setCurrentPreviewIndex(null);
@@ -322,10 +328,11 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         />
       )}
 
-      {renameTarget && (
+      {renameDialogState.target && (
         <RenameDialog
-          isOpen={renameTarget !== null}
-          item={renameTarget}
+          key={renameDialogState.key}
+          isOpen={renameDialogState.target !== null}
+          item={renameDialogState.target}
           existingItems={sortedItems}
           onClose={handleCloseRenameDialog}
           onRenameFile={renameItem}
@@ -334,6 +341,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
       )}
 
       <MoveDialog
+        key={moveDialogKey}
         isOpen={isMoveDialogOpen}
         items={itemsToMove}
         currentPath={fullCurrentPath}
