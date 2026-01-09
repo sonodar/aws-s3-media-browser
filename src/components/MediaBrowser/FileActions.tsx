@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { FileUploader } from "@aws-amplify/ui-react-storage";
-import { FolderPlus, Upload, X } from "lucide-react";
+import { FolderPlus, FilePlus, X } from "lucide-react";
 import type { StorageItem } from "../../types/storage";
 import { generateUniqueFilename } from "../../utils/generateUniqueFilename";
 import "./FileActions.css";
@@ -91,7 +91,7 @@ export function FileActions({
         aria-label="ファイルをアップロード"
         title="アップロード"
       >
-        <Upload size={20} aria-hidden="true" />
+        <FilePlus size={20} aria-hidden="true" />
       </button>
       <button
         className="action-button create-folder-button"

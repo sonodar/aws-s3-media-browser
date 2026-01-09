@@ -15,6 +15,7 @@
 
 - `components/[Feature]/` - 機能単位のコンポーネント群
 - `hooks/` - 単一責任のカスタムフック + 関連ユーティリティ
+- `stores/` - Jotai アトム定義（共有状態管理）
 - `types/` - 共有型定義
 - `utils/` - ユーティリティ関数
 - `test/` - テスト設定・ヘルパー
@@ -30,6 +31,18 @@
 - `[Component].css` - コンポーネント固有スタイル
 - `[Component].test.tsx` - テスト（同一ディレクトリ）
 
+### State Management (`/src/stores/`)
+
+**Location**: `/src/stores/`
+**Purpose**: Jotai による共有状態管理
+**Pattern**:
+
+- `atoms/[domain].ts` - ドメイン単位のアトム定義（path, selection, sort）
+- `atoms/index.ts` - アトムのエクスポートハブ
+- `JotaiProvider.tsx` - アプリケーションルートのプロバイダー
+- `TestProvider.tsx` - テスト用プロバイダー
+- `index.ts` - stores モジュールのエクスポート
+
 ### Amplify Backend (`/amplify/`)
 
 **Location**: `/amplify/`
@@ -44,7 +57,8 @@
 
 - **Files**: PascalCase（コンポーネント）、camelCase（hooks/utils）
 - **Components**: PascalCase（例: `MediaBrowser`, `FileList`）
-- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`, `useMoveDialog`, `useSortOrder`, `useLongPress`, `useSwipeNavigation`）
+- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`, `useMoveDialog`, `useSortOrder`, `useLongPress`, `useSwipeNavigation`, `useUploadTracker`, `useWebAuthnSupport`）
+- **Atoms**: ドメイン名（例: `path`, `selection`, `sort`）+ アトム/アクション（`pathAtom`, `currentPathAtom`, `selectionAtom`, `toggleSelectionAtom`）
 - **Utils**: 純粋関数ユーティリティ（例: `fileTypes`, `pathUtils`, `validateRename`, `generateUniqueFilename`, `sortStorageItems`）
 - **CSS**: コンポーネント名と同名（例: `Header.css`）
 
@@ -72,6 +86,7 @@ import "./MediaBrowser.css";
 - **Co-location**: テストとスタイルはコンポーネントと同一ディレクトリ
 - **Single Export Point**: 機能フォルダは `index.tsx` で公開 API を制御
 - **Single Responsibility Hooks**: 各フックは単一の責務を持つ（認証、パス管理、操作など）
+- **Atomic State Management**: 共有状態は Jotai アトムで管理、ドメイン単位でファイル分割
 - **Type Co-location**: 型定義は使用箇所に近い場所、共有型は `types/` に配置
 - **Pure Function Extraction**: テスト可能な純粋関数は hooks/ 内にユーティリティとして配置可
 
