@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { WritableAtom } from "jotai";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
+import { MantineProvider } from "@mantine/core";
 
 /**
  * テスト用の atom 初期値ペア型
@@ -22,7 +23,11 @@ type TestProviderProps = {
  * - 各テストで新しいインスタンスを使用することで状態分離を保証
  */
 export function TestProvider({ children }: TestProviderProps) {
-  return <Provider>{children}</Provider>;
+  return (
+    <MantineProvider>
+      <Provider>{children}</Provider>
+    </MantineProvider>
+  );
 }
 
 type HydrateAtomsProps = {
@@ -56,9 +61,11 @@ function HydrateAtoms({ initialValues, children }: HydrateAtomsProps) {
 export function createTestProvider(initialValues: AtomValuePair[]) {
   return function TestProviderWithInitialValues({ children }: TestProviderProps) {
     return (
-      <Provider>
-        <HydrateAtoms initialValues={initialValues}>{children}</HydrateAtoms>
-      </Provider>
+      <MantineProvider>
+        <Provider>
+          <HydrateAtoms initialValues={initialValues}>{children}</HydrateAtoms>
+        </Provider>
+      </MantineProvider>
     );
   };
 }

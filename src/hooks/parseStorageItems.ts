@@ -29,8 +29,12 @@ export function parseStorageItems(items: S3ListItem[], basePath: string): Storag
       const isFolder = item.path.endsWith("/") || parts.length > 1;
       const name = parts[0];
 
+      // フォルダの場合は、元のファイルパスではなくフォルダパスを key として使用
+      // これにより listFolderContents が正しいプレフィックスで list できる
+      const folderKey = `${basePath}${name}/`;
+
       return {
-        key: item.path,
+        key: isFolder ? folderKey : item.path,
         name: isFolder ? name : relativePath,
         type: isFolder ? "folder" : "file",
         size: item.size,

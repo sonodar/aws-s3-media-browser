@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { MantineProvider } from "@mantine/core";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react";
 import { MediaBrowser } from "./components/MediaBrowser";
 import { PasskeySignIn } from "./components/PasskeySignIn";
@@ -83,11 +84,13 @@ function HybridAuthApp() {
 
 function App() {
   return (
-    <JotaiProvider>
-      <Authenticator.Provider>
-        <HybridAuthApp />
-      </Authenticator.Provider>
-    </JotaiProvider>
+    <MantineProvider>
+      <JotaiProvider>
+        <Authenticator.Provider>
+          <HybridAuthApp />
+        </Authenticator.Provider>
+      </JotaiProvider>
+    </MantineProvider>
   );
 }
 

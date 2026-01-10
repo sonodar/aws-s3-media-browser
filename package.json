@@ -16,17 +16,24 @@
   "scripts": {
     "prepare": "husky",
     "dev": "vite",
-    "build": "tsc && tsc -p amplify --noEmit && vite build",
+    "build": "run-s typecheck build:app",
+    "build:app": "vite build",
     "preview": "vite preview",
     "lint": "oxlint .",
     "format": "oxfmt --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check-all": "run-s format build lint test"
+    "typecheck": "run-p typecheck:*",
+    "typecheck:app": "tsc --noEmit",
+    "typecheck:amplify": "tsc -p amplify --noEmit",
+    "check": "run-p lint test",
+    "check-all": "run-s format typecheck check build:app"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.13.2",
     "@aws-amplify/ui-react-storage": "^3.14.0",
+    "@mantine/core": "^8.0.0",
+    "@mantine/hooks": "^8.0.0",
     "@use-gesture/react": "^10.3.1",
     "aws-amplify": "^6.15.9",
     "jotai": "^2.16.1",
@@ -63,6 +70,10 @@
     "typescript": "^5.9.3",
     "vite": "^6.4.1",
     "vitest": "^4.0.16"
+  },
+  "overrides": {
+    "@mantine/core": "^8.0.0",
+    "@mantine/hooks": "^8.0.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
