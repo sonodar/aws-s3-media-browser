@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { Stack, Group } from "@mantine/core";
 import type { StorageItem } from "../../types/storage";
 import "./CreateFolderDialog.css"; // Reuse dialog styles
 
@@ -61,38 +62,42 @@ export function DeleteConfirmDialog({
         aria-labelledby="delete-dialog-title"
         onKeyDown={handleKeyDown}
       >
-        <h2 id="delete-dialog-title">削除の確認</h2>
-        <p>
-          {getMessage()}
-          {hasFolder && (
-            <>
-              <br />
-              <strong>フォルダ内のすべてのファイルも削除されます。</strong>
-            </>
-          )}
-        </p>
-        <div className="dialog-actions">
-          <button
-            ref={cancelButtonRef}
-            type="button"
-            onClick={onClose}
-            disabled={isDeleting}
-            className="cancel-button"
-            aria-label="キャンセル"
-          >
-            キャンセル
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="submit-button"
-            style={{ backgroundColor: "#d32f2f" }}
-            aria-label={isDeleting ? "削除中..." : "削除"}
-          >
-            {isDeleting ? "削除中..." : "削除"}
-          </button>
-        </div>
+        <Stack gap="md">
+          <h2 id="delete-dialog-title" style={{ margin: 0 }}>
+            削除の確認
+          </h2>
+          <p style={{ margin: 0 }}>
+            {getMessage()}
+            {hasFolder && (
+              <>
+                <br />
+                <strong>フォルダ内のすべてのファイルも削除されます。</strong>
+              </>
+            )}
+          </p>
+          <Group justify="flex-end" gap="sm">
+            <button
+              ref={cancelButtonRef}
+              type="button"
+              onClick={onClose}
+              disabled={isDeleting}
+              className="cancel-button"
+              aria-label="キャンセル"
+            >
+              キャンセル
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="submit-button"
+              style={{ backgroundColor: "#d32f2f" }}
+              aria-label={isDeleting ? "削除中..." : "削除"}
+            >
+              {isDeleting ? "削除中..." : "削除"}
+            </button>
+          </Group>
+        </Stack>
       </div>
     </div>
   );

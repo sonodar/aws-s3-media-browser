@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Stack, Group } from "@mantine/core";
 import "./CreateFolderDialog.css";
 
 interface CreateFolderDialogProps {
@@ -68,33 +69,35 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
       <div className="dialog-content" role="dialog" aria-labelledby="dialog-title">
         <h2 id="dialog-title">新しいフォルダを作成</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            placeholder="フォルダ名"
-            autoFocus
-            disabled={isCreating}
-            aria-label="フォルダ名"
-          />
-          {error && <p className="error-message">{error}</p>}
-          <div className="dialog-actions">
-            <button
-              type="button"
-              onClick={handleClose}
+          <Stack gap="md">
+            <input
+              type="text"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              placeholder="フォルダ名"
+              autoFocus
               disabled={isCreating}
-              className="cancel-button"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isCreating || !folderName.trim()}
-              className="submit-button"
-            >
-              {isCreating ? "作成中..." : "作成"}
-            </button>
-          </div>
+              aria-label="フォルダ名"
+            />
+            {error && <p className="error-message">{error}</p>}
+            <Group justify="flex-end" gap="sm">
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={isCreating}
+                className="cancel-button"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                disabled={isCreating || !folderName.trim()}
+                className="submit-button"
+              >
+                {isCreating ? "作成中..." : "作成"}
+              </button>
+            </Group>
+          </Stack>
         </form>
       </div>
     </div>

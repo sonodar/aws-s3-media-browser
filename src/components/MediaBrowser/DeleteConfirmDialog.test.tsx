@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import type { StorageItem } from "../../types/storage";
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 describe("DeleteConfirmDialog", () => {
   const mockFiles: StorageItem[] = [
@@ -17,13 +22,17 @@ describe("DeleteConfirmDialog", () => {
 
   describe("単一アイテム削除", () => {
     it("単一ファイル削除時にファイル名が表示される", () => {
-      render(<DeleteConfirmDialog items={[mockFiles[0]]} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={[mockFiles[0]]} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       expect(screen.getByText(/file1\.jpg/)).toBeInTheDocument();
     });
 
     it("単一フォルダ削除時にフォルダ警告が表示される", () => {
-      render(<DeleteConfirmDialog items={[mockFolder]} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={[mockFolder]} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       expect(screen.getByText(/フォルダ内のすべてのファイルも削除されます/)).toBeInTheDocument();
     });
@@ -31,7 +40,9 @@ describe("DeleteConfirmDialog", () => {
 
   describe("複数アイテム削除", () => {
     it("複数アイテム削除時にアイテム数が表示される", () => {
-      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       expect(screen.getByText(/2件/)).toBeInTheDocument();
     });
@@ -43,13 +54,16 @@ describe("DeleteConfirmDialog", () => {
           onClose={vi.fn()}
           onConfirm={vi.fn()}
         />,
+        { wrapper },
       );
 
       expect(screen.getByText(/フォルダ内のすべてのファイルも削除されます/)).toBeInTheDocument();
     });
 
     it("フォルダが含まれない場合にフォルダ警告が表示されない", () => {
-      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       expect(
         screen.queryByText(/フォルダ内のすべてのファイルも削除されます/),
@@ -60,7 +74,9 @@ describe("DeleteConfirmDialog", () => {
   describe("ダイアログ動作", () => {
     it("削除ボタンクリックで onConfirm が呼ばれる", async () => {
       const onConfirm = vi.fn().mockResolvedValue(undefined);
-      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={onConfirm} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={onConfirm} />, {
+        wrapper,
+      });
 
       fireEvent.click(screen.getByRole("button", { name: /削除/ }));
 
@@ -71,7 +87,9 @@ describe("DeleteConfirmDialog", () => {
 
     it("キャンセルボタンクリックで onClose が呼ばれる", () => {
       const onClose = vi.fn();
-      render(<DeleteConfirmDialog items={mockFiles} onClose={onClose} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={onClose} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       fireEvent.click(screen.getByRole("button", { name: /キャンセル/ }));
 
@@ -79,6 +97,7 @@ describe("DeleteConfirmDialog", () => {
     });
 
     it("items が空の場合は何も表示されない", () => {
+      // MantineProvider を使わない（wrapper 使用時は style タグが挿入される）
       const { container } = render(
         <DeleteConfirmDialog items={[]} onClose={vi.fn()} onConfirm={vi.fn()} />,
       );
@@ -96,6 +115,7 @@ describe("DeleteConfirmDialog", () => {
           onConfirm={vi.fn()}
           isDeleting={true}
         />,
+        { wrapper },
       );
 
       expect(screen.getByRole("button", { name: /削除中/ })).toBeDisabled();
@@ -110,6 +130,7 @@ describe("DeleteConfirmDialog", () => {
           onConfirm={vi.fn()}
           isDeleting={true}
         />,
+        { wrapper },
       );
 
       expect(screen.getByText(/削除中/)).toBeInTheDocument();
@@ -118,27 +139,35 @@ describe("DeleteConfirmDialog", () => {
 
   describe("アクセシビリティ", () => {
     it("ダイアログが alertdialog ロールを持つ", () => {
-      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       expect(screen.getByRole("alertdialog")).toBeInTheDocument();
     });
 
     it("ダイアログに aria-labelledby が設定されている", () => {
-      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       const dialog = screen.getByRole("alertdialog");
       expect(dialog).toHaveAttribute("aria-labelledby", "delete-dialog-title");
     });
 
     it("ダイアログ表示時にキャンセルボタンにフォーカスが当たる", () => {
-      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={vi.fn()} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       expect(document.activeElement).toBe(screen.getByRole("button", { name: /キャンセル/ }));
     });
 
     it("Escape キーでダイアログが閉じる", () => {
       const onClose = vi.fn();
-      render(<DeleteConfirmDialog items={mockFiles} onClose={onClose} onConfirm={vi.fn()} />);
+      render(<DeleteConfirmDialog items={mockFiles} onClose={onClose} onConfirm={vi.fn()} />, {
+        wrapper,
+      });
 
       fireEvent.keyDown(screen.getByRole("alertdialog"), { key: "Escape" });
       expect(onClose).toHaveBeenCalled();

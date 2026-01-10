@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { Stack, Group } from "@mantine/core";
 import { validateRename } from "../../utils/validateRename";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -142,64 +143,78 @@ export function RenameDialog({
         aria-labelledby="rename-dialog-title"
         onKeyDown={handleKeyDown}
       >
-        <h2 id="rename-dialog-title">{dialogTitle}</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-        >
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder={item.type === "folder" ? "フォルダ名" : "ファイル名"}
-            autoFocus
-            disabled={isProcessing}
-            aria-label={item.type === "folder" ? "フォルダ名" : "ファイル名"}
-          />
-          {error && <p className="error-message">{error}</p>}
-          {folderErrorDetails &&
-            (folderErrorDetails.succeeded !== undefined ||
-              folderErrorDetails.failed !== undefined) && (
-              <div className="folder-error-details">
-                <p className="error-summary">
-                  成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
-                  {folderErrorDetails.failed ?? 0}件
+        <Stack gap="md">
+          <h2 id="rename-dialog-title" style={{ margin: 0 }}>
+            {dialogTitle}
+          </h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <Stack gap="md">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder={item.type === "folder" ? "フォルダ名" : "ファイル名"}
+                autoFocus
+                disabled={isProcessing}
+                aria-label={item.type === "folder" ? "フォルダ名" : "ファイル名"}
+              />
+              {error && (
+                <p className="error-message" style={{ margin: 0 }}>
+                  {error}
                 </p>
-                {folderErrorDetails.failedFiles && folderErrorDetails.failedFiles.length > 0 && (
-                  <ul className="failed-files-list">
-                    {folderErrorDetails.failedFiles.map((file) => (
-                      <li key={file}>{file}</li>
-                    ))}
-                  </ul>
+              )}
+              {folderErrorDetails &&
+                (folderErrorDetails.succeeded !== undefined ||
+                  folderErrorDetails.failed !== undefined) && (
+                  <div className="folder-error-details">
+                    <p className="error-summary">
+                      成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
+                      {folderErrorDetails.failed ?? 0}件
+                    </p>
+                    {folderErrorDetails.failedFiles &&
+                      folderErrorDetails.failedFiles.length > 0 && (
+                        <ul className="failed-files-list">
+                          {folderErrorDetails.failedFiles.map((file) => (
+                            <li key={file}>{file}</li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
                 )}
-              </div>
-            )}
-          {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
-            <ul className="duplicate-files-list">
-              {folderErrorDetails.duplicates.map((file) => (
-                <li key={file}>{file}</li>
-              ))}
-            </ul>
-          )}
-          {progress && (
-            <p className="progress-message">{`${progress.current} / ${progress.total} 件処理中...`}</p>
-          )}
-          <div className="dialog-actions">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isProcessing}
-              className="cancel-button"
-            >
-              キャンセル
-            </button>
-            <button type="submit" disabled={isProcessing} className="submit-button">
-              {submitButtonText}
-            </button>
-          </div>
-        </form>
+              {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
+                <ul className="duplicate-files-list">
+                  {folderErrorDetails.duplicates.map((file) => (
+                    <li key={file}>{file}</li>
+                  ))}
+                </ul>
+              )}
+              {progress && (
+                <p
+                  className="progress-message"
+                  style={{ margin: 0 }}
+                >{`${progress.current} / ${progress.total} 件処理中...`}</p>
+              )}
+              <Group justify="flex-end" gap="sm">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  disabled={isProcessing}
+                  className="cancel-button"
+                >
+                  キャンセル
+                </button>
+                <button type="submit" disabled={isProcessing} className="submit-button">
+                  {submitButtonText}
+                </button>
+              </Group>
+            </Stack>
+          </form>
+        </Stack>
       </div>
     </div>
   );

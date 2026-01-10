@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { RenameDialog } from "./RenameDialog";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -7,6 +8,10 @@ import type {
   RenameFolderResult,
   RenameProgress,
 } from "../../hooks/useStorageOperations";
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 describe("RenameDialog", () => {
   const mockOnClose = vi.fn();
@@ -52,6 +57,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -67,6 +73,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -83,6 +90,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       expect(screen.getByText("フォルダ名を変更")).toBeInTheDocument();
@@ -98,6 +106,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -114,6 +123,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -132,6 +142,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -152,6 +163,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -171,6 +183,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       // Name is already set to item.name, just click submit
@@ -189,6 +202,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -211,6 +225,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -231,6 +246,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
@@ -250,6 +266,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
@@ -267,6 +284,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -288,6 +306,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -322,6 +341,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -357,6 +377,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -395,6 +416,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -437,6 +459,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -467,6 +490,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -495,6 +519,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -529,6 +554,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -556,6 +582,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -579,6 +606,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -600,6 +628,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");

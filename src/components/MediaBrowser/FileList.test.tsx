@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { FileList } from "./FileList";
 import type { StorageItem } from "../../types/storage";
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 // Mock ThumbnailImage component
 vi.mock("./ThumbnailImage", () => ({
@@ -33,13 +38,15 @@ describe("FileList", () => {
   ];
 
   it("should render empty state when no items", () => {
-    render(<FileList items={[]} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+    render(<FileList items={[]} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, { wrapper });
 
     expect(screen.getByText(/ファイルがありません/)).toBeInTheDocument();
   });
 
   it("should render file and folder items", () => {
-    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+      wrapper,
+    });
 
     expect(screen.getByText("folder1")).toBeInTheDocument();
     expect(screen.getByText("photo.jpg")).toBeInTheDocument();
@@ -48,7 +55,9 @@ describe("FileList", () => {
 
   it("should call onFolderClick when folder is clicked", () => {
     const onFolderClick = vi.fn();
-    render(<FileList items={mockItems} onFolderClick={onFolderClick} onFileClick={vi.fn()} />);
+    render(<FileList items={mockItems} onFolderClick={onFolderClick} onFileClick={vi.fn()} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByText("folder1"));
 
@@ -57,7 +66,9 @@ describe("FileList", () => {
 
   it("should call onFileClick when file is clicked", () => {
     const onFileClick = vi.fn();
-    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={onFileClick} />);
+    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={onFileClick} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByText("photo.jpg"));
 
@@ -65,7 +76,9 @@ describe("FileList", () => {
   });
 
   it("should have file-list-item class for styling", () => {
-    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+      wrapper,
+    });
 
     const listItems = screen.getAllByRole("listitem");
     listItems.forEach((item) => {
@@ -75,7 +88,9 @@ describe("FileList", () => {
   });
 
   it("should show folder icon for folders", () => {
-    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+      wrapper,
+    });
 
     // Folder should have folder icon indicator
     const folderItem = screen.getByText("folder1").closest("li");
@@ -83,7 +98,9 @@ describe("FileList", () => {
   });
 
   it("should show file icon for files", () => {
-    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+    render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+      wrapper,
+    });
 
     const fileItem = screen.getByText("photo.jpg").closest("li");
     expect(fileItem).toHaveAttribute("data-type", "file");
@@ -100,6 +117,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       const checkboxes = screen.getAllByRole("checkbox");
@@ -116,6 +134,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       const checkboxes = screen.queryAllByRole("checkbox");
@@ -132,6 +151,7 @@ describe("FileList", () => {
           selectedKeys={new Set(["photo.jpg"])}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       const selectedItem = screen.getByText("photo.jpg").closest("li");
@@ -148,6 +168,7 @@ describe("FileList", () => {
           selectedKeys={new Set(["photo.jpg"])}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       const unselectedItem = screen.getByText("folder1").closest("li");
@@ -165,6 +186,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={onToggleSelection}
         />,
+        { wrapper },
       );
 
       const checkboxes = screen.getAllByRole("checkbox");
@@ -186,6 +208,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={onToggleSelection}
         />,
+        { wrapper },
       );
 
       fireEvent.click(screen.getByText("folder1"));
@@ -206,6 +229,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={onToggleSelection}
         />,
+        { wrapper },
       );
 
       fireEvent.click(screen.getByText("photo.jpg"));
@@ -224,6 +248,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       expect(screen.getByLabelText("folder1 を選択")).toBeInTheDocument();
@@ -241,6 +266,7 @@ describe("FileList", () => {
           selectedKeys={new Set(["photo.jpg"])}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       const checkbox = screen.getByLabelText("photo.jpg を選択") as HTMLInputElement;
@@ -250,7 +276,9 @@ describe("FileList", () => {
 
   describe("thumbnail display", () => {
     it("should render ThumbnailImage for image files", () => {
-      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
 
       const thumbnails = screen.getAllByTestId("thumbnail-image");
       const imageThumbnail = thumbnails.find((t) => t.getAttribute("data-file-type") === "image");
@@ -259,7 +287,9 @@ describe("FileList", () => {
     });
 
     it("should render ThumbnailImage for video files", () => {
-      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
 
       const thumbnails = screen.getAllByTestId("thumbnail-image");
       const videoThumbnail = thumbnails.find((t) => t.getAttribute("data-file-type") === "video");
@@ -268,7 +298,9 @@ describe("FileList", () => {
     });
 
     it("should use folder icon for folders instead of ThumbnailImage", () => {
-      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
 
       const thumbnails = screen.getAllByTestId("thumbnail-image");
       // Should have 2 thumbnails (image + video), not 3 (no folder)
@@ -276,7 +308,9 @@ describe("FileList", () => {
     });
 
     it("should pass correct originalKey to ThumbnailImage", () => {
-      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />);
+      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
 
       const thumbnails = screen.getAllByTestId("thumbnail-image");
       const imageThumbnail = thumbnails.find((t) => t.getAttribute("data-file-type") === "image");
@@ -296,6 +330,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={onToggleSelection}
         />,
+        { wrapper },
       );
 
       const checkbox = screen.getByLabelText("photo.jpg を選択");
@@ -316,6 +351,7 @@ describe("FileList", () => {
           selectedKeys={new Set()}
           onToggleSelection={vi.fn()}
         />,
+        { wrapper },
       );
 
       const checkbox = screen.getByLabelText("photo.jpg を選択");
@@ -333,6 +369,7 @@ describe("FileList", () => {
           onFileClick={vi.fn()}
           onShowActionMenu={vi.fn()}
         />,
+        { wrapper },
       );
 
       // FileActionMenu のトリガーボタンが存在しないことを確認
@@ -351,6 +388,7 @@ describe("FileList", () => {
           onToggleSelection={vi.fn()}
           onShowActionMenu={onShowActionMenu}
         />,
+        { wrapper },
       );
 
       // 選択モードでは長押しは無効（ポインターイベントハンドラは適用されるが、テストでは直接確認困難）
@@ -370,6 +408,7 @@ describe("FileList", () => {
           onFileClick={vi.fn()}
           onShowActionMenu={onShowActionMenu}
         />,
+        { wrapper },
       );
 
       const folderItem = screen.getByText("folder1").closest("li")!;
@@ -403,6 +442,7 @@ describe("FileList", () => {
           onFileClick={vi.fn()}
           onShowActionMenu={onShowActionMenu}
         />,
+        { wrapper },
       );
 
       const folderItem = screen.getByText("folder1").closest("li")!;
@@ -435,6 +475,7 @@ describe("FileList", () => {
           onToggleSelection={onToggleSelection}
           onShowActionMenu={onShowActionMenu}
         />,
+        { wrapper },
       );
 
       const folderItem = screen.getByText("folder1").closest("li")!;

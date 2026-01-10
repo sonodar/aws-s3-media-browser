@@ -23,8 +23,8 @@
 
 ### Phase 1: レイアウトコンポーネント導入
 
-- [ ] 1. ダイアログ内レイアウトを Mantine Stack/Group に移行
-- [ ] 1.1 (P) CreateFolderDialog のレイアウト移行
+- [x] 1. ダイアログ内レイアウトを Mantine Stack/Group に移行
+- [x] 1.1 (P) CreateFolderDialog のレイアウト移行
   - フォーム内の縦並びレイアウトを Stack コンポーネントでラップ
   - ボタン群（キャンセル・作成）を Group コンポーネントで水平配置
   - Group に justify="flex-end" を適用してボタンを右寄せ
@@ -32,22 +32,22 @@
   - 既存の機能とスタイルが維持されることを確認
   - _Requirements: 4_
 
-- [ ] 1.2 (P) DeleteConfirmDialog, RenameDialog, MoveDialog のレイアウト移行
+- [x] 1.2 (P) DeleteConfirmDialog, RenameDialog, MoveDialog のレイアウト移行
   - 各ダイアログのコンテンツを Stack コンポーネントでラップ
   - ボタン群を Group コンポーネントで水平配置
   - MoveDialog の移動先表示エリアとフォルダブラウザは既存構造を維持
   - 既存テストがパスすることを確認
   - _Requirements: 4_
 
-- [ ] 1.3 FileList のグリッドレイアウトを SimpleGrid に移行
+- [x] 1.3 FileList のグリッドレイアウトを SimpleGrid に移行
   - ul 要素を SimpleGrid コンポーネントに置き換え
-  - レスポンシブな列数設定（base: 2, sm: 3, md: 4）を適用
+  - レスポンシブな列数設定（base: 3, sm: 4, md: 5）を適用
   - 空状態表示を Center と Text コンポーネントで実装
   - 既存の useLongPress フック動作を維持
   - グリッド関連の CSS を削除し、Mantine のスタイルを使用
   - _Requirements: 5_
 
-- [ ] 1.4 Phase 1 の動作確認とテスト実行
+- [x] 1.4 Phase 1 の動作確認とテスト実行
   - 全ての既存テストがパスすることを確認
   - 各ダイアログの表示・操作が正常に動作することを手動確認
   - レスポンシブ動作の確認（複数画面サイズ）

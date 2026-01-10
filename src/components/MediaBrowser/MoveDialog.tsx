@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { Stack, Group } from "@mantine/core";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
@@ -172,58 +173,80 @@ export function MoveDialog({
         role="dialog"
         aria-labelledby="move-dialog-title"
       >
-        <h2 id="move-dialog-title">{itemCount}件のアイテムを移動</h2>
+        <Stack gap="md">
+          <h2 id="move-dialog-title" style={{ margin: 0 }}>
+            {itemCount}件のアイテムを移動
+          </h2>
 
-        {/* 現在の移動先 */}
-        <div className="move-destination">
-          <span className="destination-label">移動先:</span>
-          <span className="destination-path" data-testid="selected-path">
-            {getDisplayName(browsePath)}
-          </span>
-        </div>
+          {/* 現在の移動先 */}
+          <div className="move-destination">
+            <span className="destination-label">移動先:</span>
+            <span className="destination-path" data-testid="selected-path">
+              {getDisplayName(browsePath)}
+            </span>
+          </div>
 
-        {/* フォルダブラウザ */}
-        <div className="folder-browser-container">
-          <FolderBrowser
-            currentPath={browsePath}
-            rootPath={rootPath}
-            disabledPaths={disabledPaths}
-            listFolders={listFolders}
-            onNavigate={handleNavigate}
-          />
-        </div>
+          {/* フォルダブラウザ */}
+          <div className="folder-browser-container">
+            <FolderBrowser
+              currentPath={browsePath}
+              rootPath={rootPath}
+              disabledPaths={disabledPaths}
+              listFolders={listFolders}
+              onNavigate={handleNavigate}
+            />
+          </div>
 
-        {/* エラーメッセージ */}
-        {errorMessage && !successMessage && <p className="error-message">{errorMessage}</p>}
+          {/* エラーメッセージ */}
+          {errorMessage && !successMessage && (
+            <p className="error-message" style={{ margin: 0 }}>
+              {errorMessage}
+            </p>
+          )}
 
-        {/* 失敗アイテム一覧 */}
-        {failedItems.length > 0 && (
-          <ul className="failed-files-list">
-            {failedItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        )}
+          {/* 失敗アイテム一覧 */}
+          {failedItems.length > 0 && (
+            <ul className="failed-files-list">
+              {failedItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          )}
 
-        {/* 成功メッセージ */}
-        {successMessage && <p className="success-message">{successMessage}</p>}
+          {/* 成功メッセージ */}
+          {successMessage && (
+            <p className="success-message" style={{ margin: 0 }}>
+              {successMessage}
+            </p>
+          )}
 
-        {/* 進捗表示 */}
-        {progress && (
-          <p className="progress-message">
-            {progress.current} / {progress.total} 件処理中...
-          </p>
-        )}
+          {/* 進捗表示 */}
+          {progress && (
+            <p className="progress-message" style={{ margin: 0 }}>
+              {progress.current} / {progress.total} 件処理中...
+            </p>
+          )}
 
-        {/* アクションボタン */}
-        <div className="dialog-actions">
-          <button type="button" onClick={handleClose} disabled={isMoving} className="cancel-button">
-            キャンセル
-          </button>
-          <button type="button" onClick={handleMove} disabled={!canMove} className="submit-button">
-            {isMoving ? "移動中..." : "ここに移動"}
-          </button>
-        </div>
+          {/* アクションボタン */}
+          <Group justify="flex-end" gap="sm">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={isMoving}
+              className="cancel-button"
+            >
+              キャンセル
+            </button>
+            <button
+              type="button"
+              onClick={handleMove}
+              disabled={!canMove}
+              className="submit-button"
+            >
+              {isMoving ? "移動中..." : "ここに移動"}
+            </button>
+          </Group>
+        </Stack>
       </div>
     </div>
   );

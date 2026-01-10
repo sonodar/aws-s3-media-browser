@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { MoveDialog } from "./MoveDialog";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 describe("MoveDialog", () => {
   const mockOnClose = vi.fn();
@@ -45,6 +50,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -61,6 +67,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -80,6 +87,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       // 初期表示は currentPath のフォルダ名（photos）であるべき
@@ -97,6 +105,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -117,6 +126,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -136,6 +146,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -162,6 +173,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -181,6 +193,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -206,6 +219,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -249,6 +263,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -290,6 +305,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -328,6 +344,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -364,6 +381,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -404,6 +422,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -432,6 +451,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -467,6 +487,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -495,6 +516,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {
@@ -517,6 +539,7 @@ describe("MoveDialog", () => {
           onMove={mockOnMove}
           listFolders={mockListFolders}
         />,
+        { wrapper },
       );
 
       await waitFor(() => {

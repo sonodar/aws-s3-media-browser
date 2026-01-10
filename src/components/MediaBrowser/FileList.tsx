@@ -1,5 +1,6 @@
 import { useRef, useCallback } from "react";
 import { Folder, Image, Film, File } from "lucide-react";
+import { SimpleGrid, Center, Text } from "@mantine/core";
 import { useLongPress } from "@mantine/hooks";
 import type { StorageItem } from "../../types/storage";
 import { getFileCategory } from "../../utils/fileTypes";
@@ -192,9 +193,9 @@ export function FileList({
 }: FileListProps) {
   if (items.length === 0) {
     return (
-      <div className="file-list-empty">
-        <p>ファイルがありません</p>
-      </div>
+      <Center py="xl">
+        <Text c="dimmed">ファイルがありません</Text>
+      </Center>
     );
   }
 
@@ -214,7 +215,7 @@ export function FileList({
   };
 
   return (
-    <ul className="file-list" role="list">
+    <SimpleGrid cols={{ base: 3, sm: 4, md: 5 }} spacing="md" p="md" role="list">
       {items.map((item) => {
         const isSelected = selectedKeys.has(item.key);
         return (
@@ -230,6 +231,6 @@ export function FileList({
           />
         );
       })}
-    </ul>
+    </SimpleGrid>
   );
 }
