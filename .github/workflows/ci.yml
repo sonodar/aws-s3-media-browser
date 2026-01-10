@@ -54,6 +54,4 @@ jobs:
           }
           EOF
 
-      - run: npm run lint
-      - run: npm run build
-      - run: npm run test
+      - run: npm run check-all

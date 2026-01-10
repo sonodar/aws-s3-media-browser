@@ -18,7 +18,8 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 
 - **@aws-amplify/ui-react**: 認証 UI コンポーネント
 - **@aws-amplify/ui-react-storage**: ストレージ統合
-- **jotai**: 軽量アトミック状態管理（コンポーネント間の共有状態）
+- **@mantine/core + @mantine/hooks**: UI コンポーネントライブラリ（メニュー、モーダル等）
+- **jotai + jotai-devtools**: 軽量アトミック状態管理 + Redux DevTools 連携
 - **yet-another-react-lightbox**: 画像/動画プレビュー
 - **react-player**: 動画再生
 - **lucide-react**: アイコンライブラリ
@@ -78,8 +79,10 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 | localStorage 設定永続化      | ユーザー設定（ソート順等）のブラウザローカル保存         |
 | Intl.Collator 自然順ソート   | 数字を正しく扱う多言語対応ソート（file1, file2, file10） |
 | @use-gesture/react 採用      | タッチデバイス向けスワイプジェスチャーの高精度検出       |
-| 長押しコンテキストメニュー   | タッチデバイスでの右クリック相当操作（useLongPress）     |
 | Jotai アトミック状態管理     | 軽量・シンプルな共有状態管理（パス・選択・ソート状態）   |
+| Mantine UI ライブラリ        | アクセシブルな UI コンポーネント（Menu, Modal 等）       |
+| jotai-devtools               | Redux DevTools 連携によるアトム状態のデバッグ            |
+| UI コンポーネント統合        | 自作 Menu/Modal → Mantine に移行（アクセシビリティ向上） |
 
 ---
 

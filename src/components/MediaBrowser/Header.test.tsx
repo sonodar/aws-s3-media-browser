@@ -1,63 +1,95 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { Header } from "./Header";
+
+const MantineWrapper = ({ children }: { children: ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 describe("Header", () => {
   it("should render home title when at root", () => {
-    render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />);
+    render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     expect(screen.getByRole("heading", { name: "ホーム" })).toBeInTheDocument();
   });
 
   it("should render folder name as title when in a folder", () => {
-    render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />);
+    render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     expect(screen.getByRole("heading", { name: "folder1" })).toBeInTheDocument();
   });
 
   it("should show back button when currentPath is not empty", () => {
-    render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />);
+    render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     expect(screen.getByRole("button", { name: /戻る/ })).toBeInTheDocument();
   });
 
   it("should hide back button when currentPath is empty", () => {
-    render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />);
+    render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     expect(screen.queryByRole("button", { name: /戻る/ })).not.toBeInTheDocument();
   });
 
   it("should call onBack when back button is clicked", () => {
     const onBack = vi.fn();
-    render(<Header currentPath="folder1" onBack={onBack} onSignOut={vi.fn()} />);
+    render(<Header currentPath="folder1" onBack={onBack} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     fireEvent.click(screen.getByRole("button", { name: /戻る/ }));
 
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("should show sign out in dropdown menu", () => {
-    render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />);
+  it("should show sign out in dropdown menu", async () => {
+    render(<Header currentPath="" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     // メニューを開く
     fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
 
-    expect(screen.getByRole("menuitem", { name: /サインアウト/ })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }),
+      ).toBeInTheDocument();
+    });
   });
 
-  it("should call onSignOut when sign out menu item is clicked", () => {
+  it("should call onSignOut when sign out menu item is clicked", async () => {
     const onSignOut = vi.fn();
-    render(<Header currentPath="" onBack={vi.fn()} onSignOut={onSignOut} />);
+    render(<Header currentPath="" onBack={vi.fn()} onSignOut={onSignOut} />, {
+      wrapper: MantineWrapper,
+    });
 
     // メニューを開く
     fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/ }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }),
+      ).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }));
 
     expect(onSignOut).toHaveBeenCalled();
   });
 
   it("should display current folder name in breadcrumb", () => {
-    render(<Header currentPath="folder1/folder2" onBack={vi.fn()} onSignOut={vi.fn()} />);
+    render(<Header currentPath="folder1/folder2" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+      wrapper: MantineWrapper,
+    });
 
     expect(screen.getByText("folder2")).toBeInTheDocument();
   });
@@ -72,6 +104,7 @@ describe("Header", () => {
           isSelectionMode={false}
           onEnterSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /選択/ })).toBeInTheDocument();
@@ -87,6 +120,7 @@ describe("Header", () => {
           isSelectionMode={false}
           onEnterSelectionMode={onEnterSelectionMode}
         />,
+        { wrapper: MantineWrapper },
       );
 
       fireEvent.click(screen.getByRole("button", { name: /選択/ }));
@@ -306,42 +340,58 @@ describe("Header", () => {
     });
 
     it("通常モード時にメニューボタンが表示される", () => {
-      render(<Header {...defaultProps} />);
+      render(<Header {...defaultProps} />, { wrapper: MantineWrapper });
 
       expect(screen.getByRole("button", { name: "メニューを開く" })).toBeInTheDocument();
     });
 
-    it("メニューをクリックすると設定・サインアウトが表示される", () => {
-      render(<Header {...defaultProps} />);
+    it("メニューをクリックすると設定・サインアウトが表示される", async () => {
+      render(<Header {...defaultProps} />, { wrapper: MantineWrapper });
 
       fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
 
-      expect(screen.getByRole("menuitem", { name: /設定/ })).toBeInTheDocument();
-      expect(screen.getByRole("menuitem", { name: /サインアウト/ })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole("menuitem", { name: /設定/, hidden: true })).toBeInTheDocument();
+        expect(
+          screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }),
+        ).toBeInTheDocument();
+      });
     });
 
-    it("設定メニューをクリックすると onOpenSettings が呼ばれる", () => {
+    it("設定メニューをクリックすると onOpenSettings が呼ばれる", async () => {
       const onOpenSettings = vi.fn();
-      render(<Header {...defaultProps} onOpenSettings={onOpenSettings} />);
+      render(<Header {...defaultProps} onOpenSettings={onOpenSettings} />, {
+        wrapper: MantineWrapper,
+      });
 
       fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
-      fireEvent.click(screen.getByRole("menuitem", { name: /設定/ }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("menuitem", { name: /設定/, hidden: true })).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByRole("menuitem", { name: /設定/, hidden: true }));
 
       expect(onOpenSettings).toHaveBeenCalledTimes(1);
     });
 
-    it("サインアウトメニューをクリックすると onSignOut が呼ばれる", () => {
+    it("サインアウトメニューをクリックすると onSignOut が呼ばれる", async () => {
       const onSignOut = vi.fn();
-      render(<Header {...defaultProps} onSignOut={onSignOut} />);
+      render(<Header {...defaultProps} onSignOut={onSignOut} />, { wrapper: MantineWrapper });
 
       fireEvent.click(screen.getByRole("button", { name: "メニューを開く" }));
-      fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/ }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }),
+        ).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }));
 
       expect(onSignOut).toHaveBeenCalledTimes(1);
     });
 
     it("メニュートリガーに aria-haspopup 属性がある", () => {
-      render(<Header {...defaultProps} />);
+      render(<Header {...defaultProps} />, { wrapper: MantineWrapper });
 
       expect(screen.getByRole("button", { name: "メニューを開く" })).toHaveAttribute(
         "aria-haspopup",
@@ -365,7 +415,9 @@ describe("Header", () => {
 
   describe("アイコンボタン", () => {
     it("戻るボタンにアイコンが含まれる", () => {
-      render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />);
+      render(<Header currentPath="folder1" onBack={vi.fn()} onSignOut={vi.fn()} />, {
+        wrapper: MantineWrapper,
+      });
 
       const backButton = screen.getByRole("button", { name: /戻る/ });
       // アイコンは aria-hidden なので SVG が存在することを確認
@@ -414,6 +466,7 @@ describe("Header", () => {
           isSelectionMode={false}
           onEnterSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const selectionButton = screen.getByRole("button", { name: /選択/ });

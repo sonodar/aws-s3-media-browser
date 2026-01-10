@@ -196,11 +196,14 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   }, [contextMenuState.item]);
 
   const handleContextMenuDelete = useCallback(async () => {
-    if (contextMenuState.item) {
-      await removeItem(contextMenuState.item.key);
+    // item を先にキャプチャ（onClose 後に状態が更新されても安全）
+    const item = contextMenuState.item;
+    if (item) {
+      // removeItems を使用してフォルダ配下のコンテンツも削除
+      await removeItems([item]);
       await refresh();
     }
-  }, [contextMenuState.item, removeItem, refresh]);
+  }, [contextMenuState.item, removeItems, refresh]);
 
   // 一括移動（Headerの移動ボタンから呼ばれる）
   const handleMoveSelected = () => {

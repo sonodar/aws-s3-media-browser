@@ -141,8 +141,12 @@ describe("MediaBrowser Display Tests", () => {
       const menuButton = screen.getByRole("button", { name: "メニューを開く" });
       fireEvent.click(menuButton);
 
-      const signOutMenuItem = screen.getByRole("menuitem", { name: /サインアウト/ });
-      fireEvent.click(signOutMenuItem);
+      await waitFor(() => {
+        expect(
+          screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }),
+        ).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByRole("menuitem", { name: /サインアウト/, hidden: true }));
 
       expect(onSignOut).toHaveBeenCalled();
     });

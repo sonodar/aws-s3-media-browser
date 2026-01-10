@@ -357,5 +357,99 @@ describe("FileList", () => {
       // 代わりに、FileActionMenu が表示されないことを確認
       expect(screen.queryByLabelText(/のアクション/)).not.toBeInTheDocument();
     });
+
+    it("長押し完了後のクリックがナビゲーションを発生させない", async () => {
+      vi.useFakeTimers();
+
+      const onFolderClick = vi.fn();
+      const onShowActionMenu = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={onFolderClick}
+          onFileClick={vi.fn()}
+          onShowActionMenu={onShowActionMenu}
+        />,
+      );
+
+      const folderItem = screen.getByText("folder1").closest("li")!;
+
+      // 長押し開始（mousedown）
+      fireEvent.mouseDown(folderItem);
+
+      // 400ms 経過をシミュレート（長押し完了）
+      vi.advanceTimersByTime(400);
+
+      // マウスアップでクリックイベントが発生
+      fireEvent.mouseUp(folderItem);
+      fireEvent.click(folderItem);
+
+      // 長押し完了後は onClick が抑制されるため、onFolderClick は呼ばれない
+      expect(onShowActionMenu).toHaveBeenCalled();
+      expect(onFolderClick).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it("400ms 未満の短いタップで通常のナビゲーションが実行される", async () => {
+      vi.useFakeTimers();
+
+      const onFolderClick = vi.fn();
+      const onShowActionMenu = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={onFolderClick}
+          onFileClick={vi.fn()}
+          onShowActionMenu={onShowActionMenu}
+        />,
+      );
+
+      const folderItem = screen.getByText("folder1").closest("li")!;
+
+      // 短いタップ（100ms）
+      fireEvent.mouseDown(folderItem);
+      vi.advanceTimersByTime(100);
+      fireEvent.mouseUp(folderItem);
+      fireEvent.click(folderItem);
+
+      // 短いタップはナビゲーションを発生させる
+      expect(onShowActionMenu).not.toHaveBeenCalled();
+      expect(onFolderClick).toHaveBeenCalledWith("folder1");
+
+      vi.useRealTimers();
+    });
+
+    it("選択モード時に長押し操作が無効化される", async () => {
+      vi.useFakeTimers();
+
+      const onShowActionMenu = vi.fn();
+      const onToggleSelection = vi.fn();
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={onToggleSelection}
+          onShowActionMenu={onShowActionMenu}
+        />,
+      );
+
+      const folderItem = screen.getByText("folder1").closest("li")!;
+
+      // 長押し（400ms）
+      fireEvent.mouseDown(folderItem);
+      vi.advanceTimersByTime(400);
+      fireEvent.mouseUp(folderItem);
+      fireEvent.click(folderItem);
+
+      // 選択モードでは長押しは無効、代わりに選択トグルが呼ばれる
+      expect(onShowActionMenu).not.toHaveBeenCalled();
+      expect(onToggleSelection).toHaveBeenCalledWith("folder1/");
+
+      vi.useRealTimers();
+    });
   });
 });

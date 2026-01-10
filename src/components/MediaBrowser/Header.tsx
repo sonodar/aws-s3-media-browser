@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Burger, Menu } from "@mantine/core";
 import {
   ArrowLeft,
   X,
@@ -10,7 +12,6 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { DropdownMenu, type DropdownMenuItem } from "./DropdownMenu";
 import "./Header.css";
 
 interface HeaderProps {
@@ -138,21 +139,8 @@ export function Header({
     );
   }
 
-  // ドロップダウンメニュー項目を構築
-  const menuItems: DropdownMenuItem[] = [];
-  if (onOpenSettings) {
-    menuItems.push({
-      label: "設定",
-      icon: Settings,
-      onClick: onOpenSettings,
-    });
-  }
-  menuItems.push({
-    label: "サインアウト",
-    icon: LogOut,
-    onClick: onSignOut,
-    danger: true,
-  });
+  // メニューの開閉状態を管理
+  const [menuOpened, setMenuOpened] = useState(false);
 
   return (
     <header className="media-browser-header">
@@ -174,7 +162,28 @@ export function Header({
             <CopyCheck size={20} aria-hidden="true" />
           </button>
         )}
-        <DropdownMenu items={menuItems} triggerLabel="メニューを開く" />
+        <Menu opened={menuOpened} onChange={setMenuOpened} withinPortal={false}>
+          <Menu.Target>
+            <Burger opened={menuOpened} aria-label="メニューを開く" size="sm" />
+          </Menu.Target>
+          <Menu.Dropdown>
+            {onOpenSettings && (
+              <Menu.Item
+                leftSection={<Settings size={16} aria-hidden="true" />}
+                onClick={onOpenSettings}
+              >
+                設定
+              </Menu.Item>
+            )}
+            <Menu.Item
+              leftSection={<LogOut size={16} aria-hidden="true" />}
+              color="red"
+              onClick={onSignOut}
+            >
+              サインアウト
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
       </div>
     </header>
   );

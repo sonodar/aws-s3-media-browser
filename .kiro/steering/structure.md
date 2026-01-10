@@ -40,6 +40,7 @@
 - `atoms/[domain].ts` - ドメイン単位のアトム定義（path, selection, sort）
 - `atoms/index.ts` - アトムのエクスポートハブ
 - `JotaiProvider.tsx` - アプリケーションルートのプロバイダー
+- `AtomsDevtools.tsx` - Redux DevTools 連携ラッパー
 - `TestProvider.tsx` - テスト用プロバイダー
 - `index.ts` - stores モジュールのエクスポート
 
@@ -57,7 +58,7 @@
 
 - **Files**: PascalCase（コンポーネント）、camelCase（hooks/utils）
 - **Components**: PascalCase（例: `MediaBrowser`, `FileList`）
-- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`, `useMoveDialog`, `useSortOrder`, `useLongPress`, `useSwipeNavigation`, `useUploadTracker`, `useWebAuthnSupport`）
+- **Hooks**: `use` プレフィックス + 単一責任（例: `useIdentityId`, `useStoragePath`, `useStorageOperations`, `usePasskey`, `useSelection`, `useMoveDialog`, `useSortOrder`, `useSwipeNavigation`, `useUploadTracker`, `useWebAuthnSupport`）
 - **Atoms**: ドメイン名（例: `path`, `selection`, `sort`）+ アトム/アクション（`pathAtom`, `currentPathAtom`, `selectionAtom`, `toggleSelectionAtom`）
 - **Utils**: 純粋関数ユーティリティ（例: `fileTypes`, `pathUtils`, `validateRename`, `generateUniqueFilename`, `sortStorageItems`）
 - **CSS**: コンポーネント名と同名（例: `Header.css`）

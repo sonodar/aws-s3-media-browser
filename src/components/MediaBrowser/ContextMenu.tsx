@@ -1,7 +1,6 @@
-import { useEffect, useRef, useCallback } from "react";
+import { Menu } from "@mantine/core";
 import { Pencil, Trash2, FolderInput } from "lucide-react";
 import type { StorageItem } from "../../types/storage";
-import "./ContextMenu.css";
 
 export interface ContextMenuProps {
   /** メニューが開いているかどうか */
@@ -16,8 +15,8 @@ export interface ContextMenuProps {
   onRename: () => void;
   /** 移動コールバック */
   onMove: () => void;
-  /** 削除コールバック */
-  onDelete: () => void;
+  /** 削除コールバック（async 対応） */
+  onDelete: () => void | Promise<void>;
 }
 
 export function ContextMenu({
@@ -29,114 +28,64 @@ export function ContextMenu({
   onMove,
   onDelete,
 }: ContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // 外部クリックでメニューを閉じる
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onClose]);
-
-  // Escape キーでメニューを閉じる
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
-
-  // 画面端でのオーバーフロー調整
-  const adjustedPosition = useCallback(() => {
-    if (!menuRef.current) {
-      return position;
-    }
-
-    const menuWidth = 160; // min-width from CSS
-    const menuHeight = 150; // approximate height
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const margin = 8;
-
-    let x = position.x;
-    let y = position.y;
-
-    // 右端を超える場合
-    if (x + menuWidth > viewportWidth - margin) {
-      x = viewportWidth - menuWidth - margin;
-    }
-
-    // 下端を超える場合
-    if (y + menuHeight > viewportHeight - margin) {
-      y = viewportHeight - menuHeight - margin;
-    }
-
-    // 左端を超える場合
-    if (x < margin) {
-      x = margin;
-    }
-
-    // 上端を超える場合
-    if (y < margin) {
-      y = margin;
-    }
-
-    return { x, y };
-  }, [position]);
-
-  const handleAction = (action: () => void) => {
-    action();
-    onClose();
-  };
-
   if (!isOpen || !item) {
     return null;
   }
 
-  const adjustedPos = adjustedPosition();
+  const handleAction = async (action: () => void | Promise<void>) => {
+    // メニューを先に閉じてからアクションを実行
+    // async アクション（削除など）でも正しく動作するよう await する
+    onClose();
+    await action();
+  };
 
   return (
-    <div
-      ref={menuRef}
-      className="context-menu"
-      role="menu"
-      aria-label={`${item.name} のアクション`}
-      style={{
-        left: `${adjustedPos.x}px`,
-        top: `${adjustedPos.y}px`,
-      }}
+    <Menu
+      opened={isOpen}
+      onClose={onClose}
+      position="bottom-start"
+      withinPortal
+      shadow="md"
+      closeOnItemClick={false}
     >
-      <button className="context-menu-item" role="menuitem" onClick={() => handleAction(onRename)}>
-        <Pencil size={16} aria-hidden="true" />
-        <span className="context-menu-item-label">名前を変更</span>
-      </button>
+      <Menu.Target>
+        {/* 仮想アンカー要素: クリック位置に配置 */}
+        <div
+          data-testid="context-menu-anchor"
+          aria-label={`${item.name} のアクション`}
+          style={{
+            position: "fixed",
+            left: position.x,
+            top: position.y,
+            width: 0,
+            height: 0,
+            pointerEvents: "none",
+          }}
+        />
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Item
+          leftSection={<Pencil size={16} aria-hidden="true" />}
+          onClick={() => handleAction(onRename)}
+        >
+          名前を変更
+        </Menu.Item>
 
-      <button className="context-menu-item" role="menuitem" onClick={() => handleAction(onMove)}>
-        <FolderInput size={16} aria-hidden="true" />
-        <span className="context-menu-item-label">移動</span>
-      </button>
+        <Menu.Item
+          leftSection={<FolderInput size={16} aria-hidden="true" />}
+          onClick={() => handleAction(onMove)}
+        >
+          移動
+        </Menu.Item>
 
-      <button
-        className="context-menu-item context-menu-item--danger"
-        role="menuitem"
-        onClick={() => handleAction(onDelete)}
-      >
-        <Trash2 size={16} aria-hidden="true" />
-        <span className="context-menu-item-label">削除</span>
-      </button>
-    </div>
+        <Menu.Item
+          leftSection={<Trash2 size={16} aria-hidden="true" />}
+          color="red"
+          onClick={() => handleAction(onDelete)}
+        >
+          削除
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
   );
 }
