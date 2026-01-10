@@ -1,9 +1,9 @@
 import { useRef, useCallback } from "react";
 import { Folder, Image, Film, File } from "lucide-react";
+import { useLongPress } from "@mantine/hooks";
 import type { StorageItem } from "../../types/storage";
 import { getFileCategory } from "../../utils/fileTypes";
 import { ThumbnailImage } from "./ThumbnailImage";
-import { useLongPress } from "../../hooks/useLongPress";
 import "./FileList.css";
 
 /** Delay in ms before fetching thumbnails for newly uploaded files */
@@ -56,6 +56,19 @@ function shouldShowThumbnail(item: StorageItem): boolean {
   return item.type === "file" && getFileType(item) !== null;
 }
 
+/** イベントから座標を取得（TouchEvent と MouseEvent の両方に対応） */
+function getEventPosition(
+  event: React.MouseEvent | React.TouchEvent,
+): { x: number; y: number } | null {
+  if ("touches" in event && event.touches.length > 0) {
+    return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+  }
+  if ("clientX" in event) {
+    return { x: event.clientX, y: event.clientY };
+  }
+  return null;
+}
+
 /** 個別アイテムのコンポーネント（長押しフック使用のため分離） */
 function FileListItem({
   item,
@@ -75,44 +88,65 @@ function FileListItem({
   onShowActionMenu?: (data: ActionMenuData) => void;
 }) {
   const longPressPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-
-  const handleLongPress = useCallback(
-    (pressedItem: StorageItem) => {
-      if (onShowActionMenu) {
-        onShowActionMenu({
-          item: pressedItem,
-          position: longPressPositionRef.current,
-        });
-      }
-    },
-    [onShowActionMenu],
-  );
-
-  const { handlers: longPressHandlers } = useLongPress<StorageItem>(item, {
-    onLongPress: handleLongPress,
-  });
+  const suppressClickRef = useRef(false);
+  const itemRef = useRef(item);
+  itemRef.current = item;
 
   // 選択モード時や onShowActionMenu がない場合は長押しを無効化
   const shouldEnableLongPress = !isSelectionMode && !!onShowActionMenu;
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (shouldEnableLongPress) {
-      longPressPositionRef.current = { x: e.clientX, y: e.clientY };
-      longPressHandlers.onPointerDown(e);
+  const handleLongPressFinish = useCallback(
+    (event: React.MouseEvent | React.TouchEvent) => {
+      if (!onShowActionMenu) return;
+
+      // 長押し完了後のクリックを抑制
+      suppressClickRef.current = true;
+
+      // イベントから座標を取得、取得できない場合は保存された位置を使用
+      const position = getEventPosition(event) ?? longPressPositionRef.current;
+
+      onShowActionMenu({
+        item: itemRef.current,
+        position,
+      });
+    },
+    [onShowActionMenu],
+  );
+
+  const handleLongPressStart = useCallback((event: React.MouseEvent | React.TouchEvent) => {
+    const position = getEventPosition(event);
+    if (position) {
+      longPressPositionRef.current = position;
     }
-  };
+    suppressClickRef.current = false;
+  }, []);
+
+  // Mantine useLongPress フック
+  const longPressHandlers = useLongPress(handleLongPressFinish, {
+    threshold: 400,
+    onStart: handleLongPressStart,
+  });
+
+  const handleClick = useCallback(() => {
+    // 長押し完了後はクリックを抑制
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    onItemClick(item);
+  }, [item, onItemClick]);
+
+  // 長押しが有効な場合のみハンドラを適用
+  const eventHandlers = shouldEnableLongPress ? longPressHandlers : {};
 
   return (
     <li
       key={item.key}
       className={`file-list-item${isSelected ? " file-list-item--selected" : ""}`}
       data-type={item.type}
-      onClick={() => onItemClick(item)}
+      onClick={handleClick}
       role="listitem"
-      onPointerDown={handlePointerDown}
-      onPointerUp={shouldEnableLongPress ? longPressHandlers.onPointerUp : undefined}
-      onPointerMove={shouldEnableLongPress ? longPressHandlers.onPointerMove : undefined}
-      onPointerLeave={shouldEnableLongPress ? longPressHandlers.onPointerLeave : undefined}
+      {...eventHandlers}
     >
       {isSelectionMode && (
         <input

@@ -18,6 +18,12 @@
   transition:
     background-color 0.15s ease,
     transform 0.15s ease;
+
+  /* iOS/Android ネイティブメニュー抑制 */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 .file-list-item:active {

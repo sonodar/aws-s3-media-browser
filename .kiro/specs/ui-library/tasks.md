@@ -68,22 +68,23 @@
 
 ---
 
-- [ ] 3. FileListItem の useLongPress 移行【最優先バグ修正】
+- [x] 3. FileListItem の useLongPress 移行【最優先バグ修正】
 
-- [ ] 3.1 FileList コンポーネントで Mantine useLongPress を導入する
+- [x] 3.1 FileList コンポーネントで Mantine useLongPress を導入する
   - @mantine/hooks から useLongPress フックをインポートする
   - threshold を 400ms に設定する
   - onFinish コールバックでコンテキストメニューを表示する処理を実装する
   - 長押し完了後に onClick を抑制するフラグ制御を実装する
   - _Requirements: 3_
 
-- [ ] 3.2 (P) iOS/Android ネイティブメニュー抑制の CSS を追加する
+- [x] 3.2 (P) iOS/Android ネイティブメニュー抑制の CSS を追加する
   - FileList.css に -webkit-touch-callout: none を追加する
   - -webkit-user-select: none と user-select: none を追加する
   - touch-action: manipulation を追加する
+  - `npm run check-all` がパスすることを確認する
   - _Requirements: 3_
 
-- [ ] 3.3 長押しとタップの分離動作を検証する
+- [x] 3.3 長押しとタップの分離動作を検証する
   - 400ms 以上の長押しでコンテキストメニューが表示されることを確認する
   - 400ms 未満のタップで通常のナビゲーション動作が実行されることを確認する
   - 長押し後にポインタを離してもナビゲーションが発生しないことを確認する
@@ -114,6 +115,7 @@
   - adjustedPosition 位置調整計算を削除する（Mantine 組み込み機能を使用）
   - 内部 MenuButton コンポーネントを削除する
   - ContextMenu.css を削除する
+  - `npm run check-all` がパスすることを確認する
   - _Requirements: 4, 6_
 
 - [ ] 4.4 ContextMenu の動作を検証する
@@ -144,6 +146,7 @@
   - Header.tsx から DropdownMenu のインポートと使用を削除する
   - DropdownMenu.tsx ファイルを削除する
   - DropdownMenu.css ファイルを削除する
+  - `npm run check-all` がパスすることを確認する
   - _Requirements: 5, 6_
 
 - [ ] 5.4 Header メニューの動作を検証する
@@ -166,8 +169,6 @@
 
 - [ ] 6.2 最終ビルドとテストを実行する
   - npm run check-all がパスすることを確認する
-  - TypeScript の型エラーがないことを確認する
-  - 全テストがパスすることを確認する
   - _Requirements: 2, 6_
 
 - [ ] 6.3 全体動作の最終検証を実施する
