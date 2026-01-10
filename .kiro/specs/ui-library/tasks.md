@@ -15,28 +15,28 @@
 
 ## Tasks
 
-- [ ] 1. 依存関係追加と MantineProvider セットアップ
+- [x] 1. 依存関係追加と MantineProvider セットアップ
 
-- [ ] 1.1 Mantine パッケージと npm overrides を設定する
+- [x] 1.1 Mantine パッケージと npm overrides を設定する
   - @mantine/core と @mantine/hooks をバージョン 8 で追加する
   - npm overrides で jotai-devtools の Mantine 7 依存を上書きする
   - npm install を実行して Mantine 8 のみがインストールされることを確認する
   - Mantine 7 のパッケージが存在しないことを検証する
   - _Requirements: 2_
 
-- [ ] 1.2 (P) MantineProvider をアプリケーションルートに配置する
+- [x] 1.2 (P) MantineProvider をアプリケーションルートに配置する
   - main.tsx で @mantine/core/styles.css を最初に読み込む
   - App.tsx で MantineProvider を JotaiProvider の外側にラップする
   - 既存のアプリ固有スタイルが Mantine スタイルの後に読み込まれることを確認する
   - _Requirements: 2, 8, 9_
 
-- [ ] 1.3 (P) modern-normalize.min.css を削除する
+- [x] 1.3 (P) modern-normalize.min.css を削除する
   - index.html から modern-normalize.min.css の link タグを削除する
   - public/modern-normalize.min.css ファイルを削除する
   - Mantine の最小 CSS リセットで代替されることを確認する
   - _Requirements: 8_
 
-- [ ] 1.4 ビルドとテストの動作を検証する
+- [x] 1.4 ビルドとテストの動作を検証する
   - npm run build が正常に完了することを確認する
   - npm run test が既存テストをパスすることを確認する
   - アプリケーションが正常に起動することを確認する
@@ -44,22 +44,22 @@
 
 ---
 
-- [ ] 2. DevTools UI から useAtomsDevtools への移行
+- [x] 2. DevTools UI から useAtomsDevtools への移行
 
-- [ ] 2.1 AtomsDevtools ラッパーコンポーネントを作成する
+- [x] 2.1 AtomsDevtools ラッパーコンポーネントを作成する
   - jotai-devtools/utils から useAtomsDevtools をインポートする
   - Provider 直下で useAtomsDevtools フックを呼び出すラッパーコンポーネントを実装する
   - アプリケーション名として "aws-s3-photo-browser" を設定する
   - _Requirements: 1_
 
-- [ ] 2.2 JotaiProvider を修正して AtomsDevtools を使用する
+- [x] 2.2 JotaiProvider を修正して AtomsDevtools を使用する
   - DevTools コンポーネントのインポートと使用を削除する
   - jotai-devtools/styles.css のインポートを削除する
   - 開発環境でのみ AtomsDevtools でラップするよう条件分岐を実装する
   - 本番環境では children をそのままレンダリングする
   - _Requirements: 1_
 
-- [ ] 2.3 Redux DevTools との連携を検証する
+- [x] 2.3 Redux DevTools との連携を検証する
   - 開発環境でアプリケーションを起動する
   - Redux DevTools 拡張機能で全アトムの状態が表示されることを確認する
   - アトムの値変更がアクションとして記録されることを確認する
