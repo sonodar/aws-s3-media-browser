@@ -61,10 +61,6 @@ export function ContextMenu({
 
   // 画面端でのオーバーフロー調整
   const adjustedPosition = useCallback(() => {
-    if (!menuRef.current) {
-      return position;
-    }
-
     const menuWidth = 160; // min-width from CSS
     const menuHeight = 150; // approximate height
     const viewportWidth = window.innerWidth;
