@@ -54,6 +54,11 @@ describe("MoveDialog", () => {
       );
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      // FolderBrowser の非同期処理完了を待つ
+      await waitFor(() => {
+        expect(screen.getByText("archive")).toBeInTheDocument();
+      });
     });
 
     it("should not render when isOpen is false", () => {
@@ -92,6 +97,11 @@ describe("MoveDialog", () => {
 
       // 初期表示は currentPath のフォルダ名（photos）であるべき
       expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
+
+      // FolderBrowser の非同期処理完了を待つ
+      await waitFor(() => {
+        expect(mockListFolders).toHaveBeenCalledWith(currentPath);
+      });
     });
 
     it("should display item count in header", async () => {

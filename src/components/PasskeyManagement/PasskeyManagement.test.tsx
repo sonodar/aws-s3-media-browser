@@ -155,7 +155,9 @@ describe("PasskeyManagement", () => {
         expect(confirmButton).toBeDefined();
         fireEvent.click(confirmButton!);
 
-        expect(mockUsePasskey.deletePasskey).toHaveBeenCalledWith("cred-1");
+        await waitFor(() => {
+          expect(mockUsePasskey.deletePasskey).toHaveBeenCalledWith("cred-1");
+        });
       });
 
       it("should close dialog when cancel is clicked", async () => {
