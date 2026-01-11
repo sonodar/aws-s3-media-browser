@@ -185,8 +185,8 @@
 
 ### Phase 4: 新規要素の追加
 
-- [ ] 4. Alert, Notification コンポーネントの導入
-- [ ] 4.1 (P) ダイアログ内エラー表示を Alert に移行
+- [x] 4. Alert, Notification コンポーネントの導入
+- [x] 4.1 (P) ダイアログ内エラー表示を Alert に移行
   - RenameDialog のエラー詳細表示を Alert コンポーネントに置き換え
   - MoveDialog のエラーメッセージを Alert コンポーネントに置き換え
   - color="red" とアイコン（AlertCircle）でエラー状態を明示
@@ -199,7 +199,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 9_
 
-- [ ] 4.2 (P) MoveDialog に成功通知を追加
+- [x] 4.2 (P) MoveDialog に成功通知を追加
   - 移動成功時に Notification コンポーネントで成功メッセージを表示
   - color="green" と CheckCircle アイコンで成功状態を明示
   - onClose でユーザーが手動で閉じられるようにする
@@ -212,7 +212,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 9_
 
-- [ ] 4.3 Phase 4 の動作確認とテスト実行
+- [x] 4.3 Phase 4 の動作確認とテスト実行
   - エラー発生時の Alert 表示確認
   - 成功時の Notification 表示確認
   - _Requirements: 10, 11_

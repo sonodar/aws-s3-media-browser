@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { Modal, Stack, Group, Button, TextInput, Text, List } from "@mantine/core";
+import { Modal, Stack, Group, Button, TextInput, Text, List, Alert } from "@mantine/core";
+import { AlertCircle } from "lucide-react";
 import { validateRename } from "../../utils/validateRename";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -158,33 +159,36 @@ export function RenameDialog({
             onKeyDown={handleKeyDown}
           />
           {error && (
-            <Text c="red" size="sm">
-              {error}
-            </Text>
-          )}
-          {folderErrorDetails &&
-            (folderErrorDetails.succeeded !== undefined ||
-              folderErrorDetails.failed !== undefined) && (
+            <Alert color="red" icon={<AlertCircle size={16} />}>
               <Stack gap="xs">
-                <Text size="sm">
-                  成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
-                  {folderErrorDetails.failed ?? 0}件
-                </Text>
-                {folderErrorDetails.failedFiles && folderErrorDetails.failedFiles.length > 0 && (
+                <Text size="sm">{error}</Text>
+                {folderErrorDetails &&
+                  (folderErrorDetails.succeeded !== undefined ||
+                    folderErrorDetails.failed !== undefined) && (
+                    <>
+                      <Text size="sm">
+                        成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
+                        {folderErrorDetails.failed ?? 0}件
+                      </Text>
+                      {folderErrorDetails.failedFiles &&
+                        folderErrorDetails.failedFiles.length > 0 && (
+                          <List size="sm">
+                            {folderErrorDetails.failedFiles.map((file) => (
+                              <List.Item key={file}>{file}</List.Item>
+                            ))}
+                          </List>
+                        )}
+                    </>
+                  )}
+                {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
                   <List size="sm">
-                    {folderErrorDetails.failedFiles.map((file) => (
+                    {folderErrorDetails.duplicates.map((file) => (
                       <List.Item key={file}>{file}</List.Item>
                     ))}
                   </List>
                 )}
               </Stack>
-            )}
-          {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
-            <List size="sm">
-              {folderErrorDetails.duplicates.map((file) => (
-                <List.Item key={file}>{file}</List.Item>
-              ))}
-            </List>
+            </Alert>
           )}
           {progress && (
             <Text

@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
-import { Modal, Stack, Group, Button, Text, List } from "@mantine/core";
+import { Modal, Stack, Group, Button, Text, List, Alert, Notification } from "@mantine/core";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
@@ -190,25 +191,25 @@ export function MoveDialog({
 
         {/* エラーメッセージ */}
         {errorMessage && !successMessage && (
-          <Text c="red" size="sm">
-            {errorMessage}
-          </Text>
-        )}
-
-        {/* 失敗アイテム一覧 */}
-        {failedItems.length > 0 && (
-          <List size="sm">
-            {failedItems.map((item) => (
-              <List.Item key={item}>{item}</List.Item>
-            ))}
-          </List>
+          <Alert color="red" icon={<AlertCircle size={16} />}>
+            <Stack gap="xs">
+              <Text size="sm">{errorMessage}</Text>
+              {failedItems.length > 0 && (
+                <List size="sm">
+                  {failedItems.map((item) => (
+                    <List.Item key={item}>{item}</List.Item>
+                  ))}
+                </List>
+              )}
+            </Stack>
+          </Alert>
         )}
 
         {/* 成功メッセージ */}
         {successMessage && (
-          <Text c="green" size="sm">
+          <Notification color="green" icon={<CheckCircle size={16} />} withCloseButton={false}>
             {successMessage}
-          </Text>
+          </Notification>
         )}
 
         {/* 進捗表示 */}
