@@ -221,8 +221,8 @@
 
 ### Phase 5: ThumbnailImage の移行（最後）
 
-- [ ] 5. ThumbnailImage を Mantine コンポーネントに移行
-- [ ] 5.1 ThumbnailImage を Mantine Image/Skeleton に移行
+- [x] 5. ThumbnailImage を Mantine コンポーネントに移行
+- [x] 5.1 ThumbnailImage を Mantine Image/Skeleton に移行
   - ローディング状態を Skeleton コンポーネントで表示
   - 読み込み完了後は Image コンポーネントで画像を表示
   - fit="cover" で画像のアスペクト比を制御
@@ -238,18 +238,19 @@
   - npm run check-all が通ることを確認
   - _Requirements: 7, 12_
 
-- [ ] 5.2 ThumbnailImage.css の削除
-  - 移行完了後に ThumbnailImage.css を削除
-  - FileList.css の関連スタイルを確認・整理
-  - 不要になった class の削除
-    - git diff を確認し、削除された className を特定する
-    - 特定した className が src 全体で使われていないことを `rg` で確認する
-    - 使われていない CSS クラスを CSS ファイルから削除する
-    - 不要になった CSS ファイルがあれば削除する
-  - npm run check-all が通ることを確認
+- [x] 5.2 ThumbnailImage.css の整理（削除ではなく最小化）
+  - ~~移行完了後に ThumbnailImage.css を削除~~ → iOS 対応スタイルのため CSS ファイルは維持
+  - FileList.css の関連スタイル確認 → ThumbnailImage 関連スタイルなし
+  - 不要になった class の削除:
+    - `.thumbnail-skeleton` → 削除（Skeleton `visible` で代替）
+    - `.thumbnail-loading`, `.thumbnail-loaded` → 削除（Skeleton が処理）
+    - `.thumbnail-container img` の `width/height/object-fit` → 削除（Mantine で設定済み）
+    - `.thumbnail-fallback` の `display/align/justify` → 削除（`<Center>` で代替済み）
+  - iOS 対応スタイルのみ維持（`-webkit-touch-callout`, `-webkit-user-drag`, `pointer-events: none`）
+  - npm run check-all が通ることを確認 ✅
   - _Requirements: 10_
 
-- [ ] 5.3 Phase 5 の動作確認と最終テスト
+- [x] 5.3 Phase 5 の動作確認と最終テスト
   - 全ての既存テストがパスすることを確認
   - サムネイル画像の読み込み・表示確認
   - ローディング状態とエラーフォールバックの確認
