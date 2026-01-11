@@ -120,7 +120,7 @@
 ### Phase 3: Modal 移行と hooks 対応
 
 - [ ] 3. ダイアログを Mantine Modal に移行
-- [ ] 3.1 CreateFolderDialog を Modal に移行
+- [x] 3.1 CreateFolderDialog を Modal に移行
   - dialog-overlay 構造を Modal コンポーネントに置き換え
   - opened プロパティで表示状態を制御
   - title プロパティでダイアログタイトルを設定
@@ -128,6 +128,11 @@
   - closeOnClickOutside と closeOnEscape で処理中以外の閉じる動作を設定
   - withCloseButton で処理中の×ボタン非表示
   - Modal のフォーカストラップ機能を使用（手動実装不要）
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
   - _Requirements: 1, 12_
 
 - [ ] 3.2 DeleteConfirmDialog を Modal に移行
@@ -135,6 +140,12 @@
   - handleKeyDown の Escape 検知を削除（Modal が処理）
   - role="alertdialog" は Modal でも指定可能なため維持を検討
   - 削除中は閉じる操作を無効化
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 1, 12_
 
 - [ ] 3.3 RenameDialog を Modal に移行
@@ -142,19 +153,25 @@
   - IME 対応の handleKeyDown は維持（Modal の Escape 処理と共存）
   - 処理中は閉じる操作を無効化
   - Modal size プロパティでダイアログサイズを調整
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 1, 12_
 
 - [ ] 3.4 MoveDialog を Modal に移行
   - dialog-content-large を Modal size="lg" に置き換え
   - FolderBrowser コンポーネントはそのまま維持
   - 移動中は閉じる操作を無効化
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 1, 12_
-
-- [ ] 3.5 ダイアログ共通 CSS の削除
-  - CreateFolderDialog.css の dialog-overlay, dialog-backdrop, dialog-content スタイルを削除
-  - 他のダイアログで共有されていたスタイルを整理
-  - 不要になった CSS ファイルを削除
-  - _Requirements: 10_
 
 - [ ] 3.6 Phase 3 の動作確認とテスト実行
   - 全ての既存テストがパスすることを確認
@@ -175,11 +192,23 @@
   - animated プロパティでアニメーション効果を追加
   - Text コンポーネントで「X / Y 件処理中...」を併記
   - 既存の progress-message スタイルを Mantine に置き換え
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 8_
 
 - [ ] 4.2 (P) MoveDialog に Progress コンポーネントを追加
   - 移動処理時の進捗表示を Progress コンポーネントで実装
   - 進捗テキストを Text コンポーネントで表示
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 8_
 
 - [ ] 4.3 (P) ダイアログ内エラー表示を Alert に移行
@@ -187,6 +216,12 @@
   - MoveDialog のエラーメッセージを Alert コンポーネントに置き換え
   - color="red" とアイコン（AlertCircle）でエラー状態を明示
   - フォルダリネーム失敗時の詳細情報（成功/失敗件数）を Alert 内に表示
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 9_
 
 - [ ] 4.4 (P) MoveDialog に成功通知を追加
@@ -194,6 +229,12 @@
   - color="green" と CheckCircle アイコンで成功状態を明示
   - onClose でユーザーが手動で閉じられるようにする
   - 既存の setTimeout による自動クローズは維持
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 9_
 
 - [ ] 4.5 Phase 4 の動作確認とテスト実行
@@ -216,11 +257,23 @@
   - エラー時のフォールバックはカスタム実装を維持（アイコン表示）
   - useTimeout フックで遅延処理の宣言的な記述を検討
   - URL フェッチの useEffect は維持（非同期処理のため）
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 7, 12_
 
 - [ ] 5.2 ThumbnailImage.css の削除
   - 移行完了後に ThumbnailImage.css を削除
   - FileList.css の関連スタイルを確認・整理
+  - 不要になった class の削除
+    - git diff を確認し、削除された className を特定する
+    - 特定した className が src 全体で使われていないことを `rg` で確認する
+    - 使われていない CSS クラスを CSS ファイルから削除する
+    - 不要になった CSS ファイルがあれば削除する
+  - npm run check-all が通ることを確認
   - _Requirements: 10_
 
 - [ ] 5.3 Phase 5 の動作確認と最終テスト
