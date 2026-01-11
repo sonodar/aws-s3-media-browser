@@ -353,7 +353,9 @@ describe("RenameDialog", () => {
         expect(screen.getByRole("textbox")).toBeDisabled();
       });
       expect(screen.getByRole("button", { name: "キャンセル" })).toBeDisabled();
-      expect(screen.getByRole("button", { name: "変更中..." })).toBeDisabled();
+      const submitButton = screen.getByRole("button", { name: "変更" });
+      expect(submitButton).toBeDisabled();
+      expect(submitButton).toHaveAttribute("data-loading", "true");
 
       // Resolve to complete
       await act(async () => {
@@ -361,7 +363,7 @@ describe("RenameDialog", () => {
       });
     });
 
-    it("should show processing text on submit button", async () => {
+    it("should show loading state on submit button", async () => {
       let resolveRename: (value: RenameItemResult) => void;
       const renamePromise = new Promise<RenameItemResult>((resolve) => {
         resolveRename = resolve;
@@ -385,7 +387,8 @@ describe("RenameDialog", () => {
       fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: "変更中..." })).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", { name: "変更" });
+        expect(submitButton).toHaveAttribute("data-loading", "true");
       });
 
       await act(async () => {

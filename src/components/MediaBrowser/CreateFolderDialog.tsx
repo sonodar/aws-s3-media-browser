@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Stack, Group } from "@mantine/core";
+import { Stack, Group, Button, TextInput } from "@mantine/core";
 import "./CreateFolderDialog.css";
 
 interface CreateFolderDialogProps {
@@ -70,8 +70,7 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
         <h2 id="dialog-title">新しいフォルダを作成</h2>
         <form onSubmit={handleSubmit}>
           <Stack gap="md">
-            <input
-              type="text"
+            <TextInput
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
               placeholder="フォルダ名"
@@ -81,21 +80,12 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
             />
             {error && <p className="error-message">{error}</p>}
             <Group justify="flex-end" gap="sm">
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={isCreating}
-                className="cancel-button"
-              >
+              <Button variant="default" onClick={handleClose} disabled={isCreating}>
                 キャンセル
-              </button>
-              <button
-                type="submit"
-                disabled={isCreating || !folderName.trim()}
-                className="submit-button"
-              >
-                {isCreating ? "作成中..." : "作成"}
-              </button>
+              </Button>
+              <Button type="submit" loading={isCreating} disabled={!folderName.trim()}>
+                作成
+              </Button>
             </Group>
           </Stack>
         </form>

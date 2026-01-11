@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { Stack, Group } from "@mantine/core";
+import { Stack, Group, Button } from "@mantine/core";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
@@ -229,22 +229,12 @@ export function MoveDialog({
 
           {/* アクションボタン */}
           <Group justify="flex-end" gap="sm">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isMoving}
-              className="cancel-button"
-            >
+            <Button variant="default" onClick={handleClose} disabled={isMoving}>
               キャンセル
-            </button>
-            <button
-              type="button"
-              onClick={handleMove}
-              disabled={!canMove}
-              className="submit-button"
-            >
-              {isMoving ? "移動中..." : "ここに移動"}
-            </button>
+            </Button>
+            <Button onClick={handleMove} loading={isMoving} disabled={!canMove && !isMoving}>
+              ここに移動
+            </Button>
           </Group>
         </Stack>
       </div>

@@ -136,7 +136,9 @@ describe("CreateFolderDialog", () => {
       fireEvent.click(screen.getByRole("button", { name: /作成/ }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /作成中/ })).toBeDisabled();
+        const submitButton = screen.getByRole("button", { name: /作成/ });
+        expect(submitButton).toBeDisabled();
+        expect(submitButton).toHaveAttribute("data-loading", "true");
         expect(screen.getByRole("button", { name: /キャンセル/ })).toBeDisabled();
       });
     });

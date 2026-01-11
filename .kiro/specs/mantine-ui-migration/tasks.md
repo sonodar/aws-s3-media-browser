@@ -1,5 +1,11 @@
 # Implementation Plan
 
+> **重要: 実装ルール**
+>
+> - 各フェーズ完了後は必ずユーザーに報告し、次のフェーズに進む前に明示的な指示を待つこと
+> - 差分確認のため、ユーザーの許可なく次のフェーズを自動的に開始しないこと
+> - フェーズ完了時は変更点のサマリーを提示すること
+
 ## Requirements Coverage
 
 | 要件 ID            | 要件名                                  | カバータスク       |
@@ -57,21 +63,21 @@
 
 ### Phase 2: シンプルなコンポーネント置き換え
 
-- [ ] 2. フォーム要素とボタンを Mantine コンポーネントに移行
-- [ ] 2.1 (P) ダイアログ内ボタンを Mantine Button に移行
+- [x] 2. フォーム要素とボタンを Mantine コンポーネントに移行
+- [x] 2.1 (P) ダイアログ内ボタンを Mantine Button に移行
   - キャンセルボタンを Button variant="default" に置き換え
   - 送信・作成ボタンを Button に置き換え
   - 処理中状態で loading プロパティを使用してスピナー表示
   - disabled 状態の視覚的・機能的な無効化を確認
   - _Requirements: 2_
 
-- [ ] 2.2 (P) DeleteConfirmDialog の削除ボタンを危険表示に対応
+- [x] 2.2 (P) DeleteConfirmDialog の削除ボタンを危険表示に対応
   - 削除ボタンに color="red" を適用
   - 削除中状態で loading プロパティを使用
   - アクセシビリティ属性（aria-label）を維持
   - _Requirements: 2_
 
-- [ ] 2.3 (P) Header のアイコンボタンを ActionIcon に移行
+- [x] 2.3 (P) Header のアイコンボタンを ActionIcon に移行
   - 戻るボタン、選択モードボタン、全選択ボタンを ActionIcon に置き換え
   - 移動ボタン、削除ボタンを ActionIcon に置き換え（削除は color="red"）
   - variant="subtle" でアイコンのみの表示を実現
@@ -79,7 +85,7 @@
   - Header.css から .icon-button スタイルを削除
   - _Requirements: 2_
 
-- [ ] 2.4 (P) テキスト入力を Mantine TextInput に移行
+- [x] 2.4 (P) テキスト入力を Mantine TextInput に移行
   - CreateFolderDialog のフォルダ名入力を TextInput に置き換え
   - RenameDialog の名前入力を TextInput に置き換え
   - label プロパティでアクセシブルなラベルを設定
@@ -89,13 +95,13 @@
   - data-autofocus で初期フォーカスを設定
   - _Requirements: 3_
 
-- [ ] 2.5 (P) FileList のチェックボックスを Mantine Checkbox に移行
+- [x] 2.5 (P) FileList のチェックボックスを Mantine Checkbox に移行
   - 選択モード時のチェックボックスを Checkbox コンポーネントに置き換え
   - 選択状態のスタイリングを Mantine テーマカラーで実装
   - アイテムの hover/active 状態を維持
   - _Requirements: 5_
 
-- [ ] 2.6 (P) SortSelector を NativeSelect に移行
+- [x] 2.6 (P) SortSelector を NativeSelect に移行
   - select 要素を NativeSelect コンポーネントに置き換え
   - data プロパティでソートオプションを定義
   - value と onChange で現在の選択状態を制御
@@ -103,7 +109,7 @@
   - SortSelector.css を削除
   - _Requirements: 6_
 
-- [ ] 2.7 Phase 2 の動作確認とテスト実行
+- [x] 2.7 Phase 2 の動作確認とテスト実行
   - 全ての既存テストがパスすることを確認
   - ボタン、入力フィールド、セレクトの操作確認
   - キーボードナビゲーションの確認

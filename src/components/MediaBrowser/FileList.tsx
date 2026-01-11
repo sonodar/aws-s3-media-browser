@@ -1,6 +1,6 @@
 import { useRef, useCallback } from "react";
 import { Folder, Image, Film, File } from "lucide-react";
-import { SimpleGrid, Center, Text } from "@mantine/core";
+import { SimpleGrid, Center, Text, Checkbox } from "@mantine/core";
 import { useLongPress } from "@mantine/hooks";
 import type { StorageItem } from "../../types/storage";
 import { getFileCategory } from "../../utils/fileTypes";
@@ -155,13 +155,12 @@ function FileListItem({
       {...eventHandlers}
     >
       {isSelectionMode && (
-        <input
-          type="checkbox"
-          className="file-list-checkbox"
+        <Checkbox
           checked={isSelected}
           onChange={() => {}}
           onClick={(e) => onCheckboxClick(e, item.key)}
           aria-label={`${item.name} を選択`}
+          classNames={{ root: "file-list-checkbox" }}
         />
       )}
       {shouldShowThumbnail(item) ? (

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Stack, Group } from "@mantine/core";
+import { Stack, Group, Button, TextInput } from "@mantine/core";
 import { validateRename } from "../../utils/validateRename";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -132,7 +132,6 @@ export function RenameDialog({
   if (!isOpen) return null;
 
   const dialogTitle = item.type === "folder" ? "フォルダ名を変更" : "ファイル名を変更";
-  const submitButtonText = isProcessing ? "変更中..." : "変更";
 
   return (
     <div className="dialog-overlay">
@@ -154,8 +153,7 @@ export function RenameDialog({
             }}
           >
             <Stack gap="md">
-              <input
-                type="text"
+              <TextInput
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder={item.type === "folder" ? "フォルダ名" : "ファイル名"}
@@ -200,17 +198,12 @@ export function RenameDialog({
                 >{`${progress.current} / ${progress.total} 件処理中...`}</p>
               )}
               <Group justify="flex-end" gap="sm">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  disabled={isProcessing}
-                  className="cancel-button"
-                >
+                <Button variant="default" onClick={handleClose} disabled={isProcessing}>
                   キャンセル
-                </button>
-                <button type="submit" disabled={isProcessing} className="submit-button">
-                  {submitButtonText}
-                </button>
+                </Button>
+                <Button type="submit" loading={isProcessing}>
+                  変更
+                </Button>
               </Group>
             </Stack>
           </form>

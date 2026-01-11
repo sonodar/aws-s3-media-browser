@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { Stack, Group } from "@mantine/core";
+import { Stack, Group, Button } from "@mantine/core";
 import type { StorageItem } from "../../types/storage";
 import "./CreateFolderDialog.css"; // Reuse dialog styles
 
@@ -76,26 +76,12 @@ export function DeleteConfirmDialog({
             )}
           </p>
           <Group justify="flex-end" gap="sm">
-            <button
-              ref={cancelButtonRef}
-              type="button"
-              onClick={onClose}
-              disabled={isDeleting}
-              className="cancel-button"
-              aria-label="キャンセル"
-            >
+            <Button ref={cancelButtonRef} variant="default" onClick={onClose} disabled={isDeleting}>
               キャンセル
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="submit-button"
-              style={{ backgroundColor: "#d32f2f" }}
-              aria-label={isDeleting ? "削除中..." : "削除"}
-            >
-              {isDeleting ? "削除中..." : "削除"}
-            </button>
+            </Button>
+            <Button color="red" onClick={handleDelete} loading={isDeleting}>
+              削除
+            </Button>
           </Group>
         </Stack>
       </div>

@@ -118,11 +118,12 @@ describe("DeleteConfirmDialog", () => {
         { wrapper },
       );
 
-      expect(screen.getByRole("button", { name: /削除中/ })).toBeDisabled();
+      const deleteButton = screen.getByRole("button", { name: /削除/ });
+      expect(deleteButton).toBeDisabled();
       expect(screen.getByRole("button", { name: /キャンセル/ })).toBeDisabled();
     });
 
-    it("isDeleting が true の場合、削除中のテキストが表示される", () => {
+    it("isDeleting が true の場合、ローディング状態が表示される", () => {
       render(
         <DeleteConfirmDialog
           items={mockFiles}
@@ -133,7 +134,9 @@ describe("DeleteConfirmDialog", () => {
         { wrapper },
       );
 
-      expect(screen.getByText(/削除中/)).toBeInTheDocument();
+      // Mantine Button は loading 時に data-loading 属性を持つ
+      const deleteButton = screen.getByRole("button", { name: /削除/ });
+      expect(deleteButton).toHaveAttribute("data-loading", "true");
     });
   });
 

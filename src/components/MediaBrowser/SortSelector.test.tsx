@@ -1,7 +1,13 @@
+import type { ReactNode } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { SortSelector } from "./SortSelector";
 import type { SortOrder } from "../../hooks/sortStorageItems";
+
+const MantineWrapper = ({ children }: { children: ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 describe("SortSelector", () => {
   const defaultProps = {
@@ -11,7 +17,7 @@ describe("SortSelector", () => {
 
   describe("レンダリング", () => {
     it("4つのソートオプションが表示されること", () => {
-      render(<SortSelector {...defaultProps} />);
+      render(<SortSelector {...defaultProps} />, { wrapper: MantineWrapper });
 
       const select = screen.getByRole("combobox");
       expect(select).toBeInTheDocument();
@@ -21,7 +27,7 @@ describe("SortSelector", () => {
     });
 
     it("各オプションに正しいラベルが表示されること", () => {
-      render(<SortSelector {...defaultProps} />);
+      render(<SortSelector {...defaultProps} />, { wrapper: MantineWrapper });
 
       expect(screen.getByRole("option", { name: "新しい順" })).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "古い順" })).toBeInTheDocument();
@@ -30,7 +36,7 @@ describe("SortSelector", () => {
     });
 
     it("現在のソート順が選択されていること", () => {
-      render(<SortSelector {...defaultProps} currentOrder="name" />);
+      render(<SortSelector {...defaultProps} currentOrder="name" />, { wrapper: MantineWrapper });
 
       const select = screen.getByRole("combobox") as HTMLSelectElement;
       expect(select.value).toBe("name");
@@ -40,7 +46,7 @@ describe("SortSelector", () => {
   describe("インタラクション", () => {
     it("オプションを選択すると onChange が呼ばれること", () => {
       const onChange = vi.fn();
-      render(<SortSelector {...defaultProps} onChange={onChange} />);
+      render(<SortSelector {...defaultProps} onChange={onChange} />, { wrapper: MantineWrapper });
 
       const select = screen.getByRole("combobox");
       fireEvent.change(select, { target: { value: "oldest" } });
@@ -52,7 +58,7 @@ describe("SortSelector", () => {
       "ソート順 %s を選択できること",
       (order) => {
         const onChange = vi.fn();
-        render(<SortSelector {...defaultProps} onChange={onChange} />);
+        render(<SortSelector {...defaultProps} onChange={onChange} />, { wrapper: MantineWrapper });
 
         const select = screen.getByRole("combobox");
         fireEvent.change(select, { target: { value: order } });
@@ -64,7 +70,7 @@ describe("SortSelector", () => {
 
   describe("アクセシビリティ", () => {
     it("適切な aria-label が設定されていること", () => {
-      render(<SortSelector {...defaultProps} />);
+      render(<SortSelector {...defaultProps} />, { wrapper: MantineWrapper });
 
       const select = screen.getByRole("combobox");
       expect(select).toHaveAttribute("aria-label", "並び順");
