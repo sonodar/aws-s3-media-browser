@@ -1,4 +1,6 @@
 import { useState, useCallback } from "react";
+import { Modal, Stack, Group, Button, TextInput, Text, List, Alert } from "@mantine/core";
+import { AlertCircle } from "lucide-react";
 import { validateRename } from "../../utils/validateRename";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -6,7 +8,6 @@ import type {
   RenameFolderResult,
   RenameProgress,
 } from "../../hooks/useStorageOperations";
-import "./CreateFolderDialog.css";
 
 export interface RenameDialogProps {
   isOpen: boolean;
@@ -109,12 +110,17 @@ export function RenameDialog({
     }
   }, [newName, item, existingItems, onRenameFile, onRenameFolder, onClose]);
 
+  /**
+   * TextInput の onKeyDown ハンドラ
+   * IME 変換中は Escape を無視する（Modal の closeOnEscape と共存）
+   */
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // IME 変換中は無視（変換確定の Enter でリネームが実行されるのを防ぐ）
       if (e.nativeEvent.isComposing) return;
 
       if (e.key === "Escape" && !isProcessing) {
+        e.stopPropagation(); // Modal の Escape 処理を停止して、独自のハンドラで処理
         onClose();
       }
       // Enter キーでのリネーム実行を削除（モバイルファーストのため不要、IME との相性も悪い）
@@ -122,85 +128,84 @@ export function RenameDialog({
     [isProcessing, onClose],
   );
 
-  const handleClose = useCallback(() => {
-    if (!isProcessing) {
-      onClose();
-    }
-  }, [isProcessing, onClose]);
-
   if (!isOpen) return null;
 
   const dialogTitle = item.type === "folder" ? "フォルダ名を変更" : "ファイル名を変更";
-  const submitButtonText = isProcessing ? "変更中..." : "変更";
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-backdrop" onClick={handleClose} />
-      <div
-        className="dialog-content"
-        role="dialog"
-        aria-labelledby="rename-dialog-title"
-        onKeyDown={handleKeyDown}
+    <Modal
+      opened={isOpen}
+      onClose={onClose}
+      title={dialogTitle}
+      centered
+      closeOnClickOutside={!isProcessing}
+      closeOnEscape={!isProcessing}
+      withCloseButton={!isProcessing}
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <h2 id="rename-dialog-title">{dialogTitle}</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-        >
-          <input
-            type="text"
+        <Stack gap="md">
+          <TextInput
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder={item.type === "folder" ? "フォルダ名" : "ファイル名"}
-            autoFocus
+            data-autofocus
             disabled={isProcessing}
             aria-label={item.type === "folder" ? "フォルダ名" : "ファイル名"}
+            onKeyDown={handleKeyDown}
           />
-          {error && <p className="error-message">{error}</p>}
-          {folderErrorDetails &&
-            (folderErrorDetails.succeeded !== undefined ||
-              folderErrorDetails.failed !== undefined) && (
-              <div className="folder-error-details">
-                <p className="error-summary">
-                  成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
-                  {folderErrorDetails.failed ?? 0}件
-                </p>
-                {folderErrorDetails.failedFiles && folderErrorDetails.failedFiles.length > 0 && (
-                  <ul className="failed-files-list">
-                    {folderErrorDetails.failedFiles.map((file) => (
-                      <li key={file}>{file}</li>
+          {error && (
+            <Alert color="red" icon={<AlertCircle size={16} />}>
+              <Stack gap="xs">
+                <Text size="sm">{error}</Text>
+                {folderErrorDetails &&
+                  (folderErrorDetails.succeeded !== undefined ||
+                    folderErrorDetails.failed !== undefined) && (
+                    <>
+                      <Text size="sm">
+                        成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
+                        {folderErrorDetails.failed ?? 0}件
+                      </Text>
+                      {folderErrorDetails.failedFiles &&
+                        folderErrorDetails.failedFiles.length > 0 && (
+                          <List size="sm">
+                            {folderErrorDetails.failedFiles.map((file) => (
+                              <List.Item key={file}>{file}</List.Item>
+                            ))}
+                          </List>
+                        )}
+                    </>
+                  )}
+                {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
+                  <List size="sm">
+                    {folderErrorDetails.duplicates.map((file) => (
+                      <List.Item key={file}>{file}</List.Item>
                     ))}
-                  </ul>
+                  </List>
                 )}
-              </div>
-            )}
-          {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
-            <ul className="duplicate-files-list">
-              {folderErrorDetails.duplicates.map((file) => (
-                <li key={file}>{file}</li>
-              ))}
-            </ul>
+              </Stack>
+            </Alert>
           )}
           {progress && (
-            <p className="progress-message">{`${progress.current} / ${progress.total} 件処理中...`}</p>
+            <Text
+              size="sm"
+              c="dimmed"
+            >{`${progress.current} / ${progress.total} 件処理中...`}</Text>
           )}
-          <div className="dialog-actions">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isProcessing}
-              className="cancel-button"
-            >
+          <Group justify="flex-end" gap="sm">
+            <Button variant="default" onClick={onClose} disabled={isProcessing}>
               キャンセル
-            </button>
-            <button type="submit" disabled={isProcessing} className="submit-button">
-              {submitButtonText}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Button>
+            <Button type="submit" loading={isProcessing}>
+              変更
+            </Button>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 }

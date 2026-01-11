@@ -137,6 +137,7 @@ describe("Header", () => {
           selectedCount={0}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /キャンセル/ })).toBeInTheDocument();
@@ -153,6 +154,7 @@ describe("Header", () => {
           selectedCount={0}
           onExitSelectionMode={onExitSelectionMode}
         />,
+        { wrapper: MantineWrapper },
       );
 
       fireEvent.click(screen.getByRole("button", { name: /キャンセル/ }));
@@ -169,6 +171,7 @@ describe("Header", () => {
           selectedCount={5}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByText("5件選択中")).toBeInTheDocument();
@@ -186,6 +189,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /全選択/ })).toBeInTheDocument();
@@ -203,6 +207,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /全解除/ })).toBeInTheDocument();
@@ -221,6 +226,7 @@ describe("Header", () => {
           onToggleSelectAll={onToggleSelectAll}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       fireEvent.click(screen.getByRole("button", { name: /全選択/ }));
@@ -238,6 +244,7 @@ describe("Header", () => {
           onExitSelectionMode={vi.fn()}
           onDeleteSelected={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /削除/ })).toBeInTheDocument();
@@ -254,6 +261,7 @@ describe("Header", () => {
           onExitSelectionMode={vi.fn()}
           onDeleteSelected={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const deleteButton = screen.getByRole("button", { name: /削除/ });
@@ -271,6 +279,7 @@ describe("Header", () => {
           onExitSelectionMode={vi.fn()}
           onDeleteSelected={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const deleteButton = screen.getByRole("button", { name: /削除/ });
@@ -289,6 +298,7 @@ describe("Header", () => {
           onExitSelectionMode={vi.fn()}
           onDeleteSelected={onDeleteSelected}
         />,
+        { wrapper: MantineWrapper },
       );
 
       fireEvent.click(screen.getByRole("button", { name: /削除/ }));
@@ -305,6 +315,7 @@ describe("Header", () => {
           selectedCount={0}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.queryByRole("button", { name: "メニューを開く" })).not.toBeInTheDocument();
@@ -320,6 +331,7 @@ describe("Header", () => {
           selectedCount={5}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const liveRegion = screen.getByText("5件選択中");
@@ -407,6 +419,7 @@ describe("Header", () => {
           selectedCount={0}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.queryByRole("button", { name: "メニューを開く" })).not.toBeInTheDocument();
@@ -434,6 +447,7 @@ describe("Header", () => {
           selectedCount={0}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const cancelButton = screen.getByRole("button", { name: /キャンセル/ });
@@ -451,6 +465,7 @@ describe("Header", () => {
           onExitSelectionMode={vi.fn()}
           onDeleteSelected={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const deleteButton = screen.getByRole("button", { name: /削除/ });
@@ -485,6 +500,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const selectAllButton = screen.getByRole("button", { name: /全選択/ });
@@ -506,6 +522,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const selectAllButton = screen.getByRole("button", { name: /全選択/ });
@@ -526,6 +543,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       // 部分選択時は「全選択」ラベルが表示される
@@ -547,6 +565,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       const selectAllButton = screen.getByRole("button", { name: /全解除/ });
@@ -567,6 +586,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /全解除/ })).toBeInTheDocument();
@@ -585,6 +605,7 @@ describe("Header", () => {
           onToggleSelectAll={vi.fn()}
           onExitSelectionMode={vi.fn()}
         />,
+        { wrapper: MantineWrapper },
       );
 
       expect(screen.getByRole("button", { name: /全選択/ })).toBeInTheDocument();

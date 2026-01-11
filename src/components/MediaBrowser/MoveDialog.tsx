@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo } from "react";
+import { Modal, Stack, Group, Button, Text, List, Alert, Notification } from "@mantine/core";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
-import "./CreateFolderDialog.css";
 
 export interface MoveDialogProps {
   /** ダイアログ表示状態 */
@@ -127,13 +128,6 @@ export function MoveDialog({
     }
   }, [canMove, items, browsePath, onMove, onClose]);
 
-  // ダイアログを閉じる
-  const handleClose = useCallback(() => {
-    if (!isMoving) {
-      onClose();
-    }
-  }, [isMoving, onClose]);
-
   // 表示パスから表示名を取得
   const getDisplayName = useCallback(
     (path: string) => {
@@ -165,66 +159,76 @@ export function MoveDialog({
   const itemCount = items.length;
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-backdrop" data-testid="dialog-backdrop" onClick={handleClose} />
-      <div
-        className="dialog-content dialog-content-large"
-        role="dialog"
-        aria-labelledby="move-dialog-title"
-      >
-        <h2 id="move-dialog-title">{itemCount}件のアイテムを移動</h2>
-
+    <Modal
+      opened={isOpen}
+      onClose={onClose}
+      title={`${itemCount}件のアイテムを移動`}
+      size="lg"
+      centered
+      closeOnClickOutside={!isMoving}
+      closeOnEscape={!isMoving}
+      withCloseButton={!isMoving}
+    >
+      <Stack gap="md">
         {/* 現在の移動先 */}
-        <div className="move-destination">
-          <span className="destination-label">移動先:</span>
-          <span className="destination-path" data-testid="selected-path">
+        <Group gap="xs">
+          <Text size="sm" fw={500}>
+            移動先:
+          </Text>
+          <Text size="sm" data-testid="selected-path">
             {getDisplayName(browsePath)}
-          </span>
-        </div>
+          </Text>
+        </Group>
 
         {/* フォルダブラウザ */}
-        <div className="folder-browser-container">
-          <FolderBrowser
-            currentPath={browsePath}
-            rootPath={rootPath}
-            disabledPaths={disabledPaths}
-            listFolders={listFolders}
-            onNavigate={handleNavigate}
-          />
-        </div>
+        <FolderBrowser
+          currentPath={browsePath}
+          rootPath={rootPath}
+          disabledPaths={disabledPaths}
+          listFolders={listFolders}
+          onNavigate={handleNavigate}
+        />
 
         {/* エラーメッセージ */}
-        {errorMessage && !successMessage && <p className="error-message">{errorMessage}</p>}
-
-        {/* 失敗アイテム一覧 */}
-        {failedItems.length > 0 && (
-          <ul className="failed-files-list">
-            {failedItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+        {errorMessage && !successMessage && (
+          <Alert color="red" icon={<AlertCircle size={16} />}>
+            <Stack gap="xs">
+              <Text size="sm">{errorMessage}</Text>
+              {failedItems.length > 0 && (
+                <List size="sm">
+                  {failedItems.map((item) => (
+                    <List.Item key={item}>{item}</List.Item>
+                  ))}
+                </List>
+              )}
+            </Stack>
+          </Alert>
         )}
 
         {/* 成功メッセージ */}
-        {successMessage && <p className="success-message">{successMessage}</p>}
+        {successMessage && (
+          <Notification color="green" icon={<CheckCircle size={16} />} withCloseButton={false}>
+            {successMessage}
+          </Notification>
+        )}
 
         {/* 進捗表示 */}
         {progress && (
-          <p className="progress-message">
+          <Text size="sm" c="dimmed">
             {progress.current} / {progress.total} 件処理中...
-          </p>
+          </Text>
         )}
 
         {/* アクションボタン */}
-        <div className="dialog-actions">
-          <button type="button" onClick={handleClose} disabled={isMoving} className="cancel-button">
+        <Group justify="flex-end" gap="sm">
+          <Button variant="default" onClick={onClose} disabled={isMoving}>
             キャンセル
-          </button>
-          <button type="button" onClick={handleMove} disabled={!canMove} className="submit-button">
-            {isMoving ? "移動中..." : "ここに移動"}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+          <Button onClick={handleMove} loading={isMoving} disabled={!canMove && !isMoving}>
+            ここに移動
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 }

@@ -204,7 +204,7 @@ describe("MediaBrowser Selection Tests", () => {
       });
 
       // Confirm deletion - get the dialog's delete button (not header's)
-      const dialog = screen.getByRole("alertdialog");
+      const dialog = screen.getByRole("dialog");
       const confirmButton = within(dialog).getByRole("button", { name: /削除/ });
       fireEvent.click(confirmButton);
 

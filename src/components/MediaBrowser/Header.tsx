@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Burger, Menu } from "@mantine/core";
+import { Burger, Menu, ActionIcon } from "@mantine/core";
 import {
   ArrowLeft,
   X,
@@ -93,46 +93,43 @@ export function Header({
     return (
       <header className="media-browser-header media-browser-header--selection">
         <div className="header-left">
-          <button
-            className="cancel-button icon-button"
-            onClick={onExitSelectionMode}
-            aria-label="キャンセル"
-          >
+          <ActionIcon variant="subtle" onClick={onExitSelectionMode} aria-label="キャンセル">
             <X size={20} aria-hidden="true" />
-          </button>
+          </ActionIcon>
           <span className="selection-count" aria-live="polite">
             {selectedCount}件選択中
           </span>
         </div>
         <div className="header-right">
           {onToggleSelectAll && (
-            <button
-              className="select-all-button icon-button"
+            <ActionIcon
+              variant="subtle"
               onClick={onToggleSelectAll}
               aria-label={getSelectAllLabel()}
             >
               {getSelectAllIcon()}
-            </button>
+            </ActionIcon>
           )}
           {onMoveSelected && (
-            <button
-              className="move-button icon-button"
+            <ActionIcon
+              variant="subtle"
               onClick={onMoveSelected}
               disabled={selectedCount === 0}
               aria-label="移動"
             >
               <FolderInput size={20} aria-hidden="true" />
-            </button>
+            </ActionIcon>
           )}
           {onDeleteSelected && (
-            <button
-              className="delete-button icon-button"
+            <ActionIcon
+              variant="subtle"
+              color="red"
               onClick={onDeleteSelected}
               disabled={selectedCount === 0}
               aria-label="削除"
             >
               <Trash2 size={20} aria-hidden="true" />
-            </button>
+            </ActionIcon>
           )}
         </div>
       </header>
@@ -146,21 +143,17 @@ export function Header({
     <header className="media-browser-header">
       <div className="header-left">
         {currentPath && (
-          <button className="back-button icon-button" onClick={onBack} aria-label="戻る">
+          <ActionIcon variant="subtle" onClick={onBack} aria-label="戻る">
             <ArrowLeft size={20} aria-hidden="true" />
-          </button>
+          </ActionIcon>
         )}
         <h1 className="header-title">{currentFolder ?? "ホーム"}</h1>
       </div>
       <div className="header-right">
         {onEnterSelectionMode && (
-          <button
-            className="selection-mode-button icon-button"
-            onClick={onEnterSelectionMode}
-            aria-label="選択"
-          >
+          <ActionIcon variant="subtle" onClick={onEnterSelectionMode} aria-label="選択">
             <CopyCheck size={20} aria-hidden="true" />
-          </button>
+          </ActionIcon>
         )}
         <Menu opened={menuOpened} onChange={setMenuOpened} withinPortal={false}>
           <Menu.Target>

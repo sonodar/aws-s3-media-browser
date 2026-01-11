@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./CreateFolderDialog.css";
+import { Modal, Stack, Group, Button, TextInput } from "@mantine/core";
 
 interface CreateFolderDialogProps {
   isOpen: boolean;
@@ -16,8 +16,6 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
   const [folderName, setFolderName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (!isOpen) return null;
 
   const validateFolderName = (name: string): string | null => {
     if (!name.trim()) {
@@ -57,46 +55,43 @@ export function CreateFolderDialog({ isOpen, onClose, onCreate }: CreateFolderDi
   };
 
   const handleClose = () => {
+    if (isCreating) return;
     setFolderName("");
     setError(null);
     onClose();
   };
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-backdrop" onClick={handleClose} />
-      <div className="dialog-content" role="dialog" aria-labelledby="dialog-title">
-        <h2 id="dialog-title">新しいフォルダを作成</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
+    <Modal
+      opened={isOpen}
+      onClose={handleClose}
+      title="新しいフォルダを作成"
+      centered
+      closeOnClickOutside={!isCreating}
+      closeOnEscape={!isCreating}
+      withCloseButton={!isCreating}
+    >
+      <form onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <TextInput
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
             placeholder="フォルダ名"
-            autoFocus
+            data-autofocus
             disabled={isCreating}
             aria-label="フォルダ名"
+            error={error}
           />
-          {error && <p className="error-message">{error}</p>}
-          <div className="dialog-actions">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isCreating}
-              className="cancel-button"
-            >
+          <Group justify="flex-end" gap="sm">
+            <Button variant="default" onClick={handleClose} disabled={isCreating}>
               キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isCreating || !folderName.trim()}
-              className="submit-button"
-            >
-              {isCreating ? "作成中..." : "作成"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Button>
+            <Button type="submit" loading={isCreating} disabled={!folderName.trim()}>
+              作成
+            </Button>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 }

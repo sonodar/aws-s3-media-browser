@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { RenameDialog } from "./RenameDialog";
 import type { StorageItem } from "../../types/storage";
 import type {
@@ -7,6 +8,10 @@ import type {
   RenameFolderResult,
   RenameProgress,
 } from "../../hooks/useStorageOperations";
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
 
 describe("RenameDialog", () => {
   const mockOnClose = vi.fn();
@@ -52,6 +57,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -67,6 +73,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -83,6 +90,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       expect(screen.getByText("フォルダ名を変更")).toBeInTheDocument();
@@ -98,13 +106,14 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
       expect(input).toHaveValue("image.jpg");
     });
 
-    it("should have autofocus on input field", () => {
+    it("should have autofocus on input field", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -114,10 +123,14 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
-      expect(document.activeElement).toBe(input);
+      // Mantine Modal の data-autofocus は非同期でフォーカスを設定する
+      await waitFor(() => {
+        expect(document.activeElement).toBe(input);
+      });
     });
   });
 
@@ -132,6 +145,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -152,6 +166,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -171,6 +186,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       // Name is already set to item.name, just click submit
@@ -189,6 +205,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -211,6 +228,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -221,7 +239,7 @@ describe("RenameDialog", () => {
       expect(mockOnRenameFile).not.toHaveBeenCalled();
     });
 
-    it("should close on Escape key", () => {
+    it("should close on Escape key via TextInput keyDown", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -231,11 +249,78 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
-      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+      // TextInput にフォーカスがある状態で Escape キーを押す
+      const input = screen.getByRole("textbox");
+      fireEvent.keyDown(input, { key: "Escape" });
 
       expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it("should not close on Escape key during IME composition", () => {
+      render(
+        <RenameDialog
+          isOpen={true}
+          item={fileItem}
+          existingItems={existingItems}
+          onClose={mockOnClose}
+          onRenameFile={mockOnRenameFile}
+          onRenameFolder={mockOnRenameFolder}
+        />,
+        { wrapper },
+      );
+
+      const input = screen.getByRole("textbox");
+      // IME 変換中の Escape キーを模擬 - KeyboardEvent を直接作成
+      const escapeEvent = new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+        cancelable: true,
+      });
+      // isComposing は readonly なので、Object.defineProperty で設定
+      Object.defineProperty(escapeEvent, "isComposing", { value: true });
+      input.dispatchEvent(escapeEvent);
+
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
+
+    it("should not close on Escape key during processing", async () => {
+      let resolveRename: (value: RenameItemResult) => void;
+      const renamePromise = new Promise<RenameItemResult>((resolve) => {
+        resolveRename = resolve;
+      });
+      mockOnRenameFile.mockReturnValueOnce(renamePromise);
+
+      render(
+        <RenameDialog
+          isOpen={true}
+          item={fileItem}
+          existingItems={existingItems}
+          onClose={mockOnClose}
+          onRenameFile={mockOnRenameFile}
+          onRenameFolder={mockOnRenameFolder}
+        />,
+        { wrapper },
+      );
+
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
+
+      // 処理中になるのを待つ
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeDisabled();
+      });
+
+      // 処理中に Escape キーを押しても閉じない
+      fireEvent.keyDown(input, { key: "Escape" });
+      expect(mockOnClose).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveRename!({ success: true });
+      });
     });
   });
 
@@ -250,6 +335,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
@@ -267,6 +353,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -288,6 +375,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -322,6 +410,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -333,7 +422,9 @@ describe("RenameDialog", () => {
         expect(screen.getByRole("textbox")).toBeDisabled();
       });
       expect(screen.getByRole("button", { name: "キャンセル" })).toBeDisabled();
-      expect(screen.getByRole("button", { name: "変更中..." })).toBeDisabled();
+      const submitButton = screen.getByRole("button", { name: "変更" });
+      expect(submitButton).toBeDisabled();
+      expect(submitButton).toHaveAttribute("data-loading", "true");
 
       // Resolve to complete
       await act(async () => {
@@ -341,7 +432,7 @@ describe("RenameDialog", () => {
       });
     });
 
-    it("should show processing text on submit button", async () => {
+    it("should show loading state on submit button", async () => {
       let resolveRename: (value: RenameItemResult) => void;
       const renamePromise = new Promise<RenameItemResult>((resolve) => {
         resolveRename = resolve;
@@ -357,6 +448,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -364,7 +456,8 @@ describe("RenameDialog", () => {
       fireEvent.click(screen.getByRole("button", { name: "変更" }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: "変更中..." })).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", { name: "変更" });
+        expect(submitButton).toHaveAttribute("data-loading", "true");
       });
 
       await act(async () => {
@@ -395,6 +488,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -437,6 +531,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -467,6 +562,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -495,6 +591,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -529,6 +626,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -556,6 +654,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -579,6 +678,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");
@@ -600,6 +700,7 @@ describe("RenameDialog", () => {
           onRenameFile={mockOnRenameFile}
           onRenameFolder={mockOnRenameFolder}
         />,
+        { wrapper },
       );
 
       const input = screen.getByRole("textbox");

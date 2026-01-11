@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { getUrl } from "aws-amplify/storage";
-import { Image, Film } from "lucide-react";
+import { Image as MantineImage, Skeleton, Center, Box } from "@mantine/core";
+import { useTimeout } from "@mantine/hooks";
+import { Image as ImageIcon, Film } from "lucide-react";
 import { getThumbnailPath } from "../../utils/pathUtils";
 import "./ThumbnailImage.css";
 
@@ -21,7 +23,7 @@ function FallbackIcon({ fileType }: { fileType: "image" | "video" }) {
   if (fileType === "video") {
     return <Film aria-hidden="true" />;
   }
-  return <Image aria-hidden="true" />;
+  return <ImageIcon aria-hidden="true" />;
 }
 
 export function ThumbnailImage({
@@ -34,17 +36,18 @@ export function ThumbnailImage({
   const [url, setUrl] = useState<string | null>(null);
   const [delayComplete, setDelayComplete] = useState(!initialDelay);
 
-  // Handle initial delay
+  // Handle initial delay using Mantine useTimeout hook
+  const { start: startDelay } = useTimeout(() => {
+    setDelayComplete(true);
+    setState("loading");
+  }, initialDelay ?? 0);
+
+  // Start delay timer when initialDelay is set
   useEffect(() => {
-    if (!initialDelay) return;
-
-    const timer = setTimeout(() => {
-      setDelayComplete(true);
-      setState("loading");
-    }, initialDelay);
-
-    return () => clearTimeout(timer);
-  }, [initialDelay]);
+    if (initialDelay) {
+      startDelay();
+    }
+  }, [initialDelay, startDelay]);
 
   // Fetch thumbnail URL after delay (or immediately if no delay)
   useEffect(() => {
@@ -84,22 +87,28 @@ export function ThumbnailImage({
 
   if (state === "error") {
     return (
-      <div className="thumbnail-container thumbnail-fallback">
-        <FallbackIcon fileType={fileType} />
-      </div>
+      <Box className="thumbnail-container thumbnail-fallback">
+        <Center h="100%">
+          <FallbackIcon fileType={fileType} />
+        </Center>
+      </Box>
     );
   }
 
   return (
-    <div className="thumbnail-container">
-      <img
-        src={url ?? undefined}
-        alt={fileName}
-        loading="lazy"
-        onLoad={handleLoad}
-        onError={handleError}
-        className={state === "loading" ? "thumbnail-loading" : "thumbnail-loaded"}
-      />
-    </div>
+    <Box className="thumbnail-container">
+      <Skeleton visible={state === "loading"} radius={8} h="100%" w="100%">
+        <MantineImage
+          src={url ?? undefined}
+          alt={fileName}
+          loading="lazy"
+          onLoad={handleLoad}
+          onError={handleError}
+          fit="cover"
+          h="100%"
+          w="100%"
+        />
+      </Skeleton>
+    </Box>
   );
 }

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { ReactNode } from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import { MantineProvider } from "@mantine/core";
 import { ThumbnailImage } from "./ThumbnailImage";
 
 // Mock aws-amplify/storage
@@ -8,24 +10,31 @@ vi.mock("aws-amplify/storage", () => ({
   getUrl: (params: { path: string }) => mockGetUrl(params),
 }));
 
+const MantineWrapper = ({ children }: { children: ReactNode }) => (
+  <MantineProvider>{children}</MantineProvider>
+);
+
 describe("ThumbnailImage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("loading state", () => {
-    it("shows placeholder while loading", () => {
+    it("shows skeleton while loading", () => {
       mockGetUrl.mockReturnValue(new Promise(() => {})); // Never resolves
 
-      render(
+      const { container } = render(
         <ThumbnailImage
           originalKey="media/abc123/photos/image.jpg"
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
-      expect(screen.getByRole("img", { hidden: true })).toHaveClass("thumbnail-loading");
+      // Skeleton with visible attribute should be present during loading
+      const skeleton = container.querySelector("[data-visible='true']");
+      expect(skeleton).toBeInTheDocument();
     });
   });
 
@@ -41,6 +50,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       await waitFor(() => {
@@ -60,6 +70,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       await waitFor(() => {
@@ -79,6 +90,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       await waitFor(() => {
@@ -98,6 +110,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       await waitFor(() => {
@@ -120,6 +133,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       // Wait for URL to be set
@@ -146,6 +160,7 @@ describe("ThumbnailImage", () => {
           fileName="video.mp4"
           fileType="video"
         />,
+        { wrapper: MantineWrapper },
       );
 
       // Wait for URL to be set
@@ -170,6 +185,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       await waitFor(() => {
@@ -192,6 +208,7 @@ describe("ThumbnailImage", () => {
           fileName="image.jpg"
           fileType="image"
         />,
+        { wrapper: MantineWrapper },
       );
 
       const wrapper = container.querySelector(".thumbnail-container");
@@ -213,6 +230,7 @@ describe("ThumbnailImage", () => {
           fileType="image"
           initialDelay={3000}
         />,
+        { wrapper: MantineWrapper },
       );
 
       // Should show fallback icon initially
@@ -238,6 +256,7 @@ describe("ThumbnailImage", () => {
           fileType="image"
           initialDelay={3000}
         />,
+        { wrapper: MantineWrapper },
       );
 
       // Initially shows fallback
