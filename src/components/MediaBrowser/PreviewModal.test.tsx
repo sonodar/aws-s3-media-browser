@@ -3,6 +3,20 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PreviewModal } from "./PreviewModal";
 import type { StorageItem } from "../../types/storage";
 
+// Mock useDeleteConfirm hook
+const mockRequestDelete = vi.fn();
+vi.mock("../../hooks/useDeleteConfirm", () => ({
+  useDeleteConfirm: () => ({
+    requestDelete: mockRequestDelete,
+    itemsToDelete: [],
+    isDeleting: false,
+    isOpen: false,
+    cancelDelete: vi.fn(),
+    startDeleting: vi.fn(),
+    finishDeleting: vi.fn(),
+  }),
+}));
+
 // Variables to capture Lightbox props
 let capturedProps: {
   index?: number;
@@ -74,7 +88,6 @@ vi.mock("yet-another-react-lightbox/plugins/zoom", () => ({
 
 describe("PreviewModal", () => {
   const mockOnClose = vi.fn();
-  const mockOnDelete = vi.fn();
   const mockOnRename = vi.fn();
   const mockGetFileUrl = vi.fn();
 
@@ -99,7 +112,6 @@ describe("PreviewModal", () => {
           onClose={mockOnClose}
           item={mockFileItem}
           getFileUrl={mockGetFileUrl}
-          onDelete={mockOnDelete}
           onRename={mockOnRename}
         />,
       );
@@ -119,7 +131,6 @@ describe("PreviewModal", () => {
           onClose={mockOnClose}
           item={mockFileItem}
           getFileUrl={mockGetFileUrl}
-          onDelete={mockOnDelete}
         />,
       );
 
@@ -138,7 +149,6 @@ describe("PreviewModal", () => {
           onClose={mockOnClose}
           item={mockFileItem}
           getFileUrl={mockGetFileUrl}
-          onDelete={mockOnDelete}
           onRename={mockOnRename}
         />,
       );
@@ -284,7 +294,7 @@ describe("PreviewModal", () => {
       expect(screen.getByText("image2.jpg")).toBeInTheDocument();
     });
 
-    it("should call onDelete with current item in multi-slide mode", async () => {
+    it("should call requestDelete via hook when delete button is clicked", async () => {
       render(
         <PreviewModal
           isOpen={true}
@@ -293,7 +303,6 @@ describe("PreviewModal", () => {
           currentIndex={1}
           onIndexChange={mockOnIndexChange}
           getFileUrl={mockGetFileUrl}
-          onDelete={mockOnDelete}
         />,
       );
 
@@ -301,17 +310,13 @@ describe("PreviewModal", () => {
         expect(screen.getByTestId("lightbox")).toBeInTheDocument();
       });
 
-      // Click the toolbar delete button (first one)
-      const deleteButtons = screen.getAllByRole("button", { name: "削除" });
-      fireEvent.click(deleteButtons[0]);
+      // Click the delete button
+      const deleteButton = screen.getByRole("button", { name: "削除" });
+      fireEvent.click(deleteButton);
 
-      // Wait for dialog and click the confirm button (second one in DOM)
-      await waitFor(() => {
-        expect(screen.getAllByRole("button", { name: "削除" }).length).toBeGreaterThan(1);
-      });
-      const allDeleteButtons = screen.getAllByRole("button", { name: "削除" });
-      fireEvent.click(allDeleteButtons[1]);
-      expect(mockOnDelete).toHaveBeenCalledWith(mockItems[1]);
+      // Should call onClose first, then requestDelete with the current item
+      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockRequestDelete).toHaveBeenCalledWith([mockItems[1]]);
     });
   });
 });

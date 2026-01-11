@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Lightbox, { type Slide } from "yet-another-react-lightbox";
 import Video from "yet-another-react-lightbox/plugins/video";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -6,6 +6,7 @@ import { Pencil, Trash2, FolderInput } from "lucide-react";
 import "yet-another-react-lightbox/styles.css";
 import type { StorageItem } from "../../types/storage";
 import { isImageFile, isVideoFile } from "../../utils/fileTypes";
+import { useDeleteConfirm } from "../../hooks/useDeleteConfirm";
 import "./PreviewModal.css";
 
 /** Props for single-item mode (legacy) */
@@ -17,7 +18,6 @@ interface SingleItemProps {
   currentIndex?: never;
   onIndexChange?: never;
   getFileUrl: (key: string) => Promise<string>;
-  onDelete?: (item: StorageItem) => void;
   onRename?: (item: StorageItem) => void;
   onMove?: (item: StorageItem) => void;
 }
@@ -31,7 +31,6 @@ interface MultiSlideProps {
   currentIndex: number;
   onIndexChange: (index: number) => void;
   getFileUrl: (key: string) => Promise<string>;
-  onDelete?: (item: StorageItem) => void;
   onRename?: (item: StorageItem) => void;
   onMove?: (item: StorageItem) => void;
 }
@@ -51,7 +50,8 @@ function isMultiSlideMode(props: PreviewModalProps): props is MultiSlideProps {
 }
 
 export function PreviewModal(props: PreviewModalProps) {
-  const { isOpen, onClose, getFileUrl, onDelete, onRename, onMove } = props;
+  const { isOpen, onClose, getFileUrl, onRename, onMove } = props;
+  const { requestDelete } = useDeleteConfirm();
 
   // Determine mode and derive current item
   const isMulti = isMultiSlideMode(props);
@@ -62,7 +62,6 @@ export function PreviewModal(props: PreviewModalProps) {
 
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     if (items.length === 0 || !isOpen) {
@@ -103,20 +102,12 @@ export function PreviewModal(props: PreviewModalProps) {
     loadUrls();
   }, [items, isOpen, getFileUrl]);
 
+  // 削除ボタンクリック時: Jotai atoms を通じて DeleteConfirmDialog を表示させる
   const handleDeleteClick = () => {
-    dialogRef.current?.showModal();
-  };
-
-  const handleDeleteConfirm = () => {
-    if (currentItem && onDelete) {
-      onDelete(currentItem);
-      dialogRef.current?.close();
+    if (currentItem) {
       onClose();
+      requestDelete([currentItem]);
     }
-  };
-
-  const handleDeleteCancel = () => {
-    dialogRef.current?.close();
   };
 
   const handleRenameClick = () => {
@@ -195,17 +186,15 @@ export function PreviewModal(props: PreviewModalProps) {
                 <FolderInput size={20} aria-hidden="true" />
               </button>
             ),
-            onDelete && (
-              <button
-                key="delete"
-                type="button"
-                className="yarl__button preview-delete-button"
-                onClick={handleDeleteClick}
-                aria-label="削除"
-              >
-                <Trash2 size={20} aria-hidden="true" />
-              </button>
-            ),
+            <button
+              key="delete"
+              type="button"
+              className="yarl__button preview-delete-button"
+              onClick={handleDeleteClick}
+              aria-label="削除"
+            >
+              <Trash2 size={20} aria-hidden="true" />
+            </button>,
             "close",
           ].filter(Boolean),
         }}
@@ -216,17 +205,6 @@ export function PreviewModal(props: PreviewModalProps) {
           <div className="preview-caption-size">{formatFileSize(currentItem.size)}</div>
         </div>
       )}
-      <dialog ref={dialogRef} className="preview-delete-dialog">
-        <p>「{currentItem?.name}」を削除しますか？</p>
-        <div className="preview-delete-dialog-actions">
-          <button className="preview-delete-dialog-cancel" onClick={handleDeleteCancel}>
-            キャンセル
-          </button>
-          <button className="preview-delete-dialog-delete" onClick={handleDeleteConfirm}>
-            削除
-          </button>
-        </div>
-      </dialog>
     </>
   );
 }
