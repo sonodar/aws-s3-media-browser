@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { vi } from "vitest";
 import { list, remove, uploadData } from "aws-amplify/storage";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { MantineProvider } from "@mantine/core";
 import { TestProvider } from "../../stores";
 
 // Test fixtures
@@ -140,7 +141,11 @@ export function setupMediaBrowserTest() {
  * Test wrapper that provides Jotai context
  */
 export function MediaBrowserTestWrapper({ children }: { children: ReactNode }) {
-  return <TestProvider>{children}</TestProvider>;
+  return (
+    <MantineProvider>
+      <TestProvider>{children}</TestProvider>
+    </MantineProvider>
+  );
 }
 
 // Re-export mocked modules for use in tests

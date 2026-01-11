@@ -113,7 +113,7 @@ describe("RenameDialog", () => {
       expect(input).toHaveValue("image.jpg");
     });
 
-    it("should have autofocus on input field", () => {
+    it("should have autofocus on input field", async () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -127,7 +127,10 @@ describe("RenameDialog", () => {
       );
 
       const input = screen.getByRole("textbox");
-      expect(document.activeElement).toBe(input);
+      // Mantine Modal の data-autofocus は非同期でフォーカスを設定する
+      await waitFor(() => {
+        expect(document.activeElement).toBe(input);
+      });
     });
   });
 
@@ -236,7 +239,7 @@ describe("RenameDialog", () => {
       expect(mockOnRenameFile).not.toHaveBeenCalled();
     });
 
-    it("should close on Escape key", () => {
+    it("should close on Escape key via TextInput keyDown", () => {
       render(
         <RenameDialog
           isOpen={true}
@@ -249,9 +252,75 @@ describe("RenameDialog", () => {
         { wrapper },
       );
 
-      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+      // TextInput にフォーカスがある状態で Escape キーを押す
+      const input = screen.getByRole("textbox");
+      fireEvent.keyDown(input, { key: "Escape" });
 
       expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it("should not close on Escape key during IME composition", () => {
+      render(
+        <RenameDialog
+          isOpen={true}
+          item={fileItem}
+          existingItems={existingItems}
+          onClose={mockOnClose}
+          onRenameFile={mockOnRenameFile}
+          onRenameFolder={mockOnRenameFolder}
+        />,
+        { wrapper },
+      );
+
+      const input = screen.getByRole("textbox");
+      // IME 変換中の Escape キーを模擬 - KeyboardEvent を直接作成
+      const escapeEvent = new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+        cancelable: true,
+      });
+      // isComposing は readonly なので、Object.defineProperty で設定
+      Object.defineProperty(escapeEvent, "isComposing", { value: true });
+      input.dispatchEvent(escapeEvent);
+
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
+
+    it("should not close on Escape key during processing", async () => {
+      let resolveRename: (value: RenameItemResult) => void;
+      const renamePromise = new Promise<RenameItemResult>((resolve) => {
+        resolveRename = resolve;
+      });
+      mockOnRenameFile.mockReturnValueOnce(renamePromise);
+
+      render(
+        <RenameDialog
+          isOpen={true}
+          item={fileItem}
+          existingItems={existingItems}
+          onClose={mockOnClose}
+          onRenameFile={mockOnRenameFile}
+          onRenameFolder={mockOnRenameFolder}
+        />,
+        { wrapper },
+      );
+
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "newfile.jpg" } });
+      fireEvent.click(screen.getByRole("button", { name: "変更" }));
+
+      // 処理中になるのを待つ
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeDisabled();
+      });
+
+      // 処理中に Escape キーを押しても閉じない
+      fireEvent.keyDown(input, { key: "Escape" });
+      expect(mockOnClose).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveRename!({ success: true });
+      });
     });
   });
 

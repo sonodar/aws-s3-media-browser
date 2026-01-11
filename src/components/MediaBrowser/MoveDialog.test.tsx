@@ -528,7 +528,7 @@ describe("MoveDialog", () => {
       expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it("should call onClose when backdrop is clicked", async () => {
+    it("should call onClose when overlay is clicked", async () => {
       render(
         <MoveDialog
           isOpen={true}
@@ -543,12 +543,57 @@ describe("MoveDialog", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId("dialog-backdrop")).toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByTestId("dialog-backdrop"));
+      // Modal のオーバーレイをクリック
+      const overlay = document.querySelector(".mantine-Modal-overlay");
+      if (overlay) {
+        fireEvent.click(overlay);
+      }
 
       expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it("should not close when moving is in progress and overlay is clicked", async () => {
+      mockOnMove.mockImplementation(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        return { success: true, succeeded: 2, failed: 0 };
+      });
+
+      render(
+        <MoveDialog
+          isOpen={true}
+          items={sampleItems}
+          currentPath={basePath}
+          rootPath={basePath}
+          onClose={mockOnClose}
+          onMove={mockOnMove}
+          listFolders={mockListFolders}
+        />,
+        { wrapper },
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("archive")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText("archive"));
+      fireEvent.click(screen.getByRole("button", { name: /ここに移動/i }));
+
+      // 移動中になるのを待つ
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /キャンセル/i })).toBeDisabled();
+      });
+
+      // オーバーレイをクリック
+      const overlay = document.querySelector(".mantine-Modal-overlay");
+      if (overlay) {
+        fireEvent.click(overlay);
+      }
+
+      // 移動中はクローズが呼ばれない
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
   });
 });

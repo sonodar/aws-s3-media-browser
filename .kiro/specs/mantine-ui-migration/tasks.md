@@ -119,7 +119,7 @@
 
 ### Phase 3: Modal 移行と hooks 対応
 
-- [ ] 3. ダイアログを Mantine Modal に移行
+- [x] 3. ダイアログを Mantine Modal に移行
 - [x] 3.1 CreateFolderDialog を Modal に移行
   - dialog-overlay 構造を Modal コンポーネントに置き換え
   - opened プロパティで表示状態を制御
@@ -135,7 +135,7 @@
     - 不要になった CSS ファイルがあれば削除する
   - _Requirements: 1, 12_
 
-- [ ] 3.2 DeleteConfirmDialog を Modal に移行
+- [x] 3.2 DeleteConfirmDialog を Modal に移行
   - useEffect によるフォーカス設定を削除（data-autofocus で代替）
   - handleKeyDown の Escape 検知を削除（Modal が処理）
   - role="alertdialog" は Modal でも指定可能なため維持を検討
@@ -148,7 +148,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 1, 12_
 
-- [ ] 3.3 RenameDialog を Modal に移行
+- [x] 3.3 RenameDialog を Modal に移行
   - key ベースの状態リセットパターンは維持
   - IME 対応の handleKeyDown は維持（Modal の Escape 処理と共存）
   - 処理中は閉じる操作を無効化
@@ -161,7 +161,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 1, 12_
 
-- [ ] 3.4 MoveDialog を Modal に移行
+- [x] 3.4 MoveDialog を Modal に移行
   - dialog-content-large を Modal size="lg" に置き換え
   - FolderBrowser コンポーネントはそのまま維持
   - 移動中は閉じる操作を無効化
@@ -173,7 +173,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 1, 12_
 
-- [ ] 3.6 Phase 3 の動作確認とテスト実行
+- [x] 3.6 Phase 3 の動作確認とテスト実行
   - 全ての既存テストがパスすることを確認
   - Escape キーでのダイアログ閉じる動作確認
   - オーバーレイクリックでの閉じる動作確認

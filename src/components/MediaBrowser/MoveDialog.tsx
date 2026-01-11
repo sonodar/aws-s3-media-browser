@@ -1,9 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
-import { Stack, Group, Button } from "@mantine/core";
+import { Modal, Stack, Group, Button, Text, List } from "@mantine/core";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
-import "./CreateFolderDialog.css";
 
 export interface MoveDialogProps {
   /** ダイアログ表示状態 */
@@ -128,13 +127,6 @@ export function MoveDialog({
     }
   }, [canMove, items, browsePath, onMove, onClose]);
 
-  // ダイアログを閉じる
-  const handleClose = useCallback(() => {
-    if (!isMoving) {
-      onClose();
-    }
-  }, [isMoving, onClose]);
-
   // 表示パスから表示名を取得
   const getDisplayName = useCallback(
     (path: string) => {
@@ -166,78 +158,76 @@ export function MoveDialog({
   const itemCount = items.length;
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-backdrop" data-testid="dialog-backdrop" onClick={handleClose} />
-      <div
-        className="dialog-content dialog-content-large"
-        role="dialog"
-        aria-labelledby="move-dialog-title"
-      >
-        <Stack gap="md">
-          <h2 id="move-dialog-title" style={{ margin: 0 }}>
-            {itemCount}件のアイテムを移動
-          </h2>
+    <Modal
+      opened={isOpen}
+      onClose={onClose}
+      title={`${itemCount}件のアイテムを移動`}
+      size="lg"
+      centered
+      closeOnClickOutside={!isMoving}
+      closeOnEscape={!isMoving}
+      withCloseButton={!isMoving}
+    >
+      <Stack gap="md">
+        {/* 現在の移動先 */}
+        <Group gap="xs">
+          <Text size="sm" fw={500}>
+            移動先:
+          </Text>
+          <Text size="sm" data-testid="selected-path">
+            {getDisplayName(browsePath)}
+          </Text>
+        </Group>
 
-          {/* 現在の移動先 */}
-          <div className="move-destination">
-            <span className="destination-label">移動先:</span>
-            <span className="destination-path" data-testid="selected-path">
-              {getDisplayName(browsePath)}
-            </span>
-          </div>
+        {/* フォルダブラウザ */}
+        <FolderBrowser
+          currentPath={browsePath}
+          rootPath={rootPath}
+          disabledPaths={disabledPaths}
+          listFolders={listFolders}
+          onNavigate={handleNavigate}
+        />
 
-          {/* フォルダブラウザ */}
-          <div className="folder-browser-container">
-            <FolderBrowser
-              currentPath={browsePath}
-              rootPath={rootPath}
-              disabledPaths={disabledPaths}
-              listFolders={listFolders}
-              onNavigate={handleNavigate}
-            />
-          </div>
+        {/* エラーメッセージ */}
+        {errorMessage && !successMessage && (
+          <Text c="red" size="sm">
+            {errorMessage}
+          </Text>
+        )}
 
-          {/* エラーメッセージ */}
-          {errorMessage && !successMessage && (
-            <p className="error-message" style={{ margin: 0 }}>
-              {errorMessage}
-            </p>
-          )}
+        {/* 失敗アイテム一覧 */}
+        {failedItems.length > 0 && (
+          <List size="sm">
+            {failedItems.map((item) => (
+              <List.Item key={item}>{item}</List.Item>
+            ))}
+          </List>
+        )}
 
-          {/* 失敗アイテム一覧 */}
-          {failedItems.length > 0 && (
-            <ul className="failed-files-list">
-              {failedItems.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          )}
+        {/* 成功メッセージ */}
+        {successMessage && (
+          <Text c="green" size="sm">
+            {successMessage}
+          </Text>
+        )}
 
-          {/* 成功メッセージ */}
-          {successMessage && (
-            <p className="success-message" style={{ margin: 0 }}>
-              {successMessage}
-            </p>
-          )}
+        {/* 進捗表示 */}
+        {progress && (
+          <Text size="sm" c="dimmed">
+            {progress.current} / {progress.total} 件処理中...
+          </Text>
+        )}
 
-          {/* 進捗表示 */}
-          {progress && (
-            <p className="progress-message" style={{ margin: 0 }}>
-              {progress.current} / {progress.total} 件処理中...
-            </p>
-          )}
-
-          {/* アクションボタン */}
-          <Group justify="flex-end" gap="sm">
-            <Button variant="default" onClick={handleClose} disabled={isMoving}>
-              キャンセル
-            </Button>
-            <Button onClick={handleMove} loading={isMoving} disabled={!canMove && !isMoving}>
-              ここに移動
-            </Button>
-          </Group>
-        </Stack>
-      </div>
-    </div>
+        {/* アクションボタン */}
+        <Group justify="flex-end" gap="sm">
+          <Button variant="default" onClick={onClose} disabled={isMoving}>
+            キャンセル
+          </Button>
+          <Button onClick={handleMove} loading={isMoving} disabled={!canMove && !isMoving}>
+            ここに移動
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 }

@@ -1,7 +1,5 @@
-import { useEffect, useRef, useCallback } from "react";
-import { Stack, Group, Button } from "@mantine/core";
+import { Modal, Stack, Group, Button, Text } from "@mantine/core";
 import type { StorageItem } from "../../types/storage";
-import "./CreateFolderDialog.css"; // Reuse dialog styles
 
 interface DeleteConfirmDialogProps {
   /** 削除対象アイテム（複数対応） */
@@ -20,23 +18,6 @@ export function DeleteConfirmDialog({
   onConfirm,
   isDeleting = false,
 }: DeleteConfirmDialogProps) {
-  const cancelButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Focus cancel button on mount
-  useEffect(() => {
-    cancelButtonRef.current?.focus();
-  }, []);
-
-  // Handle Escape key
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Escape" && !isDeleting) {
-        onClose();
-      }
-    },
-    [isDeleting, onClose],
-  );
-
   if (items.length === 0) return null;
 
   const hasFolder = items.some((item) => item.type === "folder");
@@ -54,37 +35,31 @@ export function DeleteConfirmDialog({
   };
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-backdrop" onClick={isDeleting ? undefined : onClose} />
-      <div
-        className="dialog-content"
-        role="alertdialog"
-        aria-labelledby="delete-dialog-title"
-        onKeyDown={handleKeyDown}
-      >
-        <Stack gap="md">
-          <h2 id="delete-dialog-title" style={{ margin: 0 }}>
-            削除の確認
-          </h2>
-          <p style={{ margin: 0 }}>
-            {getMessage()}
-            {hasFolder && (
-              <>
-                <br />
-                <strong>フォルダ内のすべてのファイルも削除されます。</strong>
-              </>
-            )}
-          </p>
-          <Group justify="flex-end" gap="sm">
-            <Button ref={cancelButtonRef} variant="default" onClick={onClose} disabled={isDeleting}>
-              キャンセル
-            </Button>
-            <Button color="red" onClick={handleDelete} loading={isDeleting}>
-              削除
-            </Button>
-          </Group>
-        </Stack>
-      </div>
-    </div>
+    <Modal
+      opened={items.length > 0}
+      onClose={onClose}
+      title="削除の確認"
+      centered
+      closeOnClickOutside={!isDeleting}
+      closeOnEscape={!isDeleting}
+      withCloseButton={!isDeleting}
+    >
+      <Stack gap="md">
+        <Text>{getMessage()}</Text>
+        {hasFolder && (
+          <Text fw={700} c="dimmed">
+            フォルダ内のすべてのファイルも削除されます。
+          </Text>
+        )}
+        <Group justify="flex-end" gap="sm">
+          <Button variant="default" onClick={onClose} disabled={isDeleting} data-autofocus>
+            キャンセル
+          </Button>
+          <Button color="red" onClick={handleDelete} loading={isDeleting}>
+            削除
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 }

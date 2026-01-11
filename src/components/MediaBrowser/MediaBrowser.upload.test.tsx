@@ -176,7 +176,9 @@ describe("MediaBrowser Upload Tests", () => {
       const createFolderButton = screen.getByRole("button", { name: /フォルダを作成/ });
       fireEvent.click(createFolderButton);
 
-      expect(screen.getByText("新しいフォルダを作成")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("新しいフォルダを作成")).toBeInTheDocument();
+      });
     });
 
     it("should create folder and refresh list", async () => {
@@ -199,8 +201,13 @@ describe("MediaBrowser Upload Tests", () => {
       // Open dialog
       fireEvent.click(screen.getByRole("button", { name: /フォルダを作成/ }));
 
+      // Wait for modal to open
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("フォルダ名")).toBeInTheDocument();
+      });
+
       // Type folder name
-      const input = screen.getByLabelText("フォルダ名");
+      const input = screen.getByPlaceholderText("フォルダ名");
       fireEvent.change(input, { target: { value: "newfolder" } });
 
       // Submit
