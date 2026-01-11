@@ -7,6 +7,7 @@ import { useStorageOperations } from "../../hooks/useStorageOperations";
 import { useSelection } from "../../hooks/useSelection";
 import { useMoveDialog } from "../../hooks/useMoveDialog";
 import { useSortOrder } from "../../hooks/useSortOrder";
+import { useDeleteConfirm } from "../../hooks/useDeleteConfirm";
 import { sortStorageItems } from "../../hooks/sortStorageItems";
 import type { StorageItem } from "../../types/storage";
 import { Header } from "./Header";
@@ -39,9 +40,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     items,
     loading: storageLoading,
     error: storageError,
-    removeItem,
     removeItems,
-    isDeleting,
     createFolder,
     refresh,
     getFileUrl,
@@ -93,9 +92,19 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     isAtRoot: currentPath === "",
   });
 
+  // Delete confirm dialog management (Jotai-based)
+  const {
+    itemsToDelete,
+    isDeleting,
+    isOpen: isDeleteConfirmOpen,
+    requestDelete,
+    cancelDelete,
+    startDeleting,
+    finishDeleting,
+  } = useDeleteConfirm();
+
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState<number | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   // RenameDialog state with key for remount（禁止用途 useEffect 排除のため）
   const [renameDialogState, setRenameDialogState] = useState<{
     target: StorageItem | null;
@@ -134,19 +143,32 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     }
   };
 
-  const handleDeleteFromPreview = async (item: StorageItem) => {
-    await removeItem(item.key);
-    setCurrentPreviewIndex(null);
-  };
-
+  // Header の選択削除ボタンからの削除リクエスト
   const handleDeleteSelected = () => {
-    setShowDeleteConfirm(true);
+    requestDelete(selectedItems);
   };
 
+  // 削除確認ダイアログで「削除」を押した時の処理
   const handleConfirmDelete = async () => {
-    await removeItems(selectedItems);
-    setShowDeleteConfirm(false);
-    exitSelectionMode();
+    const wasFromSelection =
+      selectedItems.length > 0 &&
+      selectedItems.every((item) => itemsToDelete.some((d) => d.key === item.key));
+
+    startDeleting();
+    try {
+      await removeItems(itemsToDelete);
+      finishDeleting();
+
+      // 一括選択からの削除の場合は選択モードを終了
+      if (wasFromSelection) {
+        exitSelectionMode();
+      }
+
+      await refresh();
+    } catch (error) {
+      finishDeleting();
+      throw error;
+    }
   };
 
   const handleRename = async (item: StorageItem) => {
@@ -195,15 +217,14 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     }
   }, [contextMenuState.item]);
 
-  const handleContextMenuDelete = useCallback(async () => {
+  // ContextMenu からの削除リクエスト（確認ダイアログを表示）
+  const handleContextMenuDelete = useCallback(() => {
     // item を先にキャプチャ（onClose 後に状態が更新されても安全）
     const item = contextMenuState.item;
     if (item) {
-      // removeItems を使用してフォルダ配下のコンテンツも削除
-      await removeItems([item]);
-      await refresh();
+      requestDelete([item]);
     }
-  }, [contextMenuState.item, removeItems, refresh]);
+  }, [contextMenuState.item, requestDelete]);
 
   // 一括移動（Headerの移動ボタンから呼ばれる）
   const handleMoveSelected = () => {
@@ -310,7 +331,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         currentIndex={currentPreviewIndex ?? 0}
         onIndexChange={setCurrentPreviewIndex}
         getFileUrl={getFileUrl}
-        onDelete={handleDeleteFromPreview}
         onRename={async (item) => {
           setCurrentPreviewIndex(null);
           await refresh();
@@ -322,10 +342,10 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         }}
       />
 
-      {showDeleteConfirm && (
+      {isDeleteConfirmOpen && (
         <DeleteConfirmDialog
-          items={selectedItems}
-          onClose={() => setShowDeleteConfirm(false)}
+          items={itemsToDelete}
+          onClose={cancelDelete}
           onConfirm={handleConfirmDelete}
           isDeleting={isDeleting}
         />

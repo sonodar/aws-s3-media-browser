@@ -39,3 +39,17 @@ export {
   setSortOrderAtom,
   toggleSortOrderAtom,
 } from "./sort";
+
+// Delete Confirm Domain
+export {
+  // Primitive atoms
+  itemsToDeleteAtom,
+  isDeletingAtom,
+  // Derived atoms
+  isDeleteConfirmOpenAtom,
+  // Action atoms
+  requestDeleteAtom,
+  cancelDeleteAtom,
+  startDeletingAtom,
+  finishDeletingAtom,
+} from "./deleteConfirm";
