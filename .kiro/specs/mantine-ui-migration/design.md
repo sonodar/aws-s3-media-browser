@@ -406,7 +406,7 @@ useEffect(() => {
 
 ---
 
-### Component 6: Progress 表示（新規追加）
+### ~~Component 6: Progress 表示（新規追加）~~ (スコープアウト)
 
 **対象**: RenameDialog, MoveDialog
 

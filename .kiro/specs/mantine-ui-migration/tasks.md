@@ -17,8 +17,8 @@
 | 5                  | ファイルリストのグリッドレイアウト移行  | 1.3, 2.5           |
 | 6                  | ソートセレクターの移行                  | 2.6                |
 | 7                  | サムネイル画像コンポーネントの移行      | 5.1                |
-| 8（進捗表示）      | 進捗表示コンポーネントの導入            | 4.1-4.2            |
-| 9（エラー・成功）  | エラー・成功メッセージの改善            | 4.3-4.4            |
+| 8（進捗表示）      | 進捗表示コンポーネントの導入            | スコープアウト     |
+| 9（エラー・成功）  | エラー・成功メッセージの改善            | 4.1-4.2            |
 | 10（実装順序）     | 実装順序の制約                          | 全タスク順序       |
 | 11（既存機能維持） | 既存機能の維持                          | 各フェーズ末テスト |
 | 12（hooks）        | Mantine フックによる useEffect 削減     | 3.1-3.4, 5.1       |
@@ -185,33 +185,8 @@
 
 ### Phase 4: 新規要素の追加
 
-- [ ] 4. Progress, Alert, Notification コンポーネントの導入
-- [ ] 4.1 (P) RenameDialog に Progress コンポーネントを追加
-  - フォルダリネーム時の進捗表示を Progress コンポーネントで実装
-  - value プロパティで進捗率（current/total \* 100）を表示
-  - animated プロパティでアニメーション効果を追加
-  - Text コンポーネントで「X / Y 件処理中...」を併記
-  - 既存の progress-message スタイルを Mantine に置き換え
-  - 不要になった class の削除
-    - git diff を確認し、削除された className を特定する
-    - 特定した className が src 全体で使われていないことを `rg` で確認する
-    - 使われていない CSS クラスを CSS ファイルから削除する
-    - 不要になった CSS ファイルがあれば削除する
-  - npm run check-all が通ることを確認
-  - _Requirements: 8_
-
-- [ ] 4.2 (P) MoveDialog に Progress コンポーネントを追加
-  - 移動処理時の進捗表示を Progress コンポーネントで実装
-  - 進捗テキストを Text コンポーネントで表示
-  - 不要になった class の削除
-    - git diff を確認し、削除された className を特定する
-    - 特定した className が src 全体で使われていないことを `rg` で確認する
-    - 使われていない CSS クラスを CSS ファイルから削除する
-    - 不要になった CSS ファイルがあれば削除する
-  - npm run check-all が通ることを確認
-  - _Requirements: 8_
-
-- [ ] 4.3 (P) ダイアログ内エラー表示を Alert に移行
+- [ ] 4. Alert, Notification コンポーネントの導入
+- [ ] 4.1 (P) ダイアログ内エラー表示を Alert に移行
   - RenameDialog のエラー詳細表示を Alert コンポーネントに置き換え
   - MoveDialog のエラーメッセージを Alert コンポーネントに置き換え
   - color="red" とアイコン（AlertCircle）でエラー状態を明示
@@ -224,7 +199,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 9_
 
-- [ ] 4.4 (P) MoveDialog に成功通知を追加
+- [ ] 4.2 (P) MoveDialog に成功通知を追加
   - 移動成功時に Notification コンポーネントで成功メッセージを表示
   - color="green" と CheckCircle アイコンで成功状態を明示
   - onClose でユーザーが手動で閉じられるようにする
@@ -237,9 +212,7 @@
   - npm run check-all が通ることを確認
   - _Requirements: 9_
 
-- [ ] 4.5 Phase 4 の動作確認とテスト実行
-  - フォルダリネーム時の進捗表示確認
-  - ファイル移動時の進捗表示確認
+- [ ] 4.3 Phase 4 の動作確認とテスト実行
   - エラー発生時の Alert 表示確認
   - 成功時の Notification 表示確認
   - _Requirements: 10, 11_
