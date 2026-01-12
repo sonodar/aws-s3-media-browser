@@ -43,11 +43,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     removeItems,
     createFolder,
     refresh,
-    getFileUrl,
     renameItem,
     renameFolder,
     moveItems,
-    listFolders,
   } = useStorageOperations({ identityId, currentPath });
 
   // Selection management
@@ -330,7 +328,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         items={previewableItems}
         currentIndex={currentPreviewIndex ?? 0}
         onIndexChange={setCurrentPreviewIndex}
-        getFileUrl={getFileUrl}
         onRename={async (item) => {
           setCurrentPreviewIndex(null);
           await refresh();
@@ -369,9 +366,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         items={itemsToMove}
         currentPath={fullCurrentPath}
         rootPath={rootPath}
+        identityId={identityId}
         onClose={handleMoveComplete}
         onMove={moveItems}
-        listFolders={listFolders}
       />
 
       <ContextMenu

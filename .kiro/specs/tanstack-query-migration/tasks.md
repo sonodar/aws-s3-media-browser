@@ -80,28 +80,28 @@
 
 ### Phase 2-3: Storage UI
 
-- [ ] 5. フォルダ選択の TanStack Query 化
-- [ ] 5.1 (P) useFolderList フックの実装
+- [x] 5. フォルダ選択の TanStack Query 化
+- [x] 5.1 (P) useFolderList フックの実装
   - useQuery で指定パスのフォルダ一覧を取得する
   - queryKey に identityId と path を含める
   - フォルダのみをフィルタリングして返す（isFolder: true）
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 5.2 FolderBrowser コンポーネントの置換
+- [x] 5.2 FolderBrowser コンポーネントの置換
   - 既存の useEffect + useState を useFolderList に置換する
   - MoveDialog が開いているときのみ enabled: true にする
   - ローディング中は isLoading でローディング UI を表示する
   - _Requirements: 4.4_
 
-- [ ] 6. プレビュー URL の TanStack Query 化
-- [ ] 6.1 (P) usePreviewUrls フックの実装
+- [x] 6. プレビュー URL の TanStack Query 化
+- [x] 6.1 (P) usePreviewUrls フックの実装
   - useQuery でプレビュー対象アイテムの署名付き URL を並列取得する
   - queryKey にアイテムキーを含める
   - Lightbox 用の Slide 配列を返す（画像/動画の type 変換含む）
   - staleTime: 10分（署名付き URL の有効期限を考慮）
   - _Requirements: 5.1, 5.2, 5.3_
 
-- [ ] 6.2 PreviewModal コンポーネントの置換
+- [x] 6.2 PreviewModal コンポーネントの置換
   - 既存の useEffect + useState を usePreviewUrls に置換する
   - プレビューモーダルが開いているときのみ enabled: true にする
   - ローディング中は isLoading でローディング UI を表示する

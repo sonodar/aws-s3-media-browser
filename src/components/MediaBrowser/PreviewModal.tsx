@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
-import Lightbox, { type Slide } from "yet-another-react-lightbox";
+import Lightbox from "yet-another-react-lightbox";
 import Video from "yet-another-react-lightbox/plugins/video";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import { Pencil, Trash2, FolderInput } from "lucide-react";
 import "yet-another-react-lightbox/styles.css";
 import type { StorageItem } from "../../types/storage";
-import { isImageFile, isVideoFile } from "../../utils/fileTypes";
 import { useDeleteConfirm } from "../../hooks/ui";
+import { usePreviewUrls } from "../../hooks/storage";
 import "./PreviewModal.css";
 
 /** Props for single-item mode (legacy) */
@@ -17,7 +16,6 @@ interface SingleItemProps {
   items?: never;
   currentIndex?: never;
   onIndexChange?: never;
-  getFileUrl: (key: string) => Promise<string>;
   onRename?: (item: StorageItem) => void;
   onMove?: (item: StorageItem) => void;
 }
@@ -30,7 +28,6 @@ interface MultiSlideProps {
   items: StorageItem[];
   currentIndex: number;
   onIndexChange: (index: number) => void;
-  getFileUrl: (key: string) => Promise<string>;
   onRename?: (item: StorageItem) => void;
   onMove?: (item: StorageItem) => void;
 }
@@ -50,7 +47,7 @@ function isMultiSlideMode(props: PreviewModalProps): props is MultiSlideProps {
 }
 
 export function PreviewModal(props: PreviewModalProps) {
-  const { isOpen, onClose, getFileUrl, onRename, onMove } = props;
+  const { isOpen, onClose, onRename, onMove } = props;
   const { requestDelete } = useDeleteConfirm();
 
   // Determine mode and derive current item
@@ -60,47 +57,8 @@ export function PreviewModal(props: PreviewModalProps) {
   const onIndexChange = isMulti ? props.onIndexChange : undefined;
   const currentItem = items[currentIndex] ?? null;
 
-  const [slides, setSlides] = useState<Slide[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (items.length === 0 || !isOpen) {
-      setSlides([]);
-      return;
-    }
-
-    const loadUrls = async () => {
-      setLoading(true);
-      try {
-        const slidePromises = items.map(async (storageItem) => {
-          const url = await getFileUrl(storageItem.key);
-
-          if (isImageFile(storageItem.name)) {
-            return { src: url } as Slide;
-          } else if (isVideoFile(storageItem.name)) {
-            return {
-              type: "video" as const,
-              width: 1280,
-              height: 720,
-              sources: [{ src: url, type: "video/mp4" }],
-            } as Slide;
-          }
-          return null;
-        });
-
-        const loadedSlides = (await Promise.all(slidePromises)).filter(
-          (slide): slide is Slide => slide !== null,
-        );
-        setSlides(loadedSlides);
-      } catch (error: unknown) {
-        console.error("Failed to load file URLs:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUrls();
-  }, [items, isOpen, getFileUrl]);
+  // usePreviewUrls フックで署名付き URL を取得
+  const { slides, isLoading: loading } = usePreviewUrls(items, { enabled: isOpen });
 
   // 削除ボタンクリック時: Jotai atoms を通じて DeleteConfirmDialog を表示させる
   const handleDeleteClick = () => {

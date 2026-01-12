@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { list, remove, uploadData, getUrl, copy } from "aws-amplify/storage";
+import { list, remove, uploadData, copy } from "aws-amplify/storage";
 import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../../utils/pathUtils";
 import { useStorageItems } from "./useStorageItems";
 import { queryKeys } from "../../stores/queryKeys";
@@ -87,7 +87,6 @@ export interface UseStorageOperationsReturn {
   /** 削除処理中フラグ */
   isDeleting: boolean;
   createFolder: (name: string) => Promise<void>;
-  getFileUrl: (key: string) => Promise<string>;
   refresh: () => Promise<void>;
   /**
    * 単一ファイルをリネームする
@@ -119,11 +118,6 @@ export interface UseStorageOperationsReturn {
     destinationPath: string,
     onProgress?: (progress: MoveProgress) => void,
   ) => Promise<MoveResult>;
-  /**
-   * 指定パス配下のフォルダ一覧を取得する
-   * @param path 取得対象パス
-   */
-  listFolders: (path: string) => Promise<StorageItem[]>;
   /** 移動処理中フラグ */
   isMoving: boolean;
 }
@@ -274,11 +268,6 @@ export function useStorageOperations({
     },
     [getBasePath, invalidateItems],
   );
-
-  const getFileUrl = useCallback(async (key: string): Promise<string> => {
-    const result = await getUrl({ path: key });
-    return result.url.toString();
-  }, []);
 
   const refresh = useCallback((): Promise<void> => {
     return invalidateItems();
@@ -469,55 +458,6 @@ export function useStorageOperations({
   );
 
   /**
-   * 指定パス配下のフォルダ一覧を取得する
-   */
-  const listFolders = useCallback(async (path: string): Promise<StorageItem[]> => {
-    const result = await list({
-      path,
-      options: { listAll: true },
-    });
-
-    // パス直下のフォルダのみを抽出
-    const folders: StorageItem[] = [];
-    const seen = new Set<string>();
-
-    for (const item of result.items) {
-      const relativePath = item.path.slice(path.length);
-      const slashIndex = relativePath.indexOf("/");
-
-      if (slashIndex > 0) {
-        // フォルダ配下のアイテム → フォルダとして抽出
-        const folderName = relativePath.slice(0, slashIndex);
-        const folderKey = `${path}${folderName}/`;
-
-        if (!seen.has(folderKey)) {
-          seen.add(folderKey);
-          folders.push({
-            key: folderKey,
-            name: folderName,
-            type: "folder",
-          });
-        }
-      } else if (relativePath.endsWith("/") && relativePath.length > 0) {
-        // フォルダオブジェクト自体
-        const folderName = relativePath.slice(0, -1);
-        const folderKey = `${path}${folderName}/`;
-
-        if (!seen.has(folderKey)) {
-          seen.add(folderKey);
-          folders.push({
-            key: folderKey,
-            name: folderName,
-            type: "folder",
-          });
-        }
-      }
-    }
-
-    return folders;
-  }, []);
-
-  /**
    * ファイル/フォルダを別のフォルダに移動する
    */
   const moveItems = useCallback(
@@ -651,13 +591,11 @@ export function useStorageOperations({
     removeItems,
     isDeleting,
     createFolder,
-    getFileUrl,
     refresh,
     renameItem,
     renameFolder,
     isRenaming,
     moveItems,
-    listFolders,
     isMoving,
   };
 }

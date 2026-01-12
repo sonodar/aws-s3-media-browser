@@ -8,7 +8,6 @@ vi.mock("aws-amplify/storage", () => ({
   list: vi.fn(),
   remove: vi.fn(),
   uploadData: vi.fn(),
-  getUrl: vi.fn(),
   copy: vi.fn(),
 }));
 
@@ -17,7 +16,7 @@ vi.mock("aws-amplify/auth", () => ({
   fetchAuthSession: vi.fn(),
 }));
 
-import { list, remove, uploadData, getUrl, copy } from "aws-amplify/storage";
+import { list, remove, uploadData, copy } from "aws-amplify/storage";
 
 describe("useStorageOperations", () => {
   const identityId = "test-identity-id";
@@ -243,32 +242,6 @@ describe("useStorageOperations", () => {
         path: `media/${identityId}/photos/travel/japan/`,
         data: "",
       });
-    });
-  });
-
-  describe("getFileUrl", () => {
-    it("should return signed URL for file", async () => {
-      vi.mocked(list).mockResolvedValue({ items: [] });
-      vi.mocked(getUrl).mockResolvedValue({
-        url: new URL("https://s3.amazonaws.com/bucket/file.jpg?signed=xxx"),
-        expiresAt: new Date(),
-      });
-
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
-        wrapper: TestProvider,
-      });
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      let url: string = "";
-      await act(async () => {
-        url = await result.current.getFileUrl("some/key/file.jpg");
-      });
-
-      expect(getUrl).toHaveBeenCalledWith({ path: "some/key/file.jpg" });
-      expect(url).toBe("https://s3.amazonaws.com/bucket/file.jpg?signed=xxx");
     });
   });
 
@@ -1315,66 +1288,6 @@ describe("useStorageOperations", () => {
 
       // Initial + duplicate check + refresh after move
       expect(list).toHaveBeenCalledTimes(3);
-    });
-  });
-
-  describe("listFolders", () => {
-    const basePath = `media/${identityId}/`;
-
-    it("should return only folders from the specified path", async () => {
-      vi.mocked(list)
-        .mockResolvedValueOnce({ items: [] }) // Initial hook mount
-        .mockResolvedValueOnce({
-          items: [
-            { path: `${basePath}photos/`, size: 0, lastModified: new Date() },
-            { path: `${basePath}archive/`, size: 0, lastModified: new Date() },
-            { path: `${basePath}file.jpg`, size: 1024, lastModified: new Date() },
-            { path: `${basePath}document.pdf`, size: 2048, lastModified: new Date() },
-          ],
-        });
-
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
-        wrapper: TestProvider,
-      });
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      let folders: Array<{ key: string; name: string; type: string }>;
-      await act(async () => {
-        folders = await result.current.listFolders(basePath);
-      });
-
-      expect(folders!).toHaveLength(2);
-      expect(folders!.every((f) => f.type === "folder")).toBe(true);
-      // Order may vary, use toContain for both
-      const folderNames = folders!.map((f) => f.name);
-      expect(folderNames).toContain("photos");
-      expect(folderNames).toContain("archive");
-    });
-
-    it("should return empty array when no folders exist", async () => {
-      vi.mocked(list)
-        .mockResolvedValueOnce({ items: [] }) // Initial
-        .mockResolvedValueOnce({
-          items: [{ path: `${basePath}file.jpg`, size: 1024, lastModified: new Date() }],
-        });
-
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
-        wrapper: TestProvider,
-      });
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      let folders: Array<{ key: string; name: string; type: string }>;
-      await act(async () => {
-        folders = await result.current.listFolders(basePath);
-      });
-
-      expect(folders!).toHaveLength(0);
     });
   });
 });

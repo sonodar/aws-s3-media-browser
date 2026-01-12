@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PreviewModal } from "./PreviewModal";
+import { TestProvider } from "../../stores/testProvider";
 import type { StorageItem } from "../../types/storage";
 
 // Mock useDeleteConfirm hook
@@ -16,6 +17,17 @@ vi.mock("../../hooks/ui", () => ({
     finishDeleting: vi.fn(),
   }),
 }));
+
+// Mock usePreviewUrls hook
+vi.mock("../../hooks/storage", async () => {
+  const actual = await vi.importActual("../../hooks/storage");
+  return {
+    ...actual,
+    usePreviewUrls: vi.fn(),
+  };
+});
+
+import { usePreviewUrls } from "../../hooks/storage";
 
 // Variables to capture Lightbox props
 let capturedProps: {
@@ -89,7 +101,7 @@ vi.mock("yet-another-react-lightbox/plugins/zoom", () => ({
 describe("PreviewModal", () => {
   const mockOnClose = vi.fn();
   const mockOnRename = vi.fn();
-  const mockGetFileUrl = vi.fn();
+  const mockUsePreviewUrls = vi.mocked(usePreviewUrls);
 
   const mockFileItem: StorageItem = {
     key: "photos/test-image.jpg",
@@ -101,7 +113,13 @@ describe("PreviewModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetFileUrl.mockResolvedValue("https://example.com/test-image.jpg");
+    // Default mock: slides loaded
+    mockUsePreviewUrls.mockReturnValue({
+      slides: [{ src: "https://example.com/test-image.jpg" }],
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
   });
 
   describe("Rename Button", () => {
@@ -111,9 +129,9 @@ describe("PreviewModal", () => {
           isOpen={true}
           onClose={mockOnClose}
           item={mockFileItem}
-          getFileUrl={mockGetFileUrl}
           onRename={mockOnRename}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -125,14 +143,9 @@ describe("PreviewModal", () => {
     });
 
     it("should not display rename button when onRename is not provided", async () => {
-      render(
-        <PreviewModal
-          isOpen={true}
-          onClose={mockOnClose}
-          item={mockFileItem}
-          getFileUrl={mockGetFileUrl}
-        />,
-      );
+      render(<PreviewModal isOpen={true} onClose={mockOnClose} item={mockFileItem} />, {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId("lightbox")).toBeInTheDocument();
@@ -148,9 +161,9 @@ describe("PreviewModal", () => {
           isOpen={true}
           onClose={mockOnClose}
           item={mockFileItem}
-          getFileUrl={mockGetFileUrl}
           onRename={mockOnRename}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -175,6 +188,22 @@ describe("PreviewModal", () => {
 
     beforeEach(() => {
       capturedProps = {};
+      // Mock slides for multiple items
+      mockUsePreviewUrls.mockReturnValue({
+        slides: [
+          { src: "https://example.com/image1.jpg" },
+          { src: "https://example.com/image2.jpg" },
+          {
+            type: "video",
+            width: 1280,
+            height: 720,
+            sources: [{ src: "https://example.com/video.mp4", type: "video/mp4" }],
+          },
+        ],
+        isLoading: false,
+        isError: false,
+        error: null,
+      });
     });
 
     it("should accept items, currentIndex, and onIndexChange props", async () => {
@@ -185,8 +214,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={0}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -205,8 +234,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={1}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -224,8 +253,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={1}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -245,8 +274,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={0}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -264,8 +293,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={0}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -283,8 +312,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={1}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -302,8 +331,8 @@ describe("PreviewModal", () => {
           items={mockItems}
           currentIndex={1}
           onIndexChange={mockOnIndexChange}
-          getFileUrl={mockGetFileUrl}
         />,
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -317,6 +346,57 @@ describe("PreviewModal", () => {
       // Should call onClose first, then requestDelete with the current item
       expect(mockOnClose).toHaveBeenCalled();
       expect(mockRequestDelete).toHaveBeenCalledWith([mockItems[1]]);
+    });
+  });
+
+  describe("usePreviewUrls integration", () => {
+    it("should call usePreviewUrls with items and enabled option", () => {
+      const items: StorageItem[] = [{ key: "photos/test.jpg", name: "test.jpg", type: "file" }];
+
+      render(
+        <PreviewModal
+          isOpen={true}
+          onClose={mockOnClose}
+          items={items}
+          currentIndex={0}
+          onIndexChange={vi.fn()}
+        />,
+        { wrapper: TestProvider },
+      );
+
+      expect(mockUsePreviewUrls).toHaveBeenCalledWith(items, { enabled: true });
+    });
+
+    it("should call usePreviewUrls with enabled: false when isOpen is false", () => {
+      const items: StorageItem[] = [{ key: "photos/test.jpg", name: "test.jpg", type: "file" }];
+
+      render(
+        <PreviewModal
+          isOpen={false}
+          onClose={mockOnClose}
+          items={items}
+          currentIndex={0}
+          onIndexChange={vi.fn()}
+        />,
+        { wrapper: TestProvider },
+      );
+
+      expect(mockUsePreviewUrls).toHaveBeenCalledWith(items, { enabled: false });
+    });
+
+    it("should show loading state when isLoading is true", () => {
+      mockUsePreviewUrls.mockReturnValue({
+        slides: [],
+        isLoading: true,
+        isError: false,
+        error: null,
+      });
+
+      render(<PreviewModal isOpen={true} onClose={mockOnClose} item={mockFileItem} />, {
+        wrapper: TestProvider,
+      });
+
+      expect(screen.getByText("読み込み中...")).toBeInTheDocument();
     });
   });
 });
