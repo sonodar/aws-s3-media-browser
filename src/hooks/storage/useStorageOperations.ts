@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { list, remove, uploadData, getUrl, copy } from "aws-amplify/storage";
 import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../../utils/pathUtils";
-import { parseStorageItems } from "./parseStorageItems";
+import { useStorageItems } from "./useStorageItems";
+import { queryKeys } from "../../stores/queryKeys";
 import type { StorageItem } from "../../types/storage";
 
 export interface UseStorageOperationsProps {
@@ -133,10 +135,11 @@ export function useStorageOperations({
   identityId,
   currentPath,
 }: UseStorageOperationsProps): UseStorageOperationsReturn {
-  const [items, setItems] = useState<StorageItem[]>([]);
-  // Start loading if identityId is provided (will fetch on mount)
-  const [loading, setLoading] = useState(!!identityId);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
+
+  // TanStack Query を使用したストレージアイテム取得
+  const { items, isLoading: loading, error } = useStorageItems(identityId, currentPath);
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
@@ -147,35 +150,15 @@ export function useStorageOperations({
     return currentPath ? `${base}${currentPath}/` : base;
   }, [identityId, currentPath]);
 
-  const fetchItems = useCallback(async () => {
-    const basePath = getBasePath();
-    if (!basePath) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await list({
-        path: basePath,
-        options: { listAll: true },
-      });
-
-      const parsed = parseStorageItems(result.items, basePath);
-      setItems(parsed);
-    } catch (err: unknown) {
-      console.error("Failed to fetch storage items:", err);
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  }, [getBasePath]);
-
-  // Fetch items when identityId or currentPath changes
-  useEffect(() => {
-    if (identityId) {
-      fetchItems();
-    }
-  }, [identityId, currentPath, fetchItems]);
+  /**
+   * キャッシュを無効化してアイテム一覧を再取得
+   */
+  const invalidateItems = useCallback(async () => {
+    if (!identityId) return;
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.items(identityId, currentPath),
+    });
+  }, [queryClient, identityId, currentPath]);
 
   const uploadFiles = useCallback(
     async (files: File[]): Promise<string[]> => {
@@ -193,18 +176,18 @@ export function useStorageOperations({
         ),
       );
 
-      await fetchItems();
+      await invalidateItems();
       return uploadedKeys;
     },
-    [getBasePath, fetchItems],
+    [getBasePath, invalidateItems],
   );
 
   const removeItem = useCallback(
     async (key: string) => {
       await remove({ path: key });
-      await fetchItems();
+      await invalidateItems();
     },
-    [fetchItems],
+    [invalidateItems],
   );
 
   /**
@@ -267,14 +250,14 @@ export function useStorageOperations({
         });
 
         // 削除後にリストを更新
-        await fetchItems();
+        await invalidateItems();
 
         return { succeeded, failed };
       } finally {
         setIsDeleting(false);
       }
     },
-    [listFolderContents, fetchItems],
+    [listFolderContents, invalidateItems],
   );
 
   const createFolder = useCallback(
@@ -287,9 +270,9 @@ export function useStorageOperations({
         path: folderPath,
         data: "",
       });
-      await fetchItems();
+      await invalidateItems();
     },
-    [getBasePath, fetchItems],
+    [getBasePath, invalidateItems],
   );
 
   const getFileUrl = useCallback(async (key: string): Promise<string> => {
@@ -298,8 +281,8 @@ export function useStorageOperations({
   }, []);
 
   const refresh = useCallback((): Promise<void> => {
-    return fetchItems();
-  }, [fetchItems]);
+    return invalidateItems();
+  }, [invalidateItems]);
 
   /**
    * 単一ファイルをリネームする
@@ -357,14 +340,14 @@ export function useStorageOperations({
         }
 
         // 一覧を更新
-        await fetchItems();
+        await invalidateItems();
 
         return { success: true, warning };
       } finally {
         setIsRenaming(false);
       }
     },
-    [fetchItems],
+    [invalidateItems],
   );
 
   /**
@@ -466,7 +449,7 @@ export function useStorageOperations({
         }
 
         // 一覧を更新
-        await fetchItems();
+        await invalidateItems();
 
         if (failed > 0) {
           return {
@@ -482,7 +465,7 @@ export function useStorageOperations({
         setIsRenaming(false);
       }
     },
-    [fetchItems],
+    [invalidateItems],
   );
 
   /**
@@ -640,7 +623,7 @@ export function useStorageOperations({
         }
 
         // 一覧を更新
-        await fetchItems();
+        await invalidateItems();
 
         if (failed > 0) {
           return {
@@ -656,7 +639,7 @@ export function useStorageOperations({
         setIsMoving(false);
       }
     },
-    [listFolderContents, fetchItems],
+    [listFolderContents, invalidateItems],
   );
 
   return {

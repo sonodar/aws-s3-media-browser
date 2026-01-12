@@ -65,14 +65,14 @@
 
 ### Phase 2-2: Storage Read
 
-- [ ] 4. ストレージ一覧取得の TanStack Query 化
-- [ ] 4.1 useStorageItems フックの実装
+- [x] 4. ストレージ一覧取得の TanStack Query 化
+- [x] 4.1 useStorageItems フックの実装
   - useQuery で現在のパスにあるファイル/フォルダ一覧を取得する
   - queryKey に identityId と currentPath を含める
   - enabled: !!identityId で identityId 取得まで待機する
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 4.2 useStorageOperations の Read 部分置換
+- [x] 4.2 useStorageOperations の Read 部分置換
   - 既存の fetchItems ロジック（useState + useEffect）を useStorageItems に置換する
   - ファイル操作後は invalidateQueries でファイル一覧を再取得する
   - Write 操作（upload, delete, move, rename, createFolder）は既存のまま維持する

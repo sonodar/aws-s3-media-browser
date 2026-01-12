@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useStorageOperations } from "./useStorageOperations";
+import { TestProvider } from "../../stores/testProvider";
 
 // Mock aws-amplify/storage
 vi.mock("aws-amplify/storage", () => ({
@@ -30,7 +31,9 @@ describe("useStorageOperations", () => {
     it("should start with loading true when identityId is provided", () => {
       vi.mocked(list).mockImplementation(() => new Promise(() => {}));
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       expect(result.current.loading).toBe(true);
       expect(result.current.items).toEqual([]);
@@ -38,7 +41,9 @@ describe("useStorageOperations", () => {
     });
 
     it("should not fetch when identityId is null", () => {
-      const { result } = renderHook(() => useStorageOperations({ identityId: null, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId: null, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       expect(result.current.loading).toBe(false);
       expect(result.current.items).toEqual([]);
@@ -56,7 +61,9 @@ describe("useStorageOperations", () => {
         ],
       });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -71,7 +78,9 @@ describe("useStorageOperations", () => {
       const mockError = new Error("Network error");
       vi.mocked(list).mockRejectedValue(mockError);
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -85,7 +94,7 @@ describe("useStorageOperations", () => {
 
       const { result, rerender } = renderHook(
         ({ path }) => useStorageOperations({ identityId, currentPath: path }),
-        { initialProps: { path: "" } },
+        { initialProps: { path: "" }, wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -110,7 +119,9 @@ describe("useStorageOperations", () => {
         result: Promise.resolve({}),
       } as never);
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -138,7 +149,9 @@ describe("useStorageOperations", () => {
         result: Promise.resolve({}),
       } as never);
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -160,7 +173,9 @@ describe("useStorageOperations", () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -184,7 +199,9 @@ describe("useStorageOperations", () => {
         result: Promise.resolve({}),
       } as never);
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -209,8 +226,9 @@ describe("useStorageOperations", () => {
         result: Promise.resolve({}),
       } as never);
 
-      const { result } = renderHook(() =>
-        useStorageOperations({ identityId, currentPath: "photos/travel" }),
+      const { result } = renderHook(
+        () => useStorageOperations({ identityId, currentPath: "photos/travel" }),
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -236,7 +254,9 @@ describe("useStorageOperations", () => {
         expiresAt: new Date(),
       });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -256,7 +276,9 @@ describe("useStorageOperations", () => {
     it("should refetch items when called", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -276,7 +298,9 @@ describe("useStorageOperations", () => {
     it("should construct correct basePath for root", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
-      renderHook(() => useStorageOperations({ identityId, currentPath: "" }));
+      renderHook(() => useStorageOperations({ identityId, currentPath: "" }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(list).toHaveBeenCalledWith({
@@ -289,7 +313,9 @@ describe("useStorageOperations", () => {
     it("should construct correct basePath for nested path", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 
-      renderHook(() => useStorageOperations({ identityId, currentPath: "photos/vacation" }));
+      renderHook(() => useStorageOperations({ identityId, currentPath: "photos/vacation" }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(list).toHaveBeenCalledWith({
@@ -305,7 +331,9 @@ describe("useStorageOperations", () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -327,7 +355,9 @@ describe("useStorageOperations", () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -357,7 +387,9 @@ describe("useStorageOperations", () => {
         .mockRejectedValueOnce(mockError)
         .mockResolvedValueOnce({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -398,7 +430,9 @@ describe("useStorageOperations", () => {
 
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -437,7 +471,9 @@ describe("useStorageOperations", () => {
         .mockResolvedValueOnce({ path: "test" })
         .mockRejectedValueOnce(new Error("NotFound"));
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -464,7 +500,9 @@ describe("useStorageOperations", () => {
           }),
       );
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -494,7 +532,9 @@ describe("useStorageOperations", () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -527,7 +567,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: `${basePath}new.jpg` });
       vi.mocked(remove).mockResolvedValue({ path: `${basePath}old.jpg` });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -554,7 +596,9 @@ describe("useStorageOperations", () => {
         // Check for duplicate - file exists
         .mockResolvedValueOnce({ items: [{ path: `${basePath}new.jpg`, size: 100 }] });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -579,7 +623,9 @@ describe("useStorageOperations", () => {
         // Check for duplicate - API error
         .mockRejectedValueOnce(new Error("Network error"));
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -601,7 +647,9 @@ describe("useStorageOperations", () => {
 
       vi.mocked(copy).mockRejectedValueOnce(new Error("Copy failed"));
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -628,7 +676,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValueOnce({ path: `${basePath}new.jpg` });
       vi.mocked(remove).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -658,7 +708,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockReturnValueOnce(copyPromise);
       vi.mocked(remove).mockResolvedValueOnce({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -691,7 +743,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValueOnce({ path: `${basePath}new.jpg` });
       vi.mocked(remove).mockResolvedValueOnce({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -727,7 +781,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -758,7 +814,9 @@ describe("useStorageOperations", () => {
         .mockResolvedValueOnce({ items: [] }) // Check target prefix empty
         .mockResolvedValueOnce({ items: manyItems }); // List source - too many items
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -792,7 +850,9 @@ describe("useStorageOperations", () => {
           ],
         });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -819,7 +879,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -850,7 +912,9 @@ describe("useStorageOperations", () => {
         .mockRejectedValueOnce(new Error("Copy failed"));
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -889,7 +953,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -922,7 +988,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockReturnValue(copyPromise);
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -963,7 +1031,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -998,7 +1068,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1036,7 +1108,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1070,7 +1144,9 @@ describe("useStorageOperations", () => {
           items: [{ path: `${basePath}archive/file.jpg`, size: 100 }],
         });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1100,7 +1176,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1132,7 +1210,9 @@ describe("useStorageOperations", () => {
         .mockRejectedValueOnce(new Error("Copy failed"));
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1172,7 +1252,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockReturnValue(copyPromise);
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1213,7 +1295,9 @@ describe("useStorageOperations", () => {
       vi.mocked(copy).mockResolvedValue({ path: "test" });
       vi.mocked(remove).mockResolvedValue({ path: "test" });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1249,7 +1333,9 @@ describe("useStorageOperations", () => {
           ],
         });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -1275,7 +1361,9 @@ describe("useStorageOperations", () => {
           items: [{ path: `${basePath}file.jpg`, size: 1024, lastModified: new Date() }],
         });
 
-      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }));
+      const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

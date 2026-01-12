@@ -1,0 +1,157 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { useStorageItems } from "./useStorageItems";
+import { TestProvider } from "../../stores/testProvider";
+
+// Mock aws-amplify/storage
+vi.mock("aws-amplify/storage", () => ({
+  list: vi.fn(),
+}));
+
+// Mock aws-amplify/auth
+vi.mock("aws-amplify/auth", () => ({
+  fetchAuthSession: vi.fn(),
+}));
+
+import { list } from "aws-amplify/storage";
+
+describe("useStorageItems", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("initialization", () => {
+    it("should not fetch when identityId is null", () => {
+      const { result } = renderHook(() => useStorageItems(null, ""), {
+        wrapper: TestProvider,
+      });
+
+      expect(result.current.items).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
+      expect(list).not.toHaveBeenCalled();
+    });
+
+    it("should start loading when identityId is provided", () => {
+      vi.mocked(list).mockImplementation(() => new Promise(() => {}));
+
+      const { result } = renderHook(() => useStorageItems("test-identity-id", ""), {
+        wrapper: TestProvider,
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.items).toEqual([]);
+    });
+  });
+
+  describe("data fetching", () => {
+    it("should fetch and parse items correctly", async () => {
+      const basePath = "media/test-identity-id/";
+      vi.mocked(list).mockResolvedValue({
+        items: [
+          { path: `${basePath}photo.jpg`, size: 1024, lastModified: new Date() },
+          { path: `${basePath}folder/`, size: 0, lastModified: new Date() },
+        ],
+      });
+
+      const { result } = renderHook(() => useStorageItems("test-identity-id", ""), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.items).toHaveLength(2);
+      // フォルダが先に来る（ソート順）
+      expect(result.current.items[0].type).toBe("folder");
+      expect(result.current.items[1].type).toBe("file");
+    });
+
+    it("should set error when list fails", async () => {
+      const mockError = new Error("Network error");
+      vi.mocked(list).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => useStorageItems("test-identity-id", ""), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isError).toBe(true);
+      expect(result.current.error).toBe(mockError);
+    });
+  });
+
+  describe("queryKey dependencies", () => {
+    it("should call list with correct basePath for root", async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+
+      renderHook(() => useStorageItems("test-identity-id", ""), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(list).toHaveBeenCalledWith({
+          path: "media/test-identity-id/",
+          options: { listAll: true },
+        });
+      });
+    });
+
+    it("should call list with correct basePath for nested path", async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+
+      renderHook(() => useStorageItems("test-identity-id", "photos/vacation"), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(list).toHaveBeenCalledWith({
+          path: "media/test-identity-id/photos/vacation/",
+          options: { listAll: true },
+        });
+      });
+    });
+
+    it("should refetch when currentPath changes", async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+
+      const { rerender } = renderHook(({ path }) => useStorageItems("test-identity-id", path), {
+        initialProps: { path: "" },
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(list).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ path: "subfolder" });
+
+      await waitFor(() => {
+        expect(list).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe("cache behavior", () => {
+    it("should not refetch on rerender within same component (uses cache)", async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+
+      const { result, rerender } = renderHook(() => useStorageItems("test-identity-id", ""), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      rerender();
+      rerender();
+
+      // TanStack Query はキャッシュを使うので 1 回のみ fetch
+      expect(list).toHaveBeenCalledTimes(1);
+    });
+  });
+});
