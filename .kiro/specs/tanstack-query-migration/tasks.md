@@ -6,20 +6,20 @@
 
 ### Phase 2-1: 基盤 + Auth
 
-- [ ] 1. TanStack Query 基盤の構築
-- [ ] 1.1 パッケージのインストールと QueryClient 設定
+- [x] 1. TanStack Query 基盤の構築
+- [x] 1.1 パッケージのインストールと QueryClient 設定
   - @tanstack/react-query と @tanstack/react-query-devtools をインストールする
   - デフォルトのキャッシュオプション（staleTime: 5分、gcTime: 30分、retry: 3、refetchOnWindowFocus: false）を定義する
   - 開発環境用の ReactQueryDevtools を設定する（本番ビルドから除外）
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 1.2 QueryProvider の作成と Provider 階層への統合
+- [x] 1.2 QueryProvider の作成と Provider 階層への統合
   - QueryClientProvider をラップする QueryProvider コンポーネントを作成する
   - JotaiProvider の内側に QueryProvider を配置する
   - TanStack Query（サーバー状態）と Jotai（クライアント状態）の責務分離を維持する
   - _Requirements: 1.1, 1.5_
 
-- [ ] 1.3 queryKeys ファクトリの作成
+- [x] 1.3 queryKeys ファクトリの作成
   - ドメインごとの queryKey パターンを定義する（identityId, items, folders, previewUrls, passkeys）
   - as const で型安全性を確保する
   - invalidateQueries でプレフィックスマッチが可能な構造にする

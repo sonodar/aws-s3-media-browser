@@ -6,6 +6,7 @@ import { PasskeySignIn } from "./components/PasskeySignIn";
 import { PasskeySettingsModal } from "./components/PasskeySettingsModal";
 import { useWebAuthnSupport } from "./hooks/useWebAuthnSupport";
 import { JotaiProvider } from "./stores/JotaiProvider";
+import { QueryProvider } from "./stores/QueryProvider";
 import "@aws-amplify/ui-react/styles.css";
 
 type AuthMode = "passkey" | "password";
@@ -86,9 +87,11 @@ function App() {
   return (
     <MantineProvider>
       <JotaiProvider>
-        <Authenticator.Provider>
-          <HybridAuthApp />
-        </Authenticator.Provider>
+        <QueryProvider>
+          <Authenticator.Provider>
+            <HybridAuthApp />
+          </Authenticator.Provider>
+        </QueryProvider>
       </JotaiProvider>
     </MantineProvider>
   );

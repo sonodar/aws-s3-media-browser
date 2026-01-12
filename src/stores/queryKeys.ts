@@ -1,0 +1,38 @@
+/**
+ * TanStack Query の queryKey ファクトリ
+ *
+ * - ドメインごとの queryKey パターンを定義
+ * - as const で型安全性を確保
+ * - invalidateQueries でプレフィックスマッチが可能な構造
+ */
+export const queryKeys = {
+  /**
+   * 認証 ID の queryKey
+   * @example queryKeys.identityId() // ["identityId"]
+   */
+  identityId: () => ["identityId"] as const,
+
+  /**
+   * ファイル/フォルダ一覧の queryKey（パス依存）
+   * @example queryKeys.items("user-123", "/photos") // ["items", "user-123", "/photos"]
+   */
+  items: (identityId: string, path: string) => ["items", identityId, path] as const,
+
+  /**
+   * フォルダ一覧の queryKey（移動先選択用）
+   * @example queryKeys.folders("user-123", "/photos") // ["folders", "user-123", "/photos"]
+   */
+  folders: (identityId: string, path: string) => ["folders", identityId, path] as const,
+
+  /**
+   * プレビュー URL の queryKey
+   * @example queryKeys.previewUrls(["photo1.jpg", "photo2.jpg"]) // ["previewUrls", "photo1.jpg", "photo2.jpg"]
+   */
+  previewUrls: (itemKeys: string[]) => ["previewUrls", ...itemKeys] as const,
+
+  /**
+   * パスキー一覧の queryKey
+   * @example queryKeys.passkeys() // ["passkeys"]
+   */
+  passkeys: () => ["passkeys"] as const,
+} as const;
