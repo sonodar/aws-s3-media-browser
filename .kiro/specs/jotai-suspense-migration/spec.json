@@ -18,5 +18,8 @@
       "approved": true
     }
   },
-  "ready_for_implementation": true
+  "ready_for_implementation": true,
+  "notes": {
+    "このプロジェクトは失敗しました": "Jotai + Suspense の対応は失敗しています"
+  }
 }
