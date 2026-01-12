@@ -38,26 +38,26 @@
   - エラー時は isError でエラー状態を検出しエラー UI を表示する
   - _Requirements: 2.3, 2.4_
 
-- [ ] 3. パスキー管理の TanStack Query 化
-- [ ] 3.1 usePasskeyCredentials フックの実装
+- [x] 3. パスキー管理の TanStack Query 化
+- [x] 3.1 usePasskeyCredentials フックの実装
   - useQuery で WebAuthn クレデンシャル一覧を取得する
   - ページネーション（nextToken）を処理して全件取得する
   - 既存の toWebAuthnCredential 変換関数を再利用する
   - _Requirements: 6.1_
 
-- [ ] 3.2 (P) useRegisterPasskey フックの実装
+- [x] 3.2 (P) useRegisterPasskey フックの実装
   - useMutation で associateWebAuthnCredential を実行する
   - 成功時に invalidateQueries でクレデンシャル一覧を再取得する
   - isPending / isError で状態を返却する
   - _Requirements: 6.2_
 
-- [ ] 3.3 (P) useDeletePasskey フックの実装
+- [x] 3.3 (P) useDeletePasskey フックの実装
   - useMutation で deleteWebAuthnCredential を実行する
   - 成功時に invalidateQueries でクレデンシャル一覧を再取得する
   - credentialId をパラメータとして受け取る
   - _Requirements: 6.3_
 
-- [ ] 3.4 既存の usePasskey を完全置換
+- [x] 3.4 既存の usePasskey を完全置換
   - usePasskeyCredentials, useRegisterPasskey, useDeletePasskey を統合するフックを作成する
   - PasskeySettings コンポーネントを新しいフックを使用するよう更新する
   - 既存のパスキー管理機能の動作を維持する

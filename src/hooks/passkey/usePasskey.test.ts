@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { usePasskey } from "./usePasskey";
+import { TestProvider } from "../../stores/testProvider";
 import {
   listWebAuthnCredentials,
   associateWebAuthnCredential,
@@ -39,7 +40,9 @@ describe("usePasskey", () => {
 
   describe("initial state", () => {
     it("should fetch credentials on mount", async () => {
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       // Initially loading
       expect(result.current.loading).toBe(true);
@@ -67,7 +70,9 @@ describe("usePasskey", () => {
 
       (listWebAuthnCredentials as Mock).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -81,13 +86,16 @@ describe("usePasskey", () => {
       const error = new Error("Failed to fetch");
       (listWebAuthnCredentials as Mock).mockRejectedValue(error);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.error).toBe(error);
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe("Failed to fetch");
       expect(result.current.credentials).toHaveLength(0);
     });
   });
@@ -96,7 +104,9 @@ describe("usePasskey", () => {
     it("should register a new passkey and refresh the list", async () => {
       (associateWebAuthnCredential as Mock).mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -107,8 +117,10 @@ describe("usePasskey", () => {
       });
 
       expect(associateWebAuthnCredential).toHaveBeenCalled();
-      // Should refresh credentials after registration
-      expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      // TanStack Query automatically refetches via invalidateQueries
+      await waitFor(() => {
+        expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      });
     });
 
     it("should set registering state during registration", async () => {
@@ -118,7 +130,9 @@ describe("usePasskey", () => {
       });
       (associateWebAuthnCredential as Mock).mockReturnValue(registrationPromise);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -127,7 +141,9 @@ describe("usePasskey", () => {
       expect(result.current.registering).toBe(false);
 
       act(() => {
-        result.current.registerPasskey();
+        result.current.registerPasskey().catch(() => {
+          // Ignore for this test
+        });
       });
 
       await waitFor(() => {
@@ -148,17 +164,26 @@ describe("usePasskey", () => {
       const error = new Error("Registration failed");
       (associateWebAuthnCredential as Mock).mockRejectedValue(error);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       await act(async () => {
-        await result.current.registerPasskey();
+        try {
+          await result.current.registerPasskey();
+        } catch {
+          // Expected to throw
+        }
       });
 
-      expect(result.current.error).toBe(error);
+      await waitFor(() => {
+        expect(result.current.error).toBeInstanceOf(Error);
+      });
+      expect(result.current.error?.message).toBe("Registration failed");
     });
   });
 
@@ -166,7 +191,9 @@ describe("usePasskey", () => {
     it("should delete a passkey and refresh the list", async () => {
       (deleteWebAuthnCredential as Mock).mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -179,31 +206,44 @@ describe("usePasskey", () => {
       expect(deleteWebAuthnCredential).toHaveBeenCalledWith({
         credentialId: "cred-1",
       });
-      // Should refresh credentials after deletion
-      expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      // TanStack Query automatically refetches via invalidateQueries
+      await waitFor(() => {
+        expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      });
     });
 
     it("should handle deletion errors", async () => {
       const error = new Error("Deletion failed");
       (deleteWebAuthnCredential as Mock).mockRejectedValue(error);
 
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
       await act(async () => {
-        await result.current.deletePasskey("cred-1");
+        try {
+          await result.current.deletePasskey("cred-1");
+        } catch {
+          // Expected to throw
+        }
       });
 
-      expect(result.current.error).toBe(error);
+      await waitFor(() => {
+        expect(result.current.error).toBeInstanceOf(Error);
+      });
+      expect(result.current.error?.message).toBe("Deletion failed");
     });
   });
 
   describe("refreshCredentials", () => {
     it("should manually refresh the credentials list", async () => {
-      const { result } = renderHook(() => usePasskey());
+      const { result } = renderHook(() => usePasskey(), {
+        wrapper: TestProvider,
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -215,7 +255,9 @@ describe("usePasskey", () => {
         await result.current.refreshCredentials();
       });
 
-      expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(listWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      });
     });
   });
 });
