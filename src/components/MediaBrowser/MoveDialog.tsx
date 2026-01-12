@@ -3,7 +3,7 @@ import { Modal, Stack, Group, Button, Text, List, Alert, Notification } from "@m
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
-import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
+import type { MoveResult, MoveProgress } from "../../hooks/storage";
 
 export interface MoveDialogProps {
   /** ダイアログ表示状態 */

@@ -11,8 +11,8 @@ import {
   cancelDeleteAtom,
   startDeletingAtom,
   finishDeletingAtom,
-} from "../stores/atoms";
-import type { StorageItem } from "../types/storage";
+} from "../../stores/atoms";
+import type { StorageItem } from "../../types/storage";
 
 export interface UseDeleteConfirmReturn {
   /** 削除対象アイテム */

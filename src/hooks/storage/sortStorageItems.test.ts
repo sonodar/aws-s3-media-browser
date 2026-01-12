@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { sortStorageItems, SORT_ORDER_LABELS, DEFAULT_SORT_ORDER } from "./sortStorageItems";
 import type { SortOrder } from "./sortStorageItems";
-import type { StorageItem } from "../types/storage";
+import type { StorageItem } from "../../types/storage";
 
 // テスト用のヘルパー関数
 const createItem = (

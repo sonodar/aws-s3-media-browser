@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSetAtom } from "jotai";
 import { useSelection } from "./useSelection";
-import { TestProvider, selectedKeysAtom, isSelectionModeAtom } from "../stores";
+import { TestProvider, selectedKeysAtom, isSelectionModeAtom } from "../../stores";
 
 /**
  * useSelection テスト

@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { currentPathAtom, navigateAtom, goBackAtom, setPathAtom } from "../stores/atoms";
+import { currentPathAtom, navigateAtom, goBackAtom, setPathAtom } from "../../stores/atoms";
 import { parseUrlPath, syncToUrl } from "./urlSync";
 
 export interface UseStoragePathReturn {

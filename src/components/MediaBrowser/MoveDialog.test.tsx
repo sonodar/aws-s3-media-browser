@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { MantineProvider } from "@mantine/core";
 import { MoveDialog } from "./MoveDialog";
 import type { StorageItem } from "../../types/storage";
-import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
+import type { MoveResult, MoveProgress } from "../../hooks/storage";
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <MantineProvider>{children}</MantineProvider>

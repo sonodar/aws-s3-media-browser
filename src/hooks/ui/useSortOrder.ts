@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import type { SortOrder } from "./sortStorageItems";
-import { sortOrderAtom, setSortOrderAtom, SORT_STORAGE_KEY } from "../stores/atoms";
+import type { SortOrder } from "../storage/sortStorageItems";
+import { sortOrderAtom, setSortOrderAtom, SORT_STORAGE_KEY } from "../../stores/atoms";
 
 /**
  * localStorage のキー（既存 API との互換性のためエクスポート）

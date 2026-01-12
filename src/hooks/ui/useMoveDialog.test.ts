@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useMoveDialog } from "./useMoveDialog";
-import type { StorageItem } from "../types/storage";
+import type { StorageItem } from "../../types/storage";
 
 describe("useMoveDialog", () => {
   const mockItems: StorageItem[] = [

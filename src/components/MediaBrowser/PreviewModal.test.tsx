@@ -5,7 +5,7 @@ import type { StorageItem } from "../../types/storage";
 
 // Mock useDeleteConfirm hook
 const mockRequestDelete = vi.fn();
-vi.mock("../../hooks/useDeleteConfirm", () => ({
+vi.mock("../../hooks/ui", () => ({
   useDeleteConfirm: () => ({
     requestDelete: mockRequestDelete,
     itemsToDelete: [],

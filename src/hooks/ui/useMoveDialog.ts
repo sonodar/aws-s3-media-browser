@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import type { StorageItem } from "../types/storage";
+import type { StorageItem } from "../../types/storage";
 
 export interface UseMoveDialogReturn {
   /** ダイアログ表示状態 */

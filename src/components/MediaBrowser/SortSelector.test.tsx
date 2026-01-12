@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import { SortSelector } from "./SortSelector";
-import type { SortOrder } from "../../hooks/sortStorageItems";
+import type { SortOrder } from "../../hooks/storage";
 
 const MantineWrapper = ({ children }: { children: ReactNode }) => (
   <MantineProvider>{children}</MantineProvider>

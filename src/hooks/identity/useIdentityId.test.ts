@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { useIdentityId } from "./useIdentityId";
-import { TestProvider } from "../stores/testProvider";
+import { TestProvider } from "../../stores/testProvider";
 
 // Mock fetchAuthSession
 vi.mock("aws-amplify/auth", () => ({

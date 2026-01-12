@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSetAtom } from "jotai";
 import { useSortOrder, STORAGE_KEY } from "./useSortOrder";
-import { DEFAULT_SORT_ORDER } from "./sortStorageItems";
-import type { SortOrder } from "./sortStorageItems";
-import { TestProvider, sortOrderAtom } from "../stores";
+import { DEFAULT_SORT_ORDER } from "../storage/sortStorageItems";
+import type { SortOrder } from "../storage/sortStorageItems";
+import { TestProvider, sortOrderAtom } from "../../stores";
 
 /**
  * useSortOrder テスト

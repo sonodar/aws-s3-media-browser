@@ -21,7 +21,7 @@ import { currentPathAtom, pathSegmentsAtom, navigateAtom, goBackAtom, setPathAto
 
 // Sort atoms
 import { sortOrderAtom, setSortOrderAtom } from "./sort";
-import type { SortOrder } from "../../hooks/sortStorageItems";
+import type { SortOrder } from "../../hooks/storage";
 
 // Task 2.4: Atom 定義の統合テスト
 

@@ -1,4 +1,4 @@
-import type { StorageItem } from "../types/storage";
+import type { StorageItem } from "../../types/storage";
 
 /**
  * ソート順を表す型

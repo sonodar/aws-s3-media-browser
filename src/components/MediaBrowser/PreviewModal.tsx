@@ -6,7 +6,7 @@ import { Pencil, Trash2, FolderInput } from "lucide-react";
 import "yet-another-react-lightbox/styles.css";
 import type { StorageItem } from "../../types/storage";
 import { isImageFile, isVideoFile } from "../../utils/fileTypes";
-import { useDeleteConfirm } from "../../hooks/useDeleteConfirm";
+import { useDeleteConfirm } from "../../hooks/ui";
 import "./PreviewModal.css";
 
 /** Props for single-item mode (legacy) */

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { queryKeys } from "../stores/queryKeys";
+import { queryKeys } from "../../stores/queryKeys";
 
 export interface UseIdentityIdReturn {
   identityId: string | null;

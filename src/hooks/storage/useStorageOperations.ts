@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { list, remove, uploadData, getUrl, copy } from "aws-amplify/storage";
-import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../utils/pathUtils";
+import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../../utils/pathUtils";
 import { parseStorageItems } from "./parseStorageItems";
-import type { StorageItem } from "../types/storage";
+import type { StorageItem } from "../../types/storage";
 
 export interface UseStorageOperationsProps {
   identityId: string | null;

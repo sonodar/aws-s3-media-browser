@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSetAtom } from "jotai";
 import { useStoragePath } from "./useStoragePath";
-import { TestProvider, currentPathAtom } from "../stores";
+import { TestProvider, currentPathAtom } from "../../stores";
 
 /**
  * useStoragePath テスト

@@ -11,7 +11,7 @@ import {
   // Constants
   SORT_STORAGE_KEY,
 } from "./sort";
-import type { SortOrder } from "../../hooks/sortStorageItems";
+import type { SortOrder } from "../../hooks/storage";
 
 // Task 2.3: Sort Atoms のテスト
 

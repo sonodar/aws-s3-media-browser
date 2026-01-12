@@ -13,7 +13,7 @@ import {
   exitSelectionModeAtom,
   toggleSelectAllAtom,
   clearSelectionAtom,
-} from "../stores/atoms";
+} from "../../stores/atoms";
 
 export interface UseSelectionProps {
   /** 選択可能なアイテムのキー一覧 */

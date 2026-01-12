@@ -3,11 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { MantineProvider } from "@mantine/core";
 import { RenameDialog } from "./RenameDialog";
 import type { StorageItem } from "../../types/storage";
-import type {
-  RenameItemResult,
-  RenameFolderResult,
-  RenameProgress,
-} from "../../hooks/useStorageOperations";
+import type { RenameItemResult, RenameFolderResult, RenameProgress } from "../../hooks/storage";
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <MantineProvider>{children}</MantineProvider>
