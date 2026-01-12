@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { queryKeys } from "../stores/queryKeys";
 
 export interface UseIdentityIdReturn {
   identityId: string | null;
@@ -9,25 +10,27 @@ export interface UseIdentityIdReturn {
 
 /**
  * Cognito 認証セッションから Identity ID を取得・保持するフック
+ *
+ * TanStack Query を使用してセッション情報をキャッシュ管理
+ * - staleTime: Infinity でセッション中は再取得しない
+ * - gcTime: Infinity でログアウトまでキャッシュ保持
+ * - retry: false で認証エラーはリトライしない
  */
 export function useIdentityId(): UseIdentityIdReturn {
-  const [identityId, setIdentityId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const query = useQuery({
+    queryKey: queryKeys.identityId(),
+    queryFn: async () => {
+      const session = await fetchAuthSession();
+      return session.identityId ?? null;
+    },
+    staleTime: Number.POSITIVE_INFINITY, // セッション中は変わらない
+    gcTime: Number.POSITIVE_INFINITY, // ログアウトまでキャッシュ保持
+    retry: false, // 認証エラーはリトライしない
+  });
 
-  useEffect(() => {
-    fetchAuthSession()
-      .then((session) => {
-        setIdentityId(session.identityId ?? null);
-      })
-      .catch((err: unknown) => {
-        console.error("Failed to fetch auth session:", err);
-        setError(err as Error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  return { identityId, loading, error };
+  return {
+    identityId: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error ?? null,
+  };
 }

@@ -25,16 +25,16 @@
   - invalidateQueries でプレフィックスマッチが可能な構造にする
   - _Requirements: 2.2, 3.2, 4.2, 5.2, 6.1_
 
-- [ ] 2. 認証状態の TanStack Query 化
-- [ ] 2.1 useIdentityId フックの実装
+- [x] 2. 認証状態の TanStack Query 化
+- [x] 2.1 useIdentityId フックの実装
   - useQuery で Cognito 認証セッションから Identity ID を取得する
   - staleTime: Infinity でセッション中のキャッシュを維持する
   - isLoading / isError で状態を返却する
   - _Requirements: 2.1, 2.2_
 
-- [ ] 2.2 既存の useIdentityId を置換
+- [x] 2.2 既存の useIdentityId を置換
   - 既存の useState + useEffect パターンを useQuery ベースに置換する
-  - 既存コードとの互換性のため useIdentityIdValue() ヘルパーを提供する
+  - 既存コードとの互換性のため同じインターフェース（identityId, loading, error）を維持
   - エラー時は isError でエラー状態を検出しエラー UI を表示する
   - _Requirements: 2.3, 2.4_
 

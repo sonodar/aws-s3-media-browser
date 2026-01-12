@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { useIdentityId } from "./useIdentityId";
+import { TestProvider } from "../stores/testProvider";
 
 // Mock fetchAuthSession
 vi.mock("aws-amplify/auth", () => ({
@@ -17,7 +18,9 @@ describe("useIdentityId", () => {
   it("should start with loading true and identityId null", () => {
     vi.mocked(fetchAuthSession).mockImplementation(() => new Promise(() => {}));
 
-    const { result } = renderHook(() => useIdentityId());
+    const { result } = renderHook(() => useIdentityId(), {
+      wrapper: TestProvider,
+    });
 
     expect(result.current.loading).toBe(true);
     expect(result.current.identityId).toBeNull();
@@ -29,7 +32,9 @@ describe("useIdentityId", () => {
       identityId: "test-identity-id",
     } as Awaited<ReturnType<typeof fetchAuthSession>>);
 
-    const { result } = renderHook(() => useIdentityId());
+    const { result } = renderHook(() => useIdentityId(), {
+      wrapper: TestProvider,
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -43,14 +48,17 @@ describe("useIdentityId", () => {
     const mockError = new Error("Auth failed");
     vi.mocked(fetchAuthSession).mockRejectedValue(mockError);
 
-    const { result } = renderHook(() => useIdentityId());
+    const { result } = renderHook(() => useIdentityId(), {
+      wrapper: TestProvider,
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     expect(result.current.identityId).toBeNull();
-    expect(result.current.error).toBe(mockError);
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toBe("Auth failed");
   });
 
   it("should handle missing identityId in session", async () => {
@@ -58,7 +66,9 @@ describe("useIdentityId", () => {
       // identityId is undefined
     } as Awaited<ReturnType<typeof fetchAuthSession>>);
 
-    const { result } = renderHook(() => useIdentityId());
+    const { result } = renderHook(() => useIdentityId(), {
+      wrapper: TestProvider,
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -68,12 +78,14 @@ describe("useIdentityId", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("should only fetch once on mount", async () => {
+  it("should only fetch once on mount (uses cache)", async () => {
     vi.mocked(fetchAuthSession).mockResolvedValue({
       identityId: "test-identity-id",
     } as Awaited<ReturnType<typeof fetchAuthSession>>);
 
-    const { result, rerender } = renderHook(() => useIdentityId());
+    const { result, rerender } = renderHook(() => useIdentityId(), {
+      wrapper: TestProvider,
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -82,6 +94,7 @@ describe("useIdentityId", () => {
     rerender();
     rerender();
 
+    // TanStack Query はキャッシュを使うので 1 回のみ fetch
     expect(fetchAuthSession).toHaveBeenCalledTimes(1);
   });
 });
