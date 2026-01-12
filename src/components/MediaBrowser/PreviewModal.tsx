@@ -58,7 +58,7 @@ export function PreviewModal(props: PreviewModalProps) {
   const currentItem = items[currentIndex] ?? null;
 
   // usePreviewUrls フックで署名付き URL を取得
-  const { slides, isLoading: loading } = usePreviewUrls(items, { enabled: isOpen });
+  const { data: slides, isLoading: loading } = usePreviewUrls(items, { enabled: isOpen });
 
   // 削除ボタンクリック時: Jotai atoms を通じて DeleteConfirmDialog を表示させる
   const handleDeleteClick = () => {

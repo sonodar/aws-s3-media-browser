@@ -33,7 +33,7 @@ export function FolderBrowser({
   enabled = true,
 }: FolderBrowserProps) {
   // TanStack Query でフォルダ一覧を取得
-  const { folders, isLoading } = useFolderList(identityId, currentPath, { enabled });
+  const { data: folders, isLoading } = useFolderList(identityId, currentPath, { enabled });
 
   // パスが無効化されているか判定
   const isDisabled = useCallback((path: string) => disabledPaths.includes(path), [disabledPaths]);

@@ -52,7 +52,7 @@ export function usePasskey(): UsePasskeyReturn {
   }, [queryClient]);
 
   // エラーは最も最近発生したものを返す
-  const error = registerError ?? deleteError ?? fetchError ?? null;
+  const error = registerError ?? deleteError ?? fetchError;
 
   return {
     credentials: data ?? [],

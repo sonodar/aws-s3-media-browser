@@ -4,6 +4,7 @@ import type { Slide } from "yet-another-react-lightbox";
 import type { StorageItem } from "../../types/storage";
 import { isImageFile, isVideoFile } from "../../utils/fileTypes";
 import { queryKeys } from "../../stores/queryKeys";
+import type { QueryReturn } from "../types";
 
 /**
  * ビデオファイルの MIME タイプを取得する
@@ -53,12 +54,7 @@ export interface UsePreviewUrlsOptions {
   enabled?: boolean;
 }
 
-export interface UsePreviewUrlsResult {
-  slides: Slide[];
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-}
+export interface UsePreviewUrlsResult extends QueryReturn<Slide[]> {}
 
 /**
  * プレビュー対象アイテムの署名付き URL を並列取得し、Slide 配列を返す
@@ -87,8 +83,10 @@ export function usePreviewUrls(
     staleTime: 10 * 60 * 1000, // 10分（署名付き URL の有効期限を考慮）
   });
 
+  const slides = data ?? [];
+
   return {
-    slides: data ?? [],
+    data: slides,
     isLoading: hasItems && enabled ? isLoading : false,
     isError,
     error: error as Error | null,

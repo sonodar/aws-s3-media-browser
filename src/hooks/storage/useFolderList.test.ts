@@ -26,7 +26,7 @@ describe("useFolderList", () => {
         wrapper: TestProvider,
       });
 
-      expect(result.current.folders).toEqual([]);
+      expect(result.current.data).toEqual([]);
       expect(result.current.isLoading).toBe(false);
       expect(list).not.toHaveBeenCalled();
     });
@@ -37,7 +37,7 @@ describe("useFolderList", () => {
         { wrapper: TestProvider },
       );
 
-      expect(result.current.folders).toEqual([]);
+      expect(result.current.data).toEqual([]);
       expect(result.current.isLoading).toBe(false);
       expect(list).not.toHaveBeenCalled();
     });
@@ -50,7 +50,7 @@ describe("useFolderList", () => {
       });
 
       expect(result.current.isLoading).toBe(true);
-      expect(result.current.folders).toEqual([]);
+      expect(result.current.data).toEqual([]);
     });
   });
 
@@ -75,10 +75,10 @@ describe("useFolderList", () => {
       });
 
       // フォルダのみが返される
-      expect(result.current.folders).toHaveLength(2);
-      expect(result.current.folders.every((item) => item.type === "folder")).toBe(true);
-      expect(result.current.folders[0].name).toBe("folder1");
-      expect(result.current.folders[1].name).toBe("folder2");
+      expect(result.current.data).toHaveLength(2);
+      expect(result.current.data.every((item) => item.type === "folder")).toBe(true);
+      expect(result.current.data[0].name).toBe("folder1");
+      expect(result.current.data[1].name).toBe("folder2");
     });
 
     it("should set error when list fails", async () => {
@@ -114,7 +114,7 @@ describe("useFolderList", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.folders).toEqual([]);
+      expect(result.current.data).toEqual([]);
     });
   });
 

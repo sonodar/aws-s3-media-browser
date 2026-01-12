@@ -4,7 +4,7 @@ import type { SortOrder } from "../storage/sortStorageItems";
 import { sortOrderAtom, setSortOrderAtom, SORT_STORAGE_KEY } from "../../stores/atoms";
 
 /**
- * localStorage のキー（既存 API との互換性のためエクスポート）
+ * localStorage のキー（テストで使用）
  */
 export const STORAGE_KEY = SORT_STORAGE_KEY;
 

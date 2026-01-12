@@ -54,7 +54,7 @@ describe("usePreviewUrls", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.slides).toEqual([]);
+      expect(result.current.data).toEqual([]);
       expect(mockGetUrl).not.toHaveBeenCalled();
     });
 
@@ -65,7 +65,7 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides).toEqual([]);
+      expect(result.current.data).toEqual([]);
       expect(mockGetUrl).not.toHaveBeenCalled();
     });
   });
@@ -83,11 +83,11 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides).toHaveLength(2);
-      expect(result.current.slides[0]).toEqual({
+      expect(result.current.data).toHaveLength(2);
+      expect(result.current.data[0]).toEqual({
         src: "https://s3.example.com/media/user123/photo1.jpg",
       });
-      expect(result.current.slides[1]).toEqual({
+      expect(result.current.data[1]).toEqual({
         src: "https://s3.example.com/media/user123/photo2.png",
       });
     });
@@ -104,14 +104,14 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides).toHaveLength(2);
-      expect(result.current.slides[0]).toEqual({
+      expect(result.current.data).toHaveLength(2);
+      expect(result.current.data[0]).toEqual({
         type: "video",
         width: 1280,
         height: 720,
         sources: [{ src: "https://s3.example.com/media/user123/video1.mp4", type: "video/mp4" }],
       });
-      expect(result.current.slides[1]).toEqual({
+      expect(result.current.data[1]).toEqual({
         type: "video",
         width: 1280,
         height: 720,
@@ -126,20 +126,20 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides).toHaveLength(3);
+      expect(result.current.data).toHaveLength(3);
       // First item: image
-      expect(result.current.slides[0]).toEqual({
+      expect(result.current.data[0]).toEqual({
         src: "https://s3.example.com/media/user123/photo1.jpg",
       });
       // Second item: video
-      expect(result.current.slides[1]).toEqual({
+      expect(result.current.data[1]).toEqual({
         type: "video",
         width: 1280,
         height: 720,
         sources: [{ src: "https://s3.example.com/media/user123/video1.mp4", type: "video/mp4" }],
       });
       // Third item: image
-      expect(result.current.slides[2]).toEqual({
+      expect(result.current.data[2]).toEqual({
         src: "https://s3.example.com/media/user123/photo2.png",
       });
     });
@@ -158,7 +158,7 @@ describe("usePreviewUrls", () => {
       });
 
       // PDF should be filtered out
-      expect(result.current.slides).toHaveLength(2);
+      expect(result.current.data).toHaveLength(2);
     });
   });
 
@@ -175,7 +175,7 @@ describe("usePreviewUrls", () => {
       const { result } = renderUsePreviewUrls(sampleItems);
 
       expect(result.current.isLoading).toBe(true);
-      expect(result.current.slides).toEqual([]);
+      expect(result.current.data).toEqual([]);
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -209,7 +209,7 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides[0]).toMatchObject({
+      expect(result.current.data[0]).toMatchObject({
         sources: [{ type: "video/mp4" }],
       });
     });
@@ -225,7 +225,7 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides[0]).toMatchObject({
+      expect(result.current.data[0]).toMatchObject({
         sources: [{ type: "video/webm" }],
       });
     });
@@ -241,7 +241,7 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.slides[0]).toMatchObject({
+      expect(result.current.data[0]).toMatchObject({
         sources: [{ type: "video/quicktime" }],
       });
     });

@@ -86,6 +86,6 @@ export function usePasskeyCredentials(): UsePasskeyCredentialsReturn {
   return {
     data: query.data,
     isLoading: query.isLoading,
-    error: query.error ?? null,
+    error: query.error as Error | null,
   };
 }

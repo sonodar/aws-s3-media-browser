@@ -69,13 +69,17 @@ describe("MediaBrowser Display Tests", () => {
         () => new Promise(() => {}), // Never resolves
       );
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       expect(screen.getByText("読み込み中...")).toBeInTheDocument();
     });
 
     it("should display items after loading completes", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       // Wait for items to actually appear
       await waitFor(() => {
@@ -88,23 +92,25 @@ describe("MediaBrowser Display Tests", () => {
       expect(screen.getByText("video1.mp4")).toBeInTheDocument();
     });
 
-    // Note: Auth failure behavior test is covered by useStorage.test.ts
-    // Skipping this test because vitest catches the unhandled rejection from
-    // MediaBrowser's fetchAuthSession call which doesn't have error handling.
-    it.skip("should show error state when auth fails", async () => {
+    it("should show error state when auth fails", async () => {
       vi.mocked(fetchAuthSession).mockRejectedValue(new Error("Auth failed"));
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/エラーが発生しました/)).toBeInTheDocument();
+        expect(screen.getByText(/Auth failed/)).toBeInTheDocument();
       });
     });
 
     it("should show error state when list fails", async () => {
       vi.mocked(list).mockRejectedValue(new Error("Network error"));
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/エラーが発生しました/)).toBeInTheDocument();
@@ -121,7 +127,9 @@ describe("MediaBrowser Display Tests", () => {
         nextToken: undefined,
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("ファイルがありません")).toBeInTheDocument();
@@ -131,7 +139,9 @@ describe("MediaBrowser Display Tests", () => {
 
   describe("7. Sign Out", () => {
     it("should call onSignOut when sign out menu item is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();

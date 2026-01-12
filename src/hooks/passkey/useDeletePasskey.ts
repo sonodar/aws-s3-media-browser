@@ -1,18 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteWebAuthnCredential } from "aws-amplify/auth";
 import { queryKeys } from "../../stores/queryKeys";
+import type { MutationReturn } from "../types";
 
 export interface DeletePasskeyParams {
   credentialId: string;
 }
 
-export interface UseDeletePasskeyReturn {
-  mutate: (params: DeletePasskeyParams) => void;
-  mutateAsync: (params: DeletePasskeyParams) => Promise<void>;
-  isPending: boolean;
-  isError: boolean;
-  error: Error | null;
-}
+export type UseDeletePasskeyReturn = MutationReturn<DeletePasskeyParams>;
 
 /**
  * パスキー削除用の useMutation フック
@@ -37,6 +32,6 @@ export function useDeletePasskey(): UseDeletePasskeyReturn {
     mutateAsync: mutation.mutateAsync,
     isPending: mutation.isPending,
     isError: mutation.isError,
-    error: mutation.error ?? null,
+    error: mutation.error as Error | null,
   };
 }

@@ -115,7 +115,7 @@ describe("PreviewModal", () => {
     vi.clearAllMocks();
     // Default mock: slides loaded
     mockUsePreviewUrls.mockReturnValue({
-      slides: [{ src: "https://example.com/test-image.jpg" }],
+      data: [{ src: "https://example.com/test-image.jpg" }],
       isLoading: false,
       isError: false,
       error: null,
@@ -190,7 +190,7 @@ describe("PreviewModal", () => {
       capturedProps = {};
       // Mock slides for multiple items
       mockUsePreviewUrls.mockReturnValue({
-        slides: [
+        data: [
           { src: "https://example.com/image1.jpg" },
           { src: "https://example.com/image2.jpg" },
           {
@@ -386,7 +386,7 @@ describe("PreviewModal", () => {
 
     it("should show loading state when isLoading is true", () => {
       mockUsePreviewUrls.mockReturnValue({
-        slides: [],
+        data: [],
         isLoading: true,
         isError: false,
         error: null,

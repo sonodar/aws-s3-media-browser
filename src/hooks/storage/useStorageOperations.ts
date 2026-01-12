@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { list, remove, uploadData, copy } from "aws-amplify/storage";
 import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../../utils/pathUtils";
+import { buildMediaBasePath, normalizePathWithSlash } from "../../utils/storagePathUtils";
 import { useStorageItems } from "./useStorageItems";
 import { queryKeys } from "../../stores/queryKeys";
 import type { StorageItem } from "../../types/storage";
@@ -132,7 +133,7 @@ export function useStorageOperations({
   const queryClient = useQueryClient();
 
   // TanStack Query を使用したストレージアイテム取得
-  const { items, isLoading: loading, error } = useStorageItems(identityId, currentPath);
+  const { data: items, isLoading: loading, error } = useStorageItems(identityId, currentPath);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -140,8 +141,7 @@ export function useStorageOperations({
 
   const getBasePath = useCallback(() => {
     if (!identityId) return null;
-    const base = `media/${identityId}/`;
-    return currentPath ? `${base}${currentPath}/` : base;
+    return buildMediaBasePath(identityId, currentPath);
   }, [identityId, currentPath]);
 
   /**
@@ -468,10 +468,7 @@ export function useStorageOperations({
     ): Promise<MoveResult> => {
       setIsMoving(true);
 
-      // 末尾に / がなければ追加
-      const normalizedDestPath = destinationPath.endsWith("/")
-        ? destinationPath
-        : `${destinationPath}/`;
+      const normalizedDestPath = normalizePathWithSlash(destinationPath);
 
       try {
         // 移動対象のすべてのファイルを収集

@@ -30,7 +30,7 @@ describe("FolderBrowser", () => {
     vi.clearAllMocks();
     // Default mock: loaded folders
     mockUseFolderList.mockReturnValue({
-      folders: sampleFolders,
+      data: sampleFolders,
       isLoading: false,
       isError: false,
       error: null,
@@ -69,7 +69,7 @@ describe("FolderBrowser", () => {
 
     it("should show loading state while fetching", () => {
       mockUseFolderList.mockReturnValue({
-        folders: [],
+        data: [],
         isLoading: true,
         isError: false,
         error: null,
@@ -199,7 +199,7 @@ describe("FolderBrowser", () => {
   describe("empty state", () => {
     it("should show empty message when no folders exist", async () => {
       mockUseFolderList.mockReturnValue({
-        folders: [],
+        data: [],
         isLoading: false,
         isError: false,
         error: null,

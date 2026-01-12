@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { queryKeys } from "../../stores/queryKeys";
+import type { QueryReturn } from "../types";
 
-export interface UseIdentityIdReturn {
+export interface UseIdentityIdReturn extends Omit<QueryReturn<string | null>, "data"> {
   identityId: string | null;
   loading: boolean;
-  error: Error | null;
 }
 
 /**
@@ -31,6 +31,8 @@ export function useIdentityId(): UseIdentityIdReturn {
   return {
     identityId: query.data ?? null,
     loading: query.isLoading,
-    error: query.error ?? null,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error as Error | null,
   };
 }

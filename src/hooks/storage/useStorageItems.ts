@@ -2,14 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { list } from "aws-amplify/storage";
 import { queryKeys } from "../../stores/queryKeys";
 import { parseStorageItems } from "./parseStorageItems";
+import { buildMediaBasePath } from "../../utils/storagePathUtils";
 import type { StorageItem } from "../../types/storage";
+import type { QueryReturn } from "../types";
 
-export interface UseStorageItemsReturn {
-  items: StorageItem[];
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-}
+export interface UseStorageItemsReturn extends QueryReturn<StorageItem[]> {}
 
 /**
  * ストレージアイテム一覧を取得・管理するフック
@@ -30,8 +27,7 @@ export function useStorageItems(
         return [];
       }
 
-      const basePath = currentPath ? `media/${identityId}/${currentPath}/` : `media/${identityId}/`;
-
+      const basePath = buildMediaBasePath(identityId, currentPath);
       const result = await list({
         path: basePath,
         options: { listAll: true },
@@ -42,10 +38,12 @@ export function useStorageItems(
     enabled: !!identityId,
   });
 
+  const data = query.data ?? [];
+
   return {
-    items: query.data ?? [],
+    data,
     isLoading: query.isLoading,
     isError: query.isError,
-    error: query.error ?? null,
+    error: query.error as Error | null,
   };
 }

@@ -8,6 +8,8 @@ export type {
   MoveResult,
   MoveProgress,
 } from "./useStorageOperations";
+export { useStorageItems } from "./useStorageItems";
+export type { UseStorageItemsReturn } from "./useStorageItems";
 export { parseStorageItems } from "./parseStorageItems";
 export type { S3ListItem } from "./parseStorageItems";
 export { sortStorageItems, SORT_ORDER_LABELS, DEFAULT_SORT_ORDER } from "./sortStorageItems";

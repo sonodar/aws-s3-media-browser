@@ -57,7 +57,7 @@ describe("MoveDialog", () => {
     vi.clearAllMocks();
     // Default mock: loaded folders
     mockUseFolderList.mockReturnValue({
-      folders: sampleFolders,
+      data: sampleFolders,
       isLoading: false,
       isError: false,
       error: null,
@@ -332,14 +332,14 @@ describe("MoveDialog", () => {
       mockUseFolderList.mockImplementation((identityId, path) => {
         if (path === `${basePath}photos/`) {
           return {
-            folders: subfolders,
+            data: subfolders,
             isLoading: false,
             isError: false,
             error: null,
           };
         }
         return {
-          folders: sampleFolders,
+          data: sampleFolders,
           isLoading: false,
           isError: false,
           error: null,

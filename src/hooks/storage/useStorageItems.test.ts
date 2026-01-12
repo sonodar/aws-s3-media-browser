@@ -26,7 +26,7 @@ describe("useStorageItems", () => {
         wrapper: TestProvider,
       });
 
-      expect(result.current.items).toEqual([]);
+      expect(result.current.data).toEqual([]);
       expect(result.current.isLoading).toBe(false);
       expect(list).not.toHaveBeenCalled();
     });
@@ -39,12 +39,12 @@ describe("useStorageItems", () => {
       });
 
       expect(result.current.isLoading).toBe(true);
-      expect(result.current.items).toEqual([]);
+      expect(result.current.data).toEqual([]);
     });
   });
 
   describe("data fetching", () => {
-    it("should fetch and parse items correctly", async () => {
+    it("should fetch and parse data correctly", async () => {
       const basePath = "media/test-identity-id/";
       vi.mocked(list).mockResolvedValue({
         items: [
@@ -61,10 +61,10 @@ describe("useStorageItems", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.items).toHaveLength(2);
+      expect(result.current.data).toHaveLength(2);
       // フォルダが先に来る（ソート順）
-      expect(result.current.items[0].type).toBe("folder");
-      expect(result.current.items[1].type).toBe("file");
+      expect(result.current.data[0].type).toBe("folder");
+      expect(result.current.data[1].type).toBe("file");
     });
 
     it("should set error when list fails", async () => {
