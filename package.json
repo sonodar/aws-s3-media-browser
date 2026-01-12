@@ -26,8 +26,8 @@
     "typecheck": "run-p typecheck:*",
     "typecheck:app": "tsc --noEmit",
     "typecheck:amplify": "tsc -p amplify --noEmit",
-    "check": "run-p lint test",
-    "check-all": "run-s format typecheck check build:app"
+    "check": "run-p typecheck lint test",
+    "check-all": "run-s format check build:app"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.13.2",
