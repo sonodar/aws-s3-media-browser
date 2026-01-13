@@ -84,6 +84,28 @@
   accent-color: #1976d2;
 }
 
+/* Video indicator icon - same position as checkbox */
+.video-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  color: white;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.video-indicator svg {
+  width: 14px;
+  height: 14px;
+}
+
 .file-list-item {
   position: relative;
 }
