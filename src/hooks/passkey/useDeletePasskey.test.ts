@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useDeletePasskey } from "./useDeletePasskey";
-import { TestProvider } from "../../stores/testProvider";
+import { TestProvider } from "../../stores/TestProvider";
 
 vi.mock("aws-amplify/auth", () => ({
   deleteWebAuthnCredential: vi.fn(),

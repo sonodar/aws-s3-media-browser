@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PreviewModal } from "./PreviewModal";
-import { TestProvider } from "../../stores/testProvider";
+import { TestProvider } from "../../stores/TestProvider";
 import type { StorageItem } from "../../types/storage";
 
 // Mock useDeleteConfirm hook

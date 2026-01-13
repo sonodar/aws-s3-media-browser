@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { usePasskey } from "./usePasskey";
-import { TestProvider } from "../../stores/testProvider";
+import { TestProvider } from "../../stores/TestProvider";
 import {
   listWebAuthnCredentials,
   associateWebAuthnCredential,

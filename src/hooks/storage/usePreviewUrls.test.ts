@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { usePreviewUrls } from "./usePreviewUrls";
-import { TestProvider } from "../../stores/testProvider";
+import { TestProvider } from "../../stores/TestProvider";
 import type { StorageItem } from "../../types/storage";
 
 // Mock getUrl from AWS Amplify

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useStorageOperations } from "./useStorageOperations";
-import { TestProvider } from "../../stores/testProvider";
+import { TestProvider } from "../../stores/TestProvider";
 
 // Mock aws-amplify/storage
 vi.mock("aws-amplify/storage", () => ({

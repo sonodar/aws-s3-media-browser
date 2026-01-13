@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { usePasskeyCredentials } from "./usePasskeyCredentials";
-import { TestProvider } from "../../stores/testProvider";
+import { TestProvider } from "../../stores/TestProvider";
 
 vi.mock("aws-amplify/auth", () => ({
   listWebAuthnCredentials: vi.fn(),
