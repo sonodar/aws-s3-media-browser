@@ -389,3 +389,5 @@ export { FileList } from "./FileList";
 export { FileActions } from "./FileActions";
 export { CreateFolderDialog } from "./CreateFolderDialog";
 export { PreviewModal } from "./PreviewModal";
+export { Thumbnail } from "./Thumbnail";
+export type { ThumbnailProps } from "./Thumbnail";

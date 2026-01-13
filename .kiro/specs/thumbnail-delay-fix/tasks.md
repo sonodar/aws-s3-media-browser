@@ -62,7 +62,7 @@
 
 ## Task 3: サムネイル URL 取得の useQuery 実装
 
-- [ ] 3.1 サムネイル URL 取得用 useQuery フックの実装
+- [x] 3.1 サムネイル URL 取得用 useQuery フックの実装
   - サムネイル URL を取得する `useThumbnailUrl` フックを新規作成
   - `queryKey: ["thumbnail", originalKey]` で一意識別
   - `isLoading` でローディング状態を提供
@@ -72,7 +72,7 @@
   - `staleTime: 5 * 60 * 1000` で 5 分間のキャッシュを設定
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 3.2 サムネイル表示用 Thumbnail コンポーネントの新規作成
+- [x] 3.2 サムネイル表示用 Thumbnail コンポーネントの新規作成
   - `useThumbnailUrl` を使用してサムネイル URL を取得
   - ローディング中はスケルトン UI を表示
   - エラー時（リトライ超過）はフォールバックアイコンを表示
