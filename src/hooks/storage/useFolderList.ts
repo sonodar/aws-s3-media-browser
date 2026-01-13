@@ -28,22 +28,25 @@ export function useFolderList(
 ): UseFolderListReturn {
   const { enabled = true } = options;
 
+  // path がフルパスの場合は相対パスに変換
+  // （MoveDialog や FolderBrowser からフルパスが渡される場合がある）
+  // クエリキーの一貫性のため、queryFn の外で正規化する
+  let normalizedPath = path;
+  if (identityId) {
+    const extracted = extractRelativePath(path, identityId);
+    if (extracted !== null) {
+      normalizedPath = extracted;
+    }
+  }
+
   const query = useQuery({
-    queryKey: queryKeys.folders(identityId ?? "", path),
+    queryKey: queryKeys.folders(identityId ?? "", normalizedPath),
     queryFn: async () => {
       if (!identityId) {
         return [];
       }
 
-      // path がフルパスの場合は相対パスに変換
-      // （MoveDialog や FolderBrowser からフルパスが渡される場合がある）
-      let relativePath = path;
-      const extracted = extractRelativePath(path, identityId);
-      if (extracted !== null) {
-        relativePath = extracted;
-      }
-
-      const basePath = buildMediaBasePath(identityId, relativePath);
+      const basePath = buildMediaBasePath(identityId, normalizedPath);
       const result = await list({
         path: basePath,
         options: { listAll: true },

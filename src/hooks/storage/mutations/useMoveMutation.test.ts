@@ -176,13 +176,21 @@ describe("useMoveMutation", () => {
     });
 
     await waitFor(() => {
-      // 移動元のクエリが無効化される
+      // 移動元の items クエリが無効化される
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: queryKeys.items(mockContext.identityId, mockContext.currentPath),
       });
-      // 移動先のクエリが無効化される
+      // 移動元の folders クエリが無効化される
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: queryKeys.folders(mockContext.identityId, mockContext.currentPath),
+      });
+      // 移動先の items クエリが無効化される
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: queryKeys.items(mockContext.identityId, "documents"),
+      });
+      // 移動先の folders クエリが無効化される
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: queryKeys.folders(mockContext.identityId, "documents"),
       });
     });
   });
