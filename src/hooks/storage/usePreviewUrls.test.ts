@@ -230,7 +230,7 @@ describe("usePreviewUrls", () => {
       });
     });
 
-    it("should use correct MIME type for mov", async () => {
+    it("should use video/mp4 for mov files (browser compatibility)", async () => {
       const items: StorageItem[] = [
         { key: "media/user123/video.mov", name: "video.mov", type: "file" },
       ];
@@ -241,8 +241,9 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
+      // mov ファイルも video/mp4 として扱う（ブラウザ互換性のため）
       expect(result.current.data[0]).toMatchObject({
-        sources: [{ type: "video/quicktime" }],
+        sources: [{ type: "video/mp4" }],
       });
     });
   });

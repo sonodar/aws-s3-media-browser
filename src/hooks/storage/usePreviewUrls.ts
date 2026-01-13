@@ -12,16 +12,10 @@ import type { QueryReturn } from "../types";
 function getVideoMimeType(filename: string): string {
   const ext = filename.toLowerCase().split(".").pop();
   switch (ext) {
-    case "mp4":
-      return "video/mp4";
     case "webm":
       return "video/webm";
-    case "mov":
-      return "video/quicktime";
-    case "avi":
-      return "video/x-msvideo";
-    case "mkv":
-      return "video/x-matroska";
+    // mp4, mov, avi, mkv などは video/mp4 として扱う
+    // 多くのブラウザは video/quicktime をサポートしていないため
     default:
       return "video/mp4";
   }
