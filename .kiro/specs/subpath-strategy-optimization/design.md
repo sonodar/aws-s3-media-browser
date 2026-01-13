@@ -2,13 +2,13 @@
 
 ## 概要
 
-AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプションを導入し、フォルダ一覧取得を最適化する。同時に `queryKeys.items` と `queryKeys.folders` を統合し、MoveDialog と MediaBrowser 間でキャッシュを共有することで API 呼び出しを削減する。
+AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプションを導入し、フォルダ一覧取得を最適化する。新しいキャッシュキーとフックを既存実装と並行して構築し、段階的に移行することで安全に抜本的改善を実現する。
 
 ## 設計原則
 
-- **最小変更**: 既存の動作とインターフェースを可能な限り維持
-- **後方互換**: フォールバック機構で旧環境をサポート
-- **単一責任**: キャッシュキーの統合により責務を明確化
+- **Strangler Fig パターン**: 既存実装を残したまま新実装を並行構築し、最後に切り替え
+- **ゼロベース設計**: 既存実装に引きずられず、理想的なデータ構造から設計
+- **段階的移行**: 新キャッシュキー → 新フック → コンポーネント移行 → 旧実装削除
 - **型安全**: TypeScript の型システムを活用
 
 ## アーキテクチャ
@@ -33,7 +33,31 @@ AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプシ
 └─────────────────────────────────────────────────┘
 ```
 
-### After（最適化後）
+### During（移行期間）
+
+```
+┌─────────────────┐           ┌─────────────────┐
+│  MediaBrowser   │           │   MoveDialog    │
+└────────┬────────┘           └────────┬────────┘
+         │                              │
+         ▼                              ▼
+┌─────────────────┐           ┌─────────────────┐
+│useStorageItemsV2│           │useStorageItemsV2│
+│queryKeys.       │           │queryKeys.       │
+│  storageItems   │           │  storageItems   │
+└────────┬────────┘           └────────┬────────┘
+         │ strategy:'exclude'           │ キャッシュ共有
+         ▼                              │
+┌─────────────────────────────────────────────────┐
+│                  Amplify Storage API            │
+│       items[] + excludedSubpaths[] を返却       │
+└─────────────────────────────────────────────────┘
+
+旧実装（useStorageItems, useFolderList）は並行して存在
+→ 動作確認後に削除
+```
+
+### After（最適化完了）
 
 ```
 ┌─────────────────┐           ┌─────────────────┐
@@ -43,8 +67,8 @@ AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプシ
          ▼                              │
 ┌─────────────────┐                     │
 │ useStorageItems │ ◀───────────────────┘
-│  queryKeys.items│     キャッシュ共有
-│  subpathStrategy│
+│queryKeys.       │     キャッシュ共有
+│  storageItems   │
 └────────┬────────┘
          │ strategy:'exclude'
          ▼
@@ -52,32 +76,19 @@ AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプシ
 │                  Amplify Storage API            │
 │       items[] + excludedSubpaths[] を返却       │
 └─────────────────────────────────────────────────┘
+
+旧実装（queryKeys.items, queryKeys.folders, useFolderList）は削除済み
 ```
 
 ## コンポーネント設計
 
-### 1. useStorageItems フック
+### 1. データ変換モジュール（新規）
 
-**ファイル**: `src/hooks/storage/useStorageItems.ts`
+**ファイル**: `src/hooks/storage/storageItemParser.ts`
 
 #### 責務
 
-- Amplify Storage API を `subpathStrategy: { strategy: 'exclude' }` で呼び出す
-- `items` からファイル一覧を取得
-- `excludedSubpaths` からフォルダ一覧を構築
-- 両者を統合して StorageItem[] として返却
-- 旧環境向けのフォールバック機構を提供
-
-#### インターフェース変更
-
-- 戻り値の型は変更なし（StorageItem[]）
-- 内部実装のみ変更
-
-### 2. parseStorageItems モジュール
-
-**ファイル**: `src/hooks/storage/parseStorageItems.ts`
-
-#### 追加関数
+既存の parseStorageItems.ts とは独立した新規モジュールとして実装。
 
 | 関数名                       | 責務                                         |
 | ---------------------------- | -------------------------------------------- |
@@ -93,29 +104,47 @@ AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプシ
 
 統合時に key ベースで重複排除を行う。
 
-### 3. queryKeys
+### 2. queryKeys（段階的移行）
 
 **ファイル**: `src/stores/queryKeys.ts`
 
-#### 変更内容
+#### 移行期間
 
-| キー      | Before | After            |
-| --------- | ------ | ---------------- |
-| `items`   | 維持   | 維持（変更なし） |
-| `folders` | 存在   | **廃止**         |
+| キー           | 状態   | 用途                   |
+| -------------- | ------ | ---------------------- |
+| `items`        | 既存   | 旧 useStorageItems 用  |
+| `folders`      | 既存   | 旧 useFolderList 用    |
+| `storageItems` | **新規** | 新 useStorageItemsV2 用 |
 
-### 4. useFolderList フック
+#### 最終状態
 
-**ファイル**: `src/hooks/storage/useFolderList.ts`
+| キー           | 状態       |
+| -------------- | ---------- |
+| `items`        | **削除**   |
+| `folders`      | **削除**   |
+| `storageItems` | 維持（リネーム可） |
 
-#### 方針
+### 3. useStorageItemsV2 フック（新規）
 
-**廃止**して FolderBrowser で直接 useStorageItems を使用する。
+**ファイル**: `src/hooks/storage/useStorageItemsV2.ts`
 
-理由：
+#### 責務
 
-- キャッシュ統合により存在意義がなくなる
-- シンプルなフィルタ処理はコンポーネント側で行う方が明確
+- Amplify Storage API を `subpathStrategy: { strategy: 'exclude' }` で呼び出す
+- storageItemParser のデータ変換関数を使用
+- `queryKeys.storageItems` をキャッシュキーとして使用
+
+#### インターフェース
+
+- 旧 useStorageItems と同じ戻り値型（StorageItem[]）
+- 移行完了後、useStorageItems にリネーム
+
+### 4. 旧フック（移行後削除）
+
+| フック          | 移行期間の状態 | 最終状態 |
+| --------------- | -------------- | -------- |
+| useStorageItems | 並行稼働       | 削除     |
+| useFolderList   | 並行稼働       | 削除     |
 
 ### 5. FolderBrowser コンポーネント
 
@@ -123,9 +152,9 @@ AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプシ
 
 #### 変更内容
 
-- `useFolderList` → `useStorageItems` に変更
+- `useFolderList` → `useStorageItemsV2` に変更
 - コンポーネント内で `type === "folder"` でフィルタ
-- インターフェース（Props）は変更なし
+- Props インターフェースは変更なし
 
 ### 6. Mutation フック群
 
@@ -137,36 +166,21 @@ AWS Amplify Storage API の `subpathStrategy: { strategy: 'exclude' }` オプシ
 - `useUploadMutation.ts`
 - `useCreateFolderMutation.ts`
 
-#### 変更内容
+#### 移行期間
 
-- `onSuccess` から `queryKeys.folders` の無効化を削除
-- `queryKeys.items` の無効化のみ残す
+- `queryKeys.storageItems` の無効化を追加
+- 既存の `queryKeys.items`, `queryKeys.folders` の無効化も維持
+
+#### 最終状態
+
+- `queryKeys.storageItems` の無効化のみ
+- 旧キーの無効化を削除
 
 #### フォルダ操作時の動作
 
 フォルダの移動・削除・リネーム時は引き続き `listAll: true` を使用。
 
-理由：
-
-- フォルダ配下の全ファイルに対して操作が必要
-- 操作頻度は低く、パフォーマンス影響は限定的
-
-## エラーハンドリング
-
-### フォールバック戦略
-
-1. `subpathStrategy: { strategy: 'exclude' }` で API 呼び出し
-2. サポートされていない場合はエラーをキャッチ
-3. `listAll: true` で再試行
-4. 既存の parseStorageItems ロジックでフォルダを推測
-
-### 判定条件
-
-エラーメッセージに `subpathStrategy` または `not supported` が含まれる場合にフォールバック。
-
 ## データフロー
-
-### 正常系
 
 ```
 list({ subpathStrategy: 'exclude' })
@@ -189,29 +203,15 @@ list({ subpathStrategy: 'exclude' })
                                                         StorageItem[] (統合済み)
 ```
 
-### フォールバック系
-
-```
-list({ subpathStrategy: 'exclude' })
-         │
-         ▼ Error
-         │
-         ▼
-list({ listAll: true })
-         │
-         ▼
-parseStorageItems() ──► StorageItem[] (従来ロジック)
-```
-
 ## テスト戦略
 
 ### ユニットテスト
 
-| 対象                         | テストケース                           |
-| ---------------------------- | -------------------------------------- |
-| `parseExcludedSubpaths`      | 正常変換、空配列、ネストパス           |
-| `mergeAndDeduplicateFolders` | 重複排除、明示的/暗黙的統合            |
-| `useStorageItems`            | subpathStrategy 正常系、フォールバック |
+| 対象                         | テストケース                 |
+| ---------------------------- | ---------------------------- |
+| `parseExcludedSubpaths`      | 正常変換、空配列、ネストパス |
+| `mergeAndDeduplicateFolders` | 重複排除、明示的/暗黙的統合  |
+| `useStorageItemsV2`          | subpathStrategy 正常系       |
 
 ### 統合テスト
 
@@ -230,11 +230,12 @@ parseStorageItems() ──► StorageItem[] (従来ロジック)
 
 ## リスクと緩和策
 
-| リスク                         | 緩和策                     |
-| ------------------------------ | -------------------------- |
-| subpathStrategy 未サポート環境 | フォールバック機構         |
-| 明示的/暗黙的フォルダの重複    | 重複排除ロジック           |
-| Mutation 無効化漏れ            | 全 Mutation の確認・テスト |
+| リスク                       | 緩和策                             |
+| ---------------------------- | ---------------------------------- |
+| 明示的/暗黙的フォルダの重複  | 重複排除ロジック                   |
+| Mutation 無効化漏れ          | 移行期間は新旧両方のキーを無効化   |
+| 移行期間中のキャッシュ不整合 | 新旧実装が独立したキーを使用       |
+| ロールバック必要時           | 旧実装を削除せず並行稼働で動作確認 |
 
 ## 依存関係
 
@@ -243,20 +244,28 @@ parseStorageItems() ──► StorageItem[] (従来ロジック)
 
 ## 実装フェーズ
 
-### Phase 1: useStorageItems 拡張
+### Phase 1: 新規実装（既存と並行）
 
-1. parseExcludedSubpaths 関数追加
-2. mergeAndDeduplicateFolders 関数追加
-3. useStorageItems の queryFn 更新
-4. フォールバック機構追加
+1. storageItemParser.ts を新規作成
+   - parseExcludedSubpaths 関数
+   - mergeAndDeduplicateFolders 関数
+   - ユニットテスト
+2. queryKeys.storageItems を追加
+3. useStorageItemsV2.ts を新規作成
+   - subpathStrategy: 'exclude' を使用
+   - ユニットテスト
 
-### Phase 2: キャッシュ統合
+### Phase 2: コンポーネント移行
 
-1. FolderBrowser を useStorageItems に移行
-2. Mutation フックの無効化ロジック更新
-3. queryKeys.folders 廃止
+1. FolderBrowser を useStorageItemsV2 に移行
+2. MediaBrowser を useStorageItemsV2 に移行
+3. Mutation フックに queryKeys.storageItems 無効化を追加
+4. 統合テスト
 
 ### Phase 3: クリーンアップ
 
-1. useFolderList 削除
-2. テスト更新
+1. 旧フック削除（useStorageItems, useFolderList）
+2. 旧キー削除（queryKeys.items, queryKeys.folders）
+3. Mutation フックから旧キー無効化を削除
+4. useStorageItemsV2 を useStorageItems にリネーム
+5. 不要なテスト削除
