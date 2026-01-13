@@ -12,12 +12,12 @@
 
 ## Task 2: Storage Write 操作の useMutation 実装
 
-- [ ] 2.1 queryKeys にサムネイルキーを追加
+- [x] 2.1 queryKeys にサムネイルキーを追加
   - `queryKeys.thumbnail(originalKey)` を追加し、サムネイル URL クエリの一意識別を可能にする
   - 既存の queryKeys パターン（型安全・as const）を踏襲
   - _Requirements: 2.2_
 
-- [ ] 2.2 (P) アップロード用 useMutation フックの実装
+- [x] 2.2 (P) アップロード用 useMutation フックの実装
   - ファイルアップロードを実行する `useUploadMutation` フックを新規作成
   - `mutationKey: ["storage", "upload"]` で一意識別
   - `isPending` で処理中状態を提供
@@ -25,7 +25,7 @@
   - `isError` と `error` オブジェクトで失敗状態を提供
   - _Requirements: 1.1, 1.2, 1.7_
 
-- [ ] 2.3 (P) 削除用 useMutation フックの実装
+- [x] 2.3 (P) 削除用 useMutation フックの実装
   - ファイル/フォルダ削除を実行する `useDeleteMutation` フックを新規作成
   - `mutationKey: ["storage", "delete"]` で一意識別
   - `isPending` で処理中状態を提供
@@ -34,7 +34,7 @@
   - `isError` と `error` オブジェクトで失敗状態を提供
   - _Requirements: 1.3, 1.7_
 
-- [ ] 2.4 (P) 移動用 useMutation フックの実装
+- [x] 2.4 (P) 移動用 useMutation フックの実装
   - ファイル/フォルダ移動を実行する `useMoveMutation` フックを新規作成
   - `mutationKey: ["storage", "move"]` で一意識別
   - `isPending` で処理中状態を提供
@@ -43,7 +43,7 @@
   - `isError` と `error` オブジェクトで失敗状態を提供
   - _Requirements: 1.4, 1.7_
 
-- [ ] 2.5 (P) リネーム用 useMutation フックの実装
+- [x] 2.5 (P) リネーム用 useMutation フックの実装
   - ファイル/フォルダリネームを実行する `useRenameMutation` フックを新規作成
   - `mutationKey: ["storage", "rename"]` で一意識別
   - `isPending` で処理中状態を提供
@@ -52,7 +52,7 @@
   - `isError` と `error` オブジェクトで失敗状態を提供
   - _Requirements: 1.5, 1.7_
 
-- [ ] 2.6 (P) フォルダ作成用 useMutation フックの実装
+- [x] 2.6 (P) フォルダ作成用 useMutation フックの実装
   - フォルダ作成を実行する `useCreateFolderMutation` フックを新規作成
   - `mutationKey: ["storage", "createFolder"]` で一意識別
   - `isPending` で処理中状態を提供
