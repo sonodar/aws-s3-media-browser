@@ -88,7 +88,7 @@
   - 既存の API インターフェースとの互換性を維持
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 4.2 ThumbnailImage から Thumbnail への置き換え
+- [x] 4.2 ThumbnailImage から Thumbnail への置き換え
   - `ThumbnailImage` を使用している箇所を新規 `Thumbnail` コンポーネントに置き換え
   - 既存のサムネイル表示機能が正しく動作することを確認
   - _Requirements: 3.5_

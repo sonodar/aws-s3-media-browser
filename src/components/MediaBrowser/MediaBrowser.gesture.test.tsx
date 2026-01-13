@@ -22,8 +22,8 @@ vi.mock("@aws-amplify/ui-react-storage", () => ({
   ),
 }));
 
-vi.mock("./ThumbnailImage", () => ({
-  ThumbnailImage: ({
+vi.mock("./Thumbnail", () => ({
+  Thumbnail: ({
     originalKey,
     fileName,
     fileType,

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useIdentityId } from "../../hooks/identity";
 import { useStoragePath } from "../../hooks/path";
-import { useStorageOperations, useUploadTracker, sortStorageItems } from "../../hooks/storage";
+import { useStorageOperations, sortStorageItems } from "../../hooks/storage";
 import {
   useSwipeNavigation,
   useSelection,
@@ -33,8 +33,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   const { identityId, loading: identityLoading, error: identityError } = useIdentityId();
 
   const { currentPath, navigate, goBack } = useStoragePath();
-
-  const { recentlyUploadedKeys } = useUploadTracker();
 
   const {
     items,
@@ -103,7 +101,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
 
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState<number | null>(null);
-  // RenameDialog state with key for remount（禁止用途 useEffect 排除のため）
+  // RenameDialog state with key for remount
   const [renameDialogState, setRenameDialogState] = useState<{
     target: StorageItem | null;
     key: number;
@@ -142,9 +140,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   };
 
   // Header の選択削除ボタンからの削除リクエスト
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = useCallback(() => {
     requestDelete(selectedItems);
-  };
+  }, [selectedItems, requestDelete]);
 
   // 削除確認ダイアログで「削除」を押した時の処理
   const handleConfirmDelete = async () => {
@@ -177,14 +175,17 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     setRenameDialogState((prev) => ({ target: item, key: prev.key + 1 }));
   };
 
-  const handleCloseRenameDialog = () => {
+  const handleCloseRenameDialog = useCallback(() => {
     setRenameDialogState((prev) => ({ ...prev, target: null }));
-  };
+  }, []);
 
   // 単一アイテムの移動（FileActionMenuから呼ばれる）
-  const handleMoveItem = (item: StorageItem) => {
-    openMoveDialog([item]);
-  };
+  const handleMoveItem = useCallback(
+    (item: StorageItem) => {
+      openMoveDialog([item]);
+    },
+    [openMoveDialog],
+  );
 
   // ContextMenu handlers for long press
   const handleShowActionMenu = useCallback((data: ActionMenuData) => {
@@ -203,9 +204,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     });
   }, []);
 
-  const handleContextMenuRename = useCallback(() => {
+  const handleContextMenuRename = useCallback(async () => {
     if (contextMenuState.item) {
-      handleRename(contextMenuState.item);
+      await handleRename(contextMenuState.item);
     }
   }, [contextMenuState.item]);
 
@@ -213,7 +214,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     if (contextMenuState.item) {
       handleMoveItem(contextMenuState.item);
     }
-  }, [contextMenuState.item]);
+  }, [contextMenuState.item, handleMoveItem]);
 
   // ContextMenu からの削除リクエスト（確認ダイアログを表示）
   const handleContextMenuDelete = useCallback(() => {
@@ -225,18 +226,18 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   }, [contextMenuState.item, requestDelete]);
 
   // 一括移動（Headerの移動ボタンから呼ばれる）
-  const handleMoveSelected = () => {
+  const handleMoveSelected = useCallback(() => {
     if (selectedItems.length > 0) {
       openMoveDialog(selectedItems);
     }
-  };
+  }, [selectedItems, openMoveDialog]);
 
   // 移動完了時の処理
-  const handleMoveComplete = async () => {
+  const handleMoveComplete = useCallback(async () => {
     closeMoveDialog();
     await refresh();
     exitSelectionMode();
-  };
+  }, [closeMoveDialog, refresh, exitSelectionMode]);
 
   // MoveDialog用のrootPath
   const rootPath = identityId ? `media/${identityId}/` : "";
@@ -301,7 +302,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
             items={sortedItems}
             onFolderClick={navigate}
             onFileClick={handleFileClick}
-            recentlyUploadedKeys={recentlyUploadedKeys}
             isSelectionMode={isSelectionMode}
             selectedKeys={selectedKeys}
             onToggleSelection={toggleSelection}

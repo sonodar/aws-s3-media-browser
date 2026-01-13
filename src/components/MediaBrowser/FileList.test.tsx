@@ -8,9 +8,9 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   <MantineProvider>{children}</MantineProvider>
 );
 
-// Mock ThumbnailImage component
-vi.mock("./ThumbnailImage", () => ({
-  ThumbnailImage: ({
+// Mock Thumbnail component
+vi.mock("./Thumbnail", () => ({
+  Thumbnail: ({
     originalKey,
     fileName,
     fileType,
@@ -275,7 +275,7 @@ describe("FileList", () => {
   });
 
   describe("thumbnail display", () => {
-    it("should render ThumbnailImage for image files", () => {
+    it("should render Thumbnail for image files", () => {
       render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
         wrapper,
       });
@@ -286,7 +286,7 @@ describe("FileList", () => {
       expect(imageThumbnail).toHaveAttribute("data-file-name", "photo.jpg");
     });
 
-    it("should render ThumbnailImage for video files", () => {
+    it("should render Thumbnail for video files", () => {
       render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
         wrapper,
       });
@@ -297,7 +297,7 @@ describe("FileList", () => {
       expect(videoThumbnail).toHaveAttribute("data-file-name", "video.mp4");
     });
 
-    it("should use folder icon for folders instead of ThumbnailImage", () => {
+    it("should use folder icon for folders instead of Thumbnail", () => {
       render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
         wrapper,
       });
@@ -307,7 +307,7 @@ describe("FileList", () => {
       expect(thumbnails).toHaveLength(2);
     });
 
-    it("should pass correct originalKey to ThumbnailImage", () => {
+    it("should pass correct originalKey to Thumbnail", () => {
       render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
         wrapper,
       });
