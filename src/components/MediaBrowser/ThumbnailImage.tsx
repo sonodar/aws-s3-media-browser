@@ -6,6 +6,10 @@ import { Image as ImageIcon, Film } from "lucide-react";
 import { getThumbnailPath } from "../../utils/pathUtils";
 import "./ThumbnailImage.css";
 
+/**
+ * @deprecated Phase 3 完了後に削除予定。新規 Thumbnail コンポーネントに置き換えられます。
+ * @see Thumbnail - useThumbnailUrl を使用した新しいサムネイル表示コンポーネント
+ */
 export interface ThumbnailImageProps {
   /** Original file key (media/...) */
   originalKey: string;
@@ -26,6 +30,14 @@ function FallbackIcon({ fileType }: { fileType: "image" | "video" }) {
   return <ImageIcon aria-hidden="true" />;
 }
 
+/**
+ * サムネイル画像を表示するコンポーネント
+ *
+ * @deprecated Phase 3 完了後に削除予定。新規 Thumbnail コンポーネントに置き換えられます。
+ * TanStack Query の useQuery によるリトライ機構を持つ useThumbnailUrl フックを使用した
+ * 新しい実装に移行してください。
+ * @see Thumbnail - useThumbnailUrl を使用した新しいサムネイル表示コンポーネント
+ */
 export function ThumbnailImage({
   originalKey,
   fileName,

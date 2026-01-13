@@ -8,6 +8,11 @@ export interface UseUploadTrackerReturn {
 
 /**
  * アップロードされたファイルのキーを追跡し、指定時間後に自動クリアするフック
+ *
+ * @deprecated Phase 3 完了後に削除予定。TanStack Query の useMutation と useQuery による
+ * サムネイルリトライ機構に置き換えられ、アップロード追跡は不要になります。
+ * @see useThumbnailUrl - サムネイル URL 取得（リトライ機構付き）
+ * @see useUploadMutation - アップロード操作の useMutation 実装
  */
 export function useUploadTracker(clearDelay: number = 3000): UseUploadTrackerReturn {
   const [recentlyUploadedKeys, setRecentlyUploadedKeys] = useState<string[]>([]);

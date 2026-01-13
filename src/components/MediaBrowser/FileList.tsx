@@ -4,11 +4,8 @@ import { SimpleGrid, Center, Text, Checkbox } from "@mantine/core";
 import { useLongPress } from "@mantine/hooks";
 import type { StorageItem } from "../../types/storage";
 import { getFileCategory } from "../../utils/fileTypes";
-import { ThumbnailImage } from "./ThumbnailImage";
+import { Thumbnail } from "./Thumbnail";
 import "./FileList.css";
-
-/** Delay in ms before fetching thumbnails for newly uploaded files */
-const THUMBNAIL_FETCH_DELAY = 3000;
 
 /** アクションメニュー表示用のデータ */
 export interface ActionMenuData {
@@ -20,8 +17,6 @@ interface FileListProps {
   items: StorageItem[];
   onFolderClick: (folderName: string) => void;
   onFileClick: (item: StorageItem) => void;
-  /** Keys of recently uploaded files (for delayed thumbnail fetch) */
-  recentlyUploadedKeys?: string[];
   /** 選択モードが有効か */
   isSelectionMode?: boolean;
   /** 選択中のキー */
@@ -75,7 +70,6 @@ function FileListItem({
   item,
   isSelected,
   isSelectionMode,
-  recentlyUploadedKeys,
   onItemClick,
   onCheckboxClick,
   onShowActionMenu,
@@ -83,7 +77,6 @@ function FileListItem({
   item: StorageItem;
   isSelected: boolean;
   isSelectionMode: boolean;
-  recentlyUploadedKeys: string[];
   onItemClick: (item: StorageItem) => void;
   onCheckboxClick: (e: React.MouseEvent, key: string) => void;
   onShowActionMenu?: (data: ActionMenuData) => void;
@@ -164,12 +157,7 @@ function FileListItem({
         />
       )}
       {shouldShowThumbnail(item) ? (
-        <ThumbnailImage
-          originalKey={item.key}
-          fileName={item.name}
-          fileType={getFileType(item)!}
-          initialDelay={recentlyUploadedKeys.includes(item.key) ? THUMBNAIL_FETCH_DELAY : undefined}
-        />
+        <Thumbnail originalKey={item.key} fileName={item.name} fileType={getFileType(item)!} />
       ) : (
         <span className="file-icon">
           <FileIcon item={item} />
@@ -184,7 +172,6 @@ export function FileList({
   items,
   onFolderClick,
   onFileClick,
-  recentlyUploadedKeys = [],
   isSelectionMode = false,
   selectedKeys = new Set(),
   onToggleSelection,
@@ -223,7 +210,6 @@ export function FileList({
             item={item}
             isSelected={isSelected}
             isSelectionMode={isSelectionMode}
-            recentlyUploadedKeys={recentlyUploadedKeys}
             onItemClick={handleItemClick}
             onCheckboxClick={handleCheckboxClick}
             onShowActionMenu={onShowActionMenu}

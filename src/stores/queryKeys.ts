@@ -35,4 +35,10 @@ export const queryKeys = {
    * @example queryKeys.passkeys() // ["passkeys"]
    */
   passkeys: () => ["passkeys"] as const,
+
+  /**
+   * サムネイル URL の queryKey
+   * @example queryKeys.thumbnail("media/user-123/photos/image.jpg") // ["thumbnail", "media/user-123/photos/image.jpg"]
+   */
+  thumbnail: (originalKey: string) => ["thumbnail", originalKey] as const,
 } as const;

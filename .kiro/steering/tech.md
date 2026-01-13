@@ -65,28 +65,29 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 
 ## Key Technical Decisions
 
-| 決定                         | 理由                                                      |
-| ---------------------------- | --------------------------------------------------------- |
-| Amplify Gen2 採用            | TypeScript ベースの IaC で型安全なバックエンド定義        |
-| セルフサインアップ無効化     | 管理者のみがユーザー作成可能なクローズド環境              |
-| Identity ID ベースストレージ | ユーザー間の完全なデータ分離                              |
-| Vite + React 19              | 高速な開発サーバーと最新の React 機能                     |
-| 単一責任フック分割           | テスト容易性と保守性向上（useStorage → 個別フック）       |
-| URL クエリパラメータ同期     | SPA でのブラウザ履歴・リロード対応                        |
-| WebAuthn パスキー認証        | パスワードレスでセキュアな認証体験                        |
-| Set ベース選択管理           | O(1) 選択チェックによる複数選択・一括操作                 |
-| Lucide React アイコン        | 統一されたアイコンデザイン、絵文字からの移行              |
-| OxLint + OxFmt               | ESLint より高速な Rust ベースの Linter/Formatter          |
-| localStorage 設定永続化      | ユーザー設定（ソート順等）のブラウザローカル保存          |
-| Intl.Collator 自然順ソート   | 数字を正しく扱う多言語対応ソート（file1, file2, file10）  |
-| @use-gesture/react 採用      | タッチデバイス向けスワイプジェスチャーの高精度検出        |
-| Jotai アトミック状態管理     | 軽量・シンプルな共有状態管理（パス・選択・ソート状態）    |
-| Mantine UI ライブラリ        | アクセシブルな UI コンポーネント（Menu, Modal 等）        |
-| jotai-devtools               | Redux DevTools 連携によるアトム状態のデバッグ             |
-| UI コンポーネント統合        | 自作 Menu/Modal → Mantine に移行（アクセシビリティ向上）  |
-| TanStack Query 導入          | サーバー状態のキャッシュ・同期・無効化を宣言的に管理      |
-| 状態管理の二層構造           | サーバー状態（TanStack Query）/ クライアント状態（Jotai） |
-| 機能別フックディレクトリ整理 | identity, passkey, path, storage, ui でドメイン分離       |
+| 決定                         | 理由                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| Amplify Gen2 採用            | TypeScript ベースの IaC で型安全なバックエンド定義                     |
+| セルフサインアップ無効化     | 管理者のみがユーザー作成可能なクローズド環境                           |
+| Identity ID ベースストレージ | ユーザー間の完全なデータ分離                                           |
+| Vite + React 19              | 高速な開発サーバーと最新の React 機能                                  |
+| 単一責任フック分割           | テスト容易性と保守性向上（useStorage → 個別フック）                    |
+| URL クエリパラメータ同期     | SPA でのブラウザ履歴・リロード対応                                     |
+| WebAuthn パスキー認証        | パスワードレスでセキュアな認証体験                                     |
+| Set ベース選択管理           | O(1) 選択チェックによる複数選択・一括操作                              |
+| Lucide React アイコン        | 統一されたアイコンデザイン、絵文字からの移行                           |
+| OxLint + OxFmt               | ESLint より高速な Rust ベースの Linter/Formatter                       |
+| localStorage 設定永続化      | ユーザー設定（ソート順等）のブラウザローカル保存                       |
+| Intl.Collator 自然順ソート   | 数字を正しく扱う多言語対応ソート（file1, file2, file10）               |
+| @use-gesture/react 採用      | タッチデバイス向けスワイプジェスチャーの高精度検出                     |
+| Jotai アトミック状態管理     | 軽量・シンプルな共有状態管理（パス・選択・ソート状態）                 |
+| Mantine UI ライブラリ        | アクセシブルな UI コンポーネント（Menu, Modal 等）                     |
+| jotai-devtools               | Redux DevTools 連携によるアトム状態のデバッグ                          |
+| UI コンポーネント統合        | 自作 Menu/Modal → Mantine に移行（アクセシビリティ向上）               |
+| TanStack Query 導入          | サーバー状態のキャッシュ・同期・無効化を宣言的に管理                   |
+| 状態管理の二層構造           | サーバー状態（TanStack Query）/ クライアント状態（Jotai）              |
+| 機能別フックディレクトリ整理 | identity, passkey, path, storage, ui でドメイン分離                    |
+| useMutation 分割             | 書き込み操作を個別 mutation フックに分離（キャッシュ無効化の一元管理） |
 
 ---
 

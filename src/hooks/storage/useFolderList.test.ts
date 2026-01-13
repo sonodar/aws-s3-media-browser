@@ -149,6 +149,39 @@ describe("useFolderList", () => {
       });
     });
 
+    it("should handle full path by extracting relative path", async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+
+      // フルパスが渡された場合（MoveDialog や FolderBrowser から渡される）
+      renderHook(() => useFolderList("test-identity-id", "media/test-identity-id/photos/"), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        // フルパスが正しく相対パスに変換され、二重パスにならない
+        expect(list).toHaveBeenCalledWith({
+          path: "media/test-identity-id/photos/",
+          options: { listAll: true },
+        });
+      });
+    });
+
+    it("should handle full path for root", async () => {
+      vi.mocked(list).mockResolvedValue({ items: [] });
+
+      // ルートのフルパスが渡された場合
+      renderHook(() => useFolderList("test-identity-id", "media/test-identity-id/"), {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(list).toHaveBeenCalledWith({
+          path: "media/test-identity-id/",
+          options: { listAll: true },
+        });
+      });
+    });
+
     it("should refetch when path changes", async () => {
       vi.mocked(list).mockResolvedValue({ items: [] });
 

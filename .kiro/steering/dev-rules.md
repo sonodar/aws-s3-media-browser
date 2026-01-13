@@ -19,6 +19,7 @@
 
 以下に該当する場合は、対症療法的な実装の可能性が高い：
 
+- 「後方互換性のため」というコメント（削除条件が併記されていればOK）
 - 「とりあえず動く」ことだけを目指している
 - 要件に書かれていることだけを機械的に実装している
 - なぜその実装が正しいのか説明できない
@@ -31,10 +32,10 @@
 - サブタスクでテストを実装する前に、必ず前回実装したテストの内容を参考にすること
 - サブタスク完了時は必ず `npm run check` を行うこと（npm run check: typecheck, lint, test の並列実行）
 - タスク（サブタスクではなくタスク）完了時は必ず `npm run check-all` を行うこと (check-all: check + format + build)
-- タスク完了ごとに @agent-code-simplifier:code-simplifier に対して `simplify and refine code for clarity, consistency, and maintainability while preserving all functionality` を実行すること
 - 各タスク完了後は必ずユーザーに報告し、次のタスクに進む前に明示的な指示を待つこと
 - 差分確認のため、ユーザーの許可なく次のタスクを自動的に開始しないこと
 - タスク完了時は変更点のサマリーを提示すること
+- 後方互換性のための変更を行う際は、そのコードが削除できるための削除条件コメントを付すること
 
 ## タスク管理（必須）
 

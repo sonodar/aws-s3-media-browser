@@ -20,3 +20,5 @@ export { useFolderList } from "./useFolderList";
 export type { UseFolderListOptions, UseFolderListReturn } from "./useFolderList";
 export { usePreviewUrls } from "./usePreviewUrls";
 export type { UsePreviewUrlsOptions, UsePreviewUrlsResult } from "./usePreviewUrls";
+export { useThumbnailUrl } from "./useThumbnailUrl";
+export type { UseThumbnailUrlOptions } from "./useThumbnailUrl";
