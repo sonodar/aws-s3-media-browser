@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { list } from "aws-amplify/storage";
 import { queryKeys } from "../../stores/queryKeys";
 import { parseStorageItems } from "./parseStorageItems";
-import { buildMediaBasePath } from "../../utils/storagePathUtils";
+import { buildMediaBasePath, extractRelativePath } from "../../utils/storagePathUtils";
 import type { StorageItem } from "../../types/storage";
 import type { QueryReturn } from "../types";
 
@@ -35,7 +35,15 @@ export function useFolderList(
         return [];
       }
 
-      const basePath = buildMediaBasePath(identityId, path);
+      // path がフルパスの場合は相対パスに変換
+      // （MoveDialog や FolderBrowser からフルパスが渡される場合がある）
+      let relativePath = path;
+      const extracted = extractRelativePath(path, identityId);
+      if (extracted !== null) {
+        relativePath = extracted;
+      }
+
+      const basePath = buildMediaBasePath(identityId, relativePath);
       const result = await list({
         path: basePath,
         options: { listAll: true },
