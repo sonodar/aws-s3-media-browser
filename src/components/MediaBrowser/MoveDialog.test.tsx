@@ -1,12 +1,37 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MoveDialog } from "./MoveDialog";
 import type { StorageItem } from "../../types/storage";
-import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
+import type { MoveResult, MoveProgress } from "../../hooks/storage";
+
+// Mock useFolderList hook
+vi.mock("../../hooks/storage", async () => {
+  const actual = await vi.importActual("../../hooks/storage");
+  return {
+    ...actual,
+    useFolderList: vi.fn(),
+  };
+});
+
+import { useFolderList } from "../../hooks/storage";
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+        staleTime: 0,
+      },
+    },
+  });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <MantineProvider>{children}</MantineProvider>
+  <QueryClientProvider client={createTestQueryClient()}>
+    <MantineProvider>{children}</MantineProvider>
+  </QueryClientProvider>
 );
 
 describe("MoveDialog", () => {
@@ -15,7 +40,7 @@ describe("MoveDialog", () => {
     [StorageItem[], string, ((p: MoveProgress) => void)?],
     Promise<MoveResult>
   >();
-  const mockListFolders = vi.fn<[string], Promise<StorageItem[]>>();
+  const mockUseFolderList = vi.mocked(useFolderList);
 
   const basePath = "media/user123/";
   const sampleItems: StorageItem[] = [
@@ -30,7 +55,13 @@ describe("MoveDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockListFolders.mockResolvedValue(sampleFolders);
+    // Default mock: loaded folders
+    mockUseFolderList.mockReturnValue({
+      data: sampleFolders,
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
     mockOnMove.mockResolvedValue({
       success: true,
       succeeded: 2,
@@ -46,14 +77,19 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      // FolderBrowser の表示を待つ
+      await waitFor(() => {
+        expect(screen.getByText("archive")).toBeInTheDocument();
+      });
     });
 
     it("should not render when isOpen is false", () => {
@@ -63,9 +99,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -83,15 +119,20 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={currentPath}
           rootPath={rootPath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
 
       // 初期表示は currentPath のフォルダ名（photos）であるべき
       expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
+
+      // useFolderList が正しいパスで呼ばれているか確認
+      await waitFor(() => {
+        expect(mockUseFolderList).toHaveBeenCalledWith("user123", currentPath, { enabled: true });
+      });
     });
 
     it("should display item count in header", async () => {
@@ -101,9 +142,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -122,9 +163,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -142,9 +183,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -169,9 +210,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -189,9 +230,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -215,9 +256,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -259,9 +300,9 @@ describe("MoveDialog", () => {
           items={[folderItem]}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -288,11 +329,21 @@ describe("MoveDialog", () => {
         { key: `${basePath}photos/2024/`, name: "2024", type: "folder" },
       ];
 
-      mockListFolders.mockImplementation(async (path) => {
+      mockUseFolderList.mockImplementation((identityId, path) => {
         if (path === `${basePath}photos/`) {
-          return subfolders;
+          return {
+            data: subfolders,
+            isLoading: false,
+            isError: false,
+            error: null,
+          };
         }
-        return sampleFolders;
+        return {
+          data: sampleFolders,
+          isLoading: false,
+          isError: false,
+          error: null,
+        };
       });
 
       render(
@@ -301,9 +352,9 @@ describe("MoveDialog", () => {
           items={[folderItem]}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -340,9 +391,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -377,9 +428,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -418,9 +469,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -447,9 +498,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -483,9 +534,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -512,9 +563,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -535,9 +586,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );
@@ -567,9 +618,9 @@ describe("MoveDialog", () => {
           items={sampleItems}
           currentPath={basePath}
           rootPath={basePath}
+          identityId="user123"
           onClose={mockOnClose}
           onMove={mockOnMove}
-          listFolders={mockListFolders}
         />,
         { wrapper },
       );

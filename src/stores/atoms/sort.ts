@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import type { SortOrder } from "../../hooks/sortStorageItems";
-import { DEFAULT_SORT_ORDER } from "../../hooks/sortStorageItems";
+import type { SortOrder } from "../../hooks/storage";
+import { DEFAULT_SORT_ORDER } from "../../hooks/storage";
 
 /**
  * Sort Domain Atoms

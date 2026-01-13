@@ -1,58 +1,39 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { Folder, ArrowUp, Home } from "lucide-react";
+import { useFolderList } from "../../hooks/storage";
 import type { StorageItem } from "../../types/storage";
 import "./FolderBrowser.css";
 
 export interface FolderBrowserProps {
-  /** 現在表示中のパス */
+  /** Identity ID（認証ユーザーのID） */
+  identityId: string | null;
+  /** 現在表示中のパス（media/{identityId}/を除いた相対パス） */
   currentPath: string;
   /** ルートパス（これ以上遡れない） */
   rootPath?: string;
   /** 無効化するパス（循環移動防止） */
   disabledPaths: string[];
-  /** フォルダ一覧取得関数 */
-  listFolders: (path: string) => Promise<StorageItem[]>;
   /** フォルダナビゲーションコールバック */
   onNavigate: (path: string) => void;
+  /** クエリを有効化するかどうか（default: true） */
+  enabled?: boolean;
 }
 
 /**
  * フォルダ一覧表示・ナビゲーションコンポーネント
+ * TanStack Query を使用してフォルダ一覧を取得
  * クリックでフォルダ内に移動する
  */
 export function FolderBrowser({
+  identityId,
   currentPath,
   rootPath = "",
   disabledPaths,
-  listFolders,
   onNavigate,
+  enabled = true,
 }: FolderBrowserProps) {
-  const [folders, setFolders] = useState<StorageItem[]>([]);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  // フォルダ一覧を取得（初回のみローディング表示、以降は前のリストを維持）
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchFolders = async () => {
-      try {
-        const result = await listFolders(currentPath);
-        if (isMounted) {
-          setFolders(result);
-        }
-      } finally {
-        if (isMounted) {
-          setIsInitialLoading(false);
-        }
-      }
-    };
-
-    fetchFolders();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentPath, listFolders]);
+  // TanStack Query でフォルダ一覧を取得
+  const { data: folders, isLoading } = useFolderList(identityId, currentPath, { enabled });
 
   // パスが無効化されているか判定
   const isDisabled = useCallback((path: string) => disabledPaths.includes(path), [disabledPaths]);
@@ -84,8 +65,8 @@ export function FolderBrowser({
   // ルートにいるか判定
   const isAtRoot = currentPath === rootPath;
 
-  // 初回ローディング状態
-  if (isInitialLoading) {
+  // ローディング状態
+  if (isLoading) {
     return (
       <div className="folder-browser" data-testid="folder-browser-loading">
         <div className="folder-browser-loading">読み込み中...</div>

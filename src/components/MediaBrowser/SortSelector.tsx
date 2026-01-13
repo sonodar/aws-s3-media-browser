@@ -1,6 +1,6 @@
 import { NativeSelect } from "@mantine/core";
-import type { SortOrder } from "../../hooks/sortStorageItems";
-import { SORT_ORDER_LABELS } from "../../hooks/sortStorageItems";
+import type { SortOrder } from "../../hooks/storage";
+import { SORT_ORDER_LABELS } from "../../hooks/storage";
 
 interface SortSelectorProps {
   currentOrder: SortOrder;

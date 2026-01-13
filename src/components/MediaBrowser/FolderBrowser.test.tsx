@@ -1,11 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { FolderBrowser } from "./FolderBrowser";
+import { TestProvider } from "../../stores/TestProvider";
 import type { StorageItem } from "../../types/storage";
+
+// Mock useFolderList hook
+vi.mock("../../hooks/storage", async () => {
+  const actual = await vi.importActual("../../hooks/storage");
+  return {
+    ...actual,
+    useFolderList: vi.fn(),
+  };
+});
+
+import { useFolderList } from "../../hooks/storage";
 
 describe("FolderBrowser", () => {
   const mockOnNavigate = vi.fn();
-  const mockListFolders = vi.fn<[string], Promise<StorageItem[]>>();
+  const mockUseFolderList = vi.mocked(useFolderList);
 
   const basePath = "media/user123/";
   const sampleFolders: StorageItem[] = [
@@ -16,19 +28,31 @@ describe("FolderBrowser", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockListFolders.mockResolvedValue(sampleFolders);
+    // Default mock: loaded folders
+    mockUseFolderList.mockReturnValue({
+      data: sampleFolders,
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
   });
 
+  const renderFolderBrowser = (props: Partial<Parameters<typeof FolderBrowser>[0]> = {}) => {
+    return render(
+      <FolderBrowser
+        identityId="user123"
+        currentPath={basePath}
+        onNavigate={mockOnNavigate}
+        disabledPaths={[]}
+        {...props}
+      />,
+      { wrapper: TestProvider },
+    );
+  };
+
   describe("folder list display", () => {
-    it("should display folders from listFolders", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-        />,
-      );
+    it("should display folders from useFolderList", async () => {
+      renderFolderBrowser();
 
       await waitFor(() => {
         expect(screen.getByText("photos")).toBeInTheDocument();
@@ -37,33 +61,21 @@ describe("FolderBrowser", () => {
       });
     });
 
-    it("should call listFolders with current path", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-        />,
-      );
+    it("should call useFolderList with correct parameters", () => {
+      renderFolderBrowser({ currentPath: basePath });
 
-      await waitFor(() => {
-        expect(mockListFolders).toHaveBeenCalledWith(basePath);
-      });
+      expect(mockUseFolderList).toHaveBeenCalledWith("user123", basePath, { enabled: true });
     });
 
     it("should show loading state while fetching", () => {
-      // Create a promise that never resolves
-      mockListFolders.mockReturnValue(new Promise(() => {}));
+      mockUseFolderList.mockReturnValue({
+        data: [],
+        isLoading: true,
+        isError: false,
+        error: null,
+      });
 
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-        />,
-      );
+      renderFolderBrowser();
 
       expect(screen.getByTestId("folder-browser-loading")).toBeInTheDocument();
     });
@@ -71,14 +83,7 @@ describe("FolderBrowser", () => {
 
   describe("folder navigation", () => {
     it("should call onNavigate when folder is clicked", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-        />,
-      );
+      renderFolderBrowser();
 
       await waitFor(() => {
         expect(screen.getByText("photos")).toBeInTheDocument();
@@ -90,14 +95,7 @@ describe("FolderBrowser", () => {
     });
 
     it("should call onNavigate with documents folder path", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-        />,
-      );
+      renderFolderBrowser();
 
       await waitFor(() => {
         expect(screen.getByText("documents")).toBeInTheDocument();
@@ -111,14 +109,7 @@ describe("FolderBrowser", () => {
 
   describe("disabled paths", () => {
     it("should disable folders in disabledPaths", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[`${basePath}photos/`]}
-        />,
-      );
+      renderFolderBrowser({ disabledPaths: [`${basePath}photos/`] });
 
       await waitFor(() => {
         const photosItem = screen.getByText("photos").closest("[data-disabled]");
@@ -127,14 +118,7 @@ describe("FolderBrowser", () => {
     });
 
     it("should not call onNavigate when disabled folder is clicked", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[`${basePath}photos/`]}
-        />,
-      );
+      renderFolderBrowser({ disabledPaths: [`${basePath}photos/`] });
 
       await waitFor(() => {
         expect(screen.getByText("photos")).toBeInTheDocument();
@@ -148,15 +132,10 @@ describe("FolderBrowser", () => {
 
   describe("navigation controls", () => {
     it("should show parent folder button when not at root", async () => {
-      render(
-        <FolderBrowser
-          currentPath={`${basePath}photos/2024/`}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-          rootPath={basePath}
-        />,
-      );
+      renderFolderBrowser({
+        currentPath: `${basePath}photos/2024/`,
+        rootPath: basePath,
+      });
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /上へ|parent/i })).toBeInTheDocument();
@@ -164,15 +143,10 @@ describe("FolderBrowser", () => {
     });
 
     it("should navigate to parent folder when parent button is clicked", async () => {
-      render(
-        <FolderBrowser
-          currentPath={`${basePath}photos/2024/`}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-          rootPath={basePath}
-        />,
-      );
+      renderFolderBrowser({
+        currentPath: `${basePath}photos/2024/`,
+        rootPath: basePath,
+      });
 
       await waitFor(() => {
         const parentButton = screen.getByRole("button", { name: /上へ|parent/i });
@@ -183,15 +157,10 @@ describe("FolderBrowser", () => {
     });
 
     it("should show home button when not at root", async () => {
-      render(
-        <FolderBrowser
-          currentPath={`${basePath}photos/2024/`}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-          rootPath={basePath}
-        />,
-      );
+      renderFolderBrowser({
+        currentPath: `${basePath}photos/2024/`,
+        rootPath: basePath,
+      });
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /ホーム|home/i })).toBeInTheDocument();
@@ -199,15 +168,10 @@ describe("FolderBrowser", () => {
     });
 
     it("should navigate to home when home button is clicked", async () => {
-      render(
-        <FolderBrowser
-          currentPath={`${basePath}photos/2024/`}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-          rootPath={basePath}
-        />,
-      );
+      renderFolderBrowser({
+        currentPath: `${basePath}photos/2024/`,
+        rootPath: basePath,
+      });
 
       await waitFor(() => {
         const homeButton = screen.getByRole("button", { name: /ホーム|home/i });
@@ -218,15 +182,10 @@ describe("FolderBrowser", () => {
     });
 
     it("should disable navigation buttons when at root", async () => {
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-          rootPath={basePath}
-        />,
-      );
+      renderFolderBrowser({
+        currentPath: basePath,
+        rootPath: basePath,
+      });
 
       await waitFor(() => {
         const parentButton = screen.getByRole("button", { name: /上へ|parent/i });
@@ -239,20 +198,26 @@ describe("FolderBrowser", () => {
 
   describe("empty state", () => {
     it("should show empty message when no folders exist", async () => {
-      mockListFolders.mockResolvedValue([]);
+      mockUseFolderList.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isError: false,
+        error: null,
+      });
 
-      render(
-        <FolderBrowser
-          currentPath={basePath}
-          listFolders={mockListFolders}
-          onNavigate={mockOnNavigate}
-          disabledPaths={[]}
-        />,
-      );
+      renderFolderBrowser();
 
       await waitFor(() => {
         expect(screen.getByText(/フォルダがありません/i)).toBeInTheDocument();
       });
+    });
+  });
+
+  describe("enabled option", () => {
+    it("should pass enabled option to useFolderList", () => {
+      renderFolderBrowser({ enabled: false });
+
+      expect(mockUseFolderList).toHaveBeenCalledWith("user123", basePath, { enabled: false });
     });
   });
 });

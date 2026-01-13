@@ -3,11 +3,7 @@ import { Modal, Stack, Group, Button, TextInput, Text, List, Alert } from "@mant
 import { AlertCircle } from "lucide-react";
 import { validateRename } from "../../utils/validateRename";
 import type { StorageItem } from "../../types/storage";
-import type {
-  RenameItemResult,
-  RenameFolderResult,
-  RenameProgress,
-} from "../../hooks/useStorageOperations";
+import type { RenameItemResult, RenameFolderResult, RenameProgress } from "../../hooks/storage";
 
 export interface RenameDialogProps {
   isOpen: boolean;

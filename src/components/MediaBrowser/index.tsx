@@ -1,14 +1,14 @@
 import { useState, useMemo, useCallback } from "react";
-import { useIdentityId } from "../../hooks/useIdentityId";
-import { useStoragePath } from "../../hooks/useStoragePath";
-import { useUploadTracker } from "../../hooks/useUploadTracker";
-import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
-import { useStorageOperations } from "../../hooks/useStorageOperations";
-import { useSelection } from "../../hooks/useSelection";
-import { useMoveDialog } from "../../hooks/useMoveDialog";
-import { useSortOrder } from "../../hooks/useSortOrder";
-import { useDeleteConfirm } from "../../hooks/useDeleteConfirm";
-import { sortStorageItems } from "../../hooks/sortStorageItems";
+import { useIdentityId } from "../../hooks/identity";
+import { useStoragePath } from "../../hooks/path";
+import { useStorageOperations, useUploadTracker, sortStorageItems } from "../../hooks/storage";
+import {
+  useSwipeNavigation,
+  useSelection,
+  useMoveDialog,
+  useSortOrder,
+  useDeleteConfirm,
+} from "../../hooks/ui";
 import type { StorageItem } from "../../types/storage";
 import { Header } from "./Header";
 import { FileList, type ActionMenuData } from "./FileList";
@@ -43,11 +43,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
     removeItems,
     createFolder,
     refresh,
-    getFileUrl,
     renameItem,
     renameFolder,
     moveItems,
-    listFolders,
   } = useStorageOperations({ identityId, currentPath });
 
   // Selection management
@@ -330,7 +328,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         items={previewableItems}
         currentIndex={currentPreviewIndex ?? 0}
         onIndexChange={setCurrentPreviewIndex}
-        getFileUrl={getFileUrl}
         onRename={async (item) => {
           setCurrentPreviewIndex(null);
           await refresh();
@@ -369,9 +366,9 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
         items={itemsToMove}
         currentPath={fullCurrentPath}
         rootPath={rootPath}
+        identityId={identityId}
         onClose={handleMoveComplete}
         onMove={moveItems}
-        listFolders={listFolders}
       />
 
       <ContextMenu

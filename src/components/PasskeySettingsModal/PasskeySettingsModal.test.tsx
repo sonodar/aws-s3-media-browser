@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { PasskeySettingsModal } from "./PasskeySettingsModal";
-import { usePasskey } from "../../hooks/usePasskey";
-import { useWebAuthnSupport } from "../../hooks/useWebAuthnSupport";
+import { usePasskey, useWebAuthnSupport } from "../../hooks/passkey";
 
-vi.mock("../../hooks/usePasskey");
-vi.mock("../../hooks/useWebAuthnSupport");
+vi.mock("../../hooks/passkey");
 
 describe("PasskeySettingsModal", () => {
   const mockOnClose = vi.fn();

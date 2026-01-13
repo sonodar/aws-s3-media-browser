@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PasskeyManagement } from "./PasskeyManagement";
-import { usePasskey } from "../../hooks/usePasskey";
-import { useWebAuthnSupport } from "../../hooks/useWebAuthnSupport";
+import { usePasskey, useWebAuthnSupport } from "../../hooks/passkey";
 
-vi.mock("../../hooks/usePasskey");
-vi.mock("../../hooks/useWebAuthnSupport");
+vi.mock("../../hooks/passkey");
 
 describe("PasskeyManagement", () => {
   const mockCredentials = [
@@ -155,7 +153,9 @@ describe("PasskeyManagement", () => {
         expect(confirmButton).toBeDefined();
         fireEvent.click(confirmButton!);
 
-        expect(mockUsePasskey.deletePasskey).toHaveBeenCalledWith("cred-1");
+        await waitFor(() => {
+          expect(mockUsePasskey.deletePasskey).toHaveBeenCalledWith("cred-1");
+        });
       });
 
       it("should close dialog when cancel is clicked", async () => {

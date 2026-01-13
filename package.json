@@ -26,14 +26,16 @@
     "typecheck": "run-p typecheck:*",
     "typecheck:app": "tsc --noEmit",
     "typecheck:amplify": "tsc -p amplify --noEmit",
-    "check": "run-p lint test",
-    "check-all": "run-s format typecheck check build:app"
+    "check": "run-p typecheck lint test",
+    "check-all": "run-s format check build:app"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.13.2",
     "@aws-amplify/ui-react-storage": "^3.14.0",
     "@mantine/core": "^8.0.0",
     "@mantine/hooks": "^8.0.0",
+    "@tanstack/react-query": "^5.90.16",
+    "@tanstack/react-query-devtools": "^5.91.2",
     "@use-gesture/react": "^10.3.1",
     "aws-amplify": "^6.15.9",
     "jotai": "^2.16.1",

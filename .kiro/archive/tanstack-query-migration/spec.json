@@ -1,0 +1,22 @@
+{
+  "feature_name": "tanstack-query-migration",
+  "created_at": "2026-01-12T12:00:00+09:00",
+  "updated_at": "2026-01-12T23:30:00+09:00",
+  "language": "ja",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}

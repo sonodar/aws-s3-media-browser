@@ -213,6 +213,11 @@ describe("ThumbnailImage", () => {
 
       const wrapper = container.querySelector(".thumbnail-container");
       expect(wrapper).toBeInTheDocument();
+
+      // 非同期処理完了を待つ
+      await waitFor(() => {
+        expect(screen.getByRole("img")).toBeInTheDocument();
+      });
     });
   });
 

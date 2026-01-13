@@ -3,7 +3,7 @@ import { Modal, Stack, Group, Button, Text, List, Alert, Notification } from "@m
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
-import type { MoveResult, MoveProgress } from "../../hooks/useStorageOperations";
+import type { MoveResult, MoveProgress } from "../../hooks/storage";
 
 export interface MoveDialogProps {
   /** ダイアログ表示状態 */
@@ -14,6 +14,8 @@ export interface MoveDialogProps {
   currentPath: string;
   /** ルートパス */
   rootPath: string;
+  /** Identity ID（認証ユーザーのID） */
+  identityId: string | null;
   /** ダイアログを閉じる */
   onClose: () => void;
   /** 移動実行 */
@@ -22,8 +24,6 @@ export interface MoveDialogProps {
     destinationPath: string,
     onProgress?: (progress: MoveProgress) => void,
   ) => Promise<MoveResult>;
-  /** フォルダ一覧取得 */
-  listFolders: (path: string) => Promise<StorageItem[]>;
 }
 
 /**
@@ -40,9 +40,9 @@ export function MoveDialog({
   items,
   currentPath,
   rootPath,
+  identityId,
   onClose,
   onMove,
-  listFolders,
 }: MoveDialogProps) {
   // 表示中のパス = 移動先（初期値は currentPath = 移動元フォルダ）
   const [browsePath, setBrowsePath] = useState(currentPath);
@@ -182,11 +182,12 @@ export function MoveDialog({
 
         {/* フォルダブラウザ */}
         <FolderBrowser
+          identityId={identityId}
           currentPath={browsePath}
           rootPath={rootPath}
           disabledPaths={disabledPaths}
-          listFolders={listFolders}
           onNavigate={handleNavigate}
+          enabled={isOpen}
         />
 
         {/* エラーメッセージ */}

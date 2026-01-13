@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Flex, Card, Button, Text, Heading, Loader, Divider } from "@aws-amplify/ui-react";
-import { usePasskey, WebAuthnCredential } from "../../hooks/usePasskey";
-import { useWebAuthnSupport } from "../../hooks/useWebAuthnSupport";
+import { usePasskey, type WebAuthnCredential, useWebAuthnSupport } from "../../hooks/passkey";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("ja-JP", {
