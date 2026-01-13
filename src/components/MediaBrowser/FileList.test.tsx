@@ -318,6 +318,100 @@ describe("FileList", () => {
     });
   });
 
+  describe("動画アイコン表示", () => {
+    it("動画ファイルのサムネイルに動画アイコンが表示される", () => {
+      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
+
+      const videoIndicator = screen.getByLabelText("動画ファイル");
+      expect(videoIndicator).toBeInTheDocument();
+      expect(videoIndicator).toHaveClass("video-indicator");
+    });
+
+    it("画像ファイルには動画アイコンが表示されない", () => {
+      render(<FileList items={mockItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
+
+      // 動画アイコンは1つだけ（video.mp4のみ）
+      const videoIndicators = screen.getAllByLabelText("動画ファイル");
+      expect(videoIndicators).toHaveLength(1);
+    });
+
+    it("フォルダには動画アイコンが表示されない", () => {
+      const folderOnly: StorageItem[] = [{ key: "folder1/", name: "folder1", type: "folder" }];
+      render(<FileList items={folderOnly} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
+
+      expect(screen.queryByLabelText("動画ファイル")).not.toBeInTheDocument();
+    });
+
+    it("選択モード時は動画アイコンが非表示になる", () => {
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+        />,
+        { wrapper },
+      );
+
+      expect(screen.queryByLabelText("動画ファイル")).not.toBeInTheDocument();
+    });
+
+    it("選択モード解除後に動画アイコンが再表示される", () => {
+      const { unmount } = render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={true}
+          selectedKeys={new Set()}
+          onToggleSelection={vi.fn()}
+        />,
+        { wrapper },
+      );
+
+      // 選択モード時は非表示
+      expect(screen.queryByLabelText("動画ファイル")).not.toBeInTheDocument();
+
+      // 一度アンマウントして再レンダリング
+      unmount();
+
+      render(
+        <FileList
+          items={mockItems}
+          onFolderClick={vi.fn()}
+          onFileClick={vi.fn()}
+          isSelectionMode={false}
+        />,
+        { wrapper },
+      );
+
+      // 動画アイコンが再表示される
+      expect(screen.getByLabelText("動画ファイル")).toBeInTheDocument();
+    });
+
+    it("複数の動画ファイルがある場合、各ファイルに動画アイコンが表示される", () => {
+      const multiVideoItems: StorageItem[] = [
+        { key: "video1.mp4", name: "video1.mp4", type: "file", size: 1024 },
+        { key: "video2.webm", name: "video2.webm", type: "file", size: 2048 },
+        { key: "video3.mov", name: "video3.mov", type: "file", size: 3072 },
+      ];
+      render(<FileList items={multiVideoItems} onFolderClick={vi.fn()} onFileClick={vi.fn()} />, {
+        wrapper,
+      });
+
+      const videoIndicators = screen.getAllByLabelText("動画ファイル");
+      expect(videoIndicators).toHaveLength(3);
+    });
+  });
+
   describe("keyboard accessibility", () => {
     it("Space キーでチェックボックスが操作できる", () => {
       const onToggleSelection = vi.fn();
