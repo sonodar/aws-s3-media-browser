@@ -3,9 +3,11 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { list, copy, remove } from "aws-amplify/storage";
 import { TestProvider } from "../../../stores/TestProvider";
 import { useMoveMutation } from "./useMoveMutation";
+import { queryKeys } from "../../../stores/queryKeys";
 
 vi.mock("aws-amplify/storage", () => ({
   list: vi.fn(),
@@ -149,6 +151,39 @@ describe("useMoveMutation", () => {
 
     await waitFor(() => {
       expect(result.current.isPending).toBe(false);
+    });
+  });
+
+  it("should invalidate both source and destination queries on success", async () => {
+    vi.mocked(list).mockResolvedValue({ items: [] } as never);
+    vi.mocked(copy).mockResolvedValue({ path: "test-path" } as never);
+    vi.mocked(remove).mockResolvedValue({ path: "test-path" });
+
+    // QueryClient の invalidateQueries をスパイ
+    const invalidateQueriesSpy = vi.fn();
+    const { result } = renderHook(
+      () => {
+        const queryClient = useQueryClient();
+        vi.spyOn(queryClient, "invalidateQueries").mockImplementation(invalidateQueriesSpy);
+        return useMoveMutation(mockContext);
+      },
+      { wrapper: TestProvider },
+    );
+
+    await result.current.mutateAsync({
+      items: [{ key: "media/test-identity-id/photos/image.jpg", name: "image.jpg", type: "file" }],
+      destinationPath: "media/test-identity-id/documents/",
+    });
+
+    await waitFor(() => {
+      // 移動元のクエリが無効化される
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: queryKeys.items(mockContext.identityId, mockContext.currentPath),
+      });
+      // 移動先のクエリが無効化される
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: queryKeys.items(mockContext.identityId, "documents"),
+      });
     });
   });
 });

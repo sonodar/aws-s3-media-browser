@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { list, copy, remove } from "aws-amplify/storage";
 import { queryKeys } from "../../../stores/queryKeys";
-import { normalizePathWithSlash } from "../../../utils/storagePathUtils";
+import { normalizePathWithSlash, extractRelativePath } from "../../../utils/storagePathUtils";
 import { encodePathForCopy } from "../../../utils/pathUtils";
 import type { MutationContext, MoveVariables, MoveResult } from "./types";
 
@@ -138,11 +138,19 @@ export function useMoveMutation(context: MutationContext) {
 
       return { success: true, succeeded, failed: 0 };
     },
-    onSuccess: async () => {
-      // 移動元と移動先のクエリを無効化
+    onSuccess: async (_data, variables) => {
+      // 移動元のクエリを無効化
       await queryClient.invalidateQueries({
         queryKey: queryKeys.items(context.identityId, context.currentPath),
       });
+
+      // 移動先のクエリを無効化
+      const destRelativePath = extractRelativePath(variables.destinationPath, context.identityId);
+      if (destRelativePath !== null) {
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.items(context.identityId, destRelativePath),
+        });
+      }
     },
   });
 }
