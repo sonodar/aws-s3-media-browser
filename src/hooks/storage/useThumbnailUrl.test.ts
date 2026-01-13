@@ -3,11 +3,12 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { getUrl } from "aws-amplify/storage";
+import { getProperties, getUrl } from "aws-amplify/storage";
 import { TestProvider } from "../../stores/TestProvider";
 import { useThumbnailUrl } from "./useThumbnailUrl";
 
 vi.mock("aws-amplify/storage", () => ({
+  getProperties: vi.fn(),
   getUrl: vi.fn(),
 }));
 
@@ -18,7 +19,7 @@ describe("useThumbnailUrl", () => {
 
   it("should return initial loading state", () => {
     // Promise を pending 状態のままにすることで、永続的な loading 状態をシミュレート
-    vi.mocked(getUrl).mockImplementation(() => new Promise(() => {}));
+    vi.mocked(getProperties).mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useThumbnailUrl("media/abc123/photos/image.jpg"), {
       wrapper: TestProvider,
@@ -30,6 +31,7 @@ describe("useThumbnailUrl", () => {
   });
 
   it("should return url on success", async () => {
+    vi.mocked(getProperties).mockResolvedValue({});
     vi.mocked(getUrl).mockResolvedValue({
       url: new URL("https://example.com/thumbnail.jpg"),
       expiresAt: new Date(),
@@ -47,7 +49,8 @@ describe("useThumbnailUrl", () => {
     expect(result.current.isError).toBe(false);
   });
 
-  it("should call getUrl with correct thumbnail path", async () => {
+  it("should call getProperties and getUrl with correct thumbnail path", async () => {
+    vi.mocked(getProperties).mockResolvedValue({});
     vi.mocked(getUrl).mockResolvedValue({
       url: new URL("https://example.com/thumbnail.jpg"),
       expiresAt: new Date(),
@@ -58,15 +61,18 @@ describe("useThumbnailUrl", () => {
     });
 
     await waitFor(() => {
+      expect(getProperties).toHaveBeenCalledWith({
+        path: "thumbnails/abc123/photos/image.jpg.thumb.jpg",
+      });
       expect(getUrl).toHaveBeenCalledWith({
         path: "thumbnails/abc123/photos/image.jpg.thumb.jpg",
       });
     });
   });
 
-  it("should return isError true when getUrl fails", async () => {
-    // retry: false を指定して即座にエラー状態になるようにする
-    vi.mocked(getUrl).mockRejectedValue(new Error("Not found"));
+  it("should return isError true when getProperties fails (file not found)", async () => {
+    // ファイルが存在しない場合、getProperties がエラーを投げる
+    vi.mocked(getProperties).mockRejectedValue(new Error("NoSuchKey"));
 
     const { result } = renderHook(
       () => useThumbnailUrl("media/abc123/photos/image.jpg", { retry: false }),
@@ -81,9 +87,12 @@ describe("useThumbnailUrl", () => {
 
     expect(result.current.url).toBeNull();
     expect(result.current.isLoading).toBe(false);
+    // getProperties が失敗したため、getUrl は呼ばれない
+    expect(getUrl).not.toHaveBeenCalled();
   });
 
   it("should use queryKey based on originalKey", async () => {
+    vi.mocked(getProperties).mockResolvedValue({});
     vi.mocked(getUrl).mockResolvedValue({
       url: new URL("https://example.com/thumbnail.jpg"),
       expiresAt: new Date(),

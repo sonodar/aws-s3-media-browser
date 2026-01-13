@@ -3,11 +3,12 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import { getUrl } from "aws-amplify/storage";
+import { getProperties, getUrl } from "aws-amplify/storage";
 import { TestProvider } from "../../stores/TestProvider";
 import { Thumbnail } from "./Thumbnail";
 
 vi.mock("aws-amplify/storage", () => ({
+  getProperties: vi.fn(),
   getUrl: vi.fn(),
 }));
 
@@ -24,8 +25,8 @@ describe("Thumbnail", () => {
 
   describe("loading state", () => {
     it("should show skeleton while loading", () => {
-      // 永続的に pending 状態にする
-      vi.mocked(getUrl).mockImplementation(() => new Promise(() => {}));
+      // 永続的に pending 状態にする（getProperties で止める）
+      vi.mocked(getProperties).mockImplementation(() => new Promise(() => {}));
 
       render(
         <TestProvider>
@@ -41,6 +42,7 @@ describe("Thumbnail", () => {
 
   describe("success state", () => {
     it("should show image when url is fetched successfully", async () => {
+      vi.mocked(getProperties).mockResolvedValue({});
       vi.mocked(getUrl).mockResolvedValue({
         url: new URL("https://example.com/thumbnail.jpg"),
         expiresAt: new Date(),
@@ -61,8 +63,9 @@ describe("Thumbnail", () => {
   });
 
   describe("error state", () => {
-    it("should show fallback icon for image when getUrl fails", async () => {
-      vi.mocked(getUrl).mockRejectedValue(new Error("Not found"));
+    it("should show fallback icon for image when getProperties fails", async () => {
+      // ファイルが存在しない場合、getProperties がエラーを投げる
+      vi.mocked(getProperties).mockRejectedValue(new Error("NoSuchKey"));
 
       render(
         <TestProvider>
@@ -76,8 +79,9 @@ describe("Thumbnail", () => {
       });
     });
 
-    it("should show fallback icon for video when getUrl fails", async () => {
-      vi.mocked(getUrl).mockRejectedValue(new Error("Not found"));
+    it("should show fallback icon for video when getProperties fails", async () => {
+      // ファイルが存在しない場合、getProperties がエラーを投げる
+      vi.mocked(getProperties).mockRejectedValue(new Error("NoSuchKey"));
 
       render(
         <TestProvider>

@@ -6,7 +6,7 @@
  * - 5分間のキャッシュ保持
  */
 import { useQuery } from "@tanstack/react-query";
-import { getUrl } from "aws-amplify/storage";
+import { getProperties, getUrl } from "aws-amplify/storage";
 import { queryKeys } from "../../stores/queryKeys";
 import { getThumbnailPath } from "../../utils/pathUtils";
 
@@ -32,6 +32,14 @@ export function useThumbnailUrl(originalKey: string, options: UseThumbnailUrlOpt
     queryKey: queryKeys.thumbnail(originalKey),
     queryFn: async () => {
       const thumbnailPath = getThumbnailPath(originalKey);
+
+      // ファイル存在確認（存在しない場合は例外 → リトライ発動）
+      // 注意: getUrl はファイルが存在しなくても署名付き URL を返すため、
+      // getUrl だけではファイルが存在しない場合にリトライされない。
+      // getProperties でファイルの存在を確認し、存在しなければ例外を発生させる。
+      await getProperties({ path: thumbnailPath });
+
+      // URL 取得
       const result = await getUrl({ path: thumbnailPath });
       return result.url.toString();
     },
