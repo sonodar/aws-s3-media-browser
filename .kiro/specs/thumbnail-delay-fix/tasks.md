@@ -4,7 +4,7 @@
 
 ## Task 1: 非推奨マーク
 
-- [ ] 1. 削除予定コンポーネントへの @deprecated マーク付与
+- [x] 1. 削除予定コンポーネントへの @deprecated マーク付与
   - `useUploadTracker` フックに `@deprecated` JSDoc コメントを追加し、Phase 3 完了後に削除予定であることを明記
   - `ThumbnailImage` コンポーネントに `@deprecated` JSDoc コメントを追加し、新規 `Thumbnail` コンポーネントに置き換え予定であることを明記
   - 置き換え先のコンポーネント・フック名を `@see` タグで参照できるよう記載
