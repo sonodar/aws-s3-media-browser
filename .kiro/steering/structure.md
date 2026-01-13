@@ -40,7 +40,8 @@
 - `identity/` - 認証セッション・Identity ID 管理（TanStack Query）
 - `passkey/` - WebAuthn パスキー操作（登録、削除、認証情報取得）
 - `path/` - ストレージパス・URL 同期管理（Jotai atoms）
-- `storage/` - S3 ストレージ操作（TanStack Query: アイテム取得、プレビューURL、フォルダ一覧）
+- `storage/` - S3 ストレージ操作（TanStack Query: アイテム取得、プレビューURL、フォルダ一覧、サムネイルURL）
+  - `mutations/` - 書き込み操作（useMutation フック: upload, delete, move, rename, createFolder）
 - `ui/` - UI 状態管理（選択、ソート、ダイアログ、スワイプジェスチャー）
 - `types.ts` - フック共通型定義（QueryReturn等）
 
@@ -75,10 +76,11 @@
 - **Files**: PascalCase（コンポーネント）、camelCase（hooks/utils）
 - **Components**: PascalCase（例: `MediaBrowser`, `FileList`）
 - **Hooks**: `use` プレフィックス + 単一責任
-  - TanStack Query hooks: `useIdentityId`, `useStorageItems`, `useFolderList`, `usePreviewUrls`, `usePasskey`, `usePasskeyCredentials`, `useRegisterPasskey`, `useDeletePasskey`
+  - TanStack Query hooks: `useIdentityId`, `useStorageItems`, `useFolderList`, `usePreviewUrls`, `useThumbnailUrl`, `usePasskey`, `usePasskeyCredentials`, `useRegisterPasskey`, `useDeletePasskey`
+  - Mutation hooks: `useUploadMutation`, `useDeleteMutation`, `useMoveMutation`, `useRenameMutation`, `useCreateFolderMutation`
   - Jotai hooks: `useStoragePath`, `useSelection`, `useSortOrder`, `useMoveDialog`, `useDeleteConfirm`
   - UI hooks: `useSwipeNavigation`, `useUploadTracker`, `useWebAuthnSupport`
-  - Operation hooks: `useStorageOperations`（複合操作のファサード）
+  - Operation hooks: `useStorageOperations`（複合操作のファサード、個別 mutation を統合）
 - **Atoms**: ドメイン名（例: `path`, `selection`, `sort`）+ アトム/アクション（`pathAtom`, `currentPathAtom`, `selectionAtom`, `toggleSelectionAtom`）
 - **Utils**: 純粋関数ユーティリティ（例: `fileTypes`, `pathUtils`, `validateRename`, `generateUniqueFilename`, `sortStorageItems`, `parseStorageItems`）
 - **CSS**: コンポーネント名と同名（例: `Header.css`）
