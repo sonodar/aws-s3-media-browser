@@ -81,7 +81,7 @@
 
 ## Task 4: 既存コンポーネントへの統合
 
-- [ ] 4.1 useStorageOperations の useMutation フック統合
+- [x] 4.1 useStorageOperations の useMutation フック統合
   - 既存の `useStorageOperations` 内の各操作を対応する useMutation フックで置き換え
   - 手動の `useState` フラグ管理（`isDeleting` 等）を `isPending` に置き換え
   - 操作成功後の手動キャッシュ更新を `onSuccess` での `invalidateQueries` に置き換え

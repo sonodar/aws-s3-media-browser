@@ -97,7 +97,6 @@ export interface RenameVariables {
   onProgress?: (progress: OperationProgress) => void;
 }
 
-// エイリアスを提供（後方互換性のため）
 export type MoveProgress = OperationProgress;
 export type RenameProgress = OperationProgress;
 export type MoveResult = BatchOperationResult;

@@ -490,6 +490,11 @@ describe("useStorageOperations", () => {
         deletePromise = result.current.removeItems(items);
       });
 
+      // Wait a tick for mutation to start
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       // isDeleting should be true while deletion is in progress
       expect(result.current.isDeleting).toBe(true);
 
@@ -498,7 +503,9 @@ describe("useStorageOperations", () => {
         await deletePromise;
       });
 
-      expect(result.current.isDeleting).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isDeleting).toBe(false);
+      });
     });
 
     it("should refresh items after deletion", async () => {
@@ -588,7 +595,7 @@ describe("useStorageOperations", () => {
       expect(remove).not.toHaveBeenCalled();
     });
 
-    it("should return error when list API fails during duplicate check", async () => {
+    it("should throw when list API fails during duplicate check", async () => {
       const basePath = `media/${identityId}/`;
       // Initial list
       vi.mocked(list)
@@ -604,17 +611,17 @@ describe("useStorageOperations", () => {
         expect(result.current.loading).toBe(false);
       });
 
-      let renameResult: { success: boolean; error?: string };
-      await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
-      });
+      // mutation hooks throw on API errors
+      await expect(
+        act(async () => {
+          await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
+        }),
+      ).rejects.toThrow("Network error");
 
-      expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toContain("リネーム前のチェックに失敗しました");
       expect(copy).not.toHaveBeenCalled();
     });
 
-    it("should return error when copy fails", async () => {
+    it("should throw when copy fails", async () => {
       const basePath = `media/${identityId}/`;
       vi.mocked(list).mockResolvedValueOnce({ items: [] }).mockResolvedValueOnce({ items: [] });
 
@@ -628,13 +635,13 @@ describe("useStorageOperations", () => {
         expect(result.current.loading).toBe(false);
       });
 
-      let renameResult: { success: boolean; error?: string };
-      await act(async () => {
-        renameResult = await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
-      });
+      // mutation hooks throw on API errors
+      await expect(
+        act(async () => {
+          await result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
+        }),
+      ).rejects.toThrow("Copy failed");
 
-      expect(renameResult!.success).toBe(false);
-      expect(renameResult!.error).toContain("コピーに失敗しました");
       // Original file should remain (no remove called)
       expect(remove).not.toHaveBeenCalled();
     });
@@ -696,6 +703,11 @@ describe("useStorageOperations", () => {
         renamePromise = result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
+      // Wait for mutation to start
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       expect(result.current.isRenaming).toBe(true);
 
       await act(async () => {
@@ -703,7 +715,9 @@ describe("useStorageOperations", () => {
         await renamePromise;
       });
 
-      expect(result.current.isRenaming).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isRenaming).toBe(false);
+      });
     });
 
     it("should refresh items after successful rename", async () => {
@@ -988,7 +1002,9 @@ describe("useStorageOperations", () => {
         await renamePromise;
       });
 
-      expect(result.current.isRenaming).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isRenaming).toBe(false);
+      });
     });
   });
 
@@ -1256,7 +1272,9 @@ describe("useStorageOperations", () => {
         await movePromise;
       });
 
-      expect(result.current.isMoving).toBe(false);
+      await waitFor(() => {
+        expect(result.current.isMoving).toBe(false);
+      });
     });
 
     it("should refresh items after successful move", async () => {
