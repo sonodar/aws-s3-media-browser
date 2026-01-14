@@ -13,6 +13,7 @@ export default defineConfig({
     isolate: true,
     coverage: {
       provider: "v8",
+      enabled: true,
       reporter: ["text", "html"],
       include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**/*"],
