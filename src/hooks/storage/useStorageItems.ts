@@ -17,17 +17,10 @@ export interface UseStorageItemsReturn extends QueryReturn<StorageItem[]> {}
  * - excludedSubpaths からサブフォルダ情報を取得
  * - FolderBrowser と MediaBrowser でキャッシュを共有
  */
-export function useStorageItems(
-  identityId: string | null,
-  currentPath: string,
-): UseStorageItemsReturn {
+export function useStorageItems(identityId: string, currentPath: string): UseStorageItemsReturn {
   const query = useQuery({
-    queryKey: queryKeys.storageItems(identityId ?? "", currentPath),
+    queryKey: queryKeys.storageItems(identityId, currentPath),
     queryFn: async () => {
-      if (!identityId) {
-        return [];
-      }
-
       const basePath = buildMediaBasePath(identityId, currentPath);
       const result = await list({
         path: basePath,
@@ -75,7 +68,6 @@ export function useStorageItems(
       // フォルダとファイルを結合して返す（ソートは呼び出し側で行う）
       return [...allFolders, ...files];
     },
-    enabled: !!identityId,
   });
 
   const data = query.data ?? [];

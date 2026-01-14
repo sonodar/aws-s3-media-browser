@@ -46,8 +46,8 @@ vi.mock("./Thumbnail", () => ({
 import {
   setupMediaBrowserTest,
   MediaBrowserTestWrapper,
+  mockIdentityId,
   list,
-  fetchAuthSession,
 } from "./MediaBrowser.test.helpers";
 
 describe("MediaBrowser Display Tests", () => {
@@ -62,14 +62,12 @@ describe("MediaBrowser Display Tests", () => {
     cleanupAfterEach();
   });
 
-  describe("1. Initial Display Flow (useIdentityId + useStorageOperations)", () => {
+  describe("1. Initial Display Flow (identityId Props + useStorageOperations)", () => {
     it("should show loading state while fetching data", () => {
-      // Mock fetchAuthSession to never resolve immediately
-      vi.mocked(fetchAuthSession).mockImplementation(
-        () => new Promise(() => {}), // Never resolves
-      );
+      // Mock list to never resolve
+      vi.mocked(list).mockImplementation(() => new Promise(() => {}));
 
-      render(<MediaBrowser onSignOut={onSignOut} />, {
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
         wrapper: MediaBrowserTestWrapper,
       });
 
@@ -77,7 +75,7 @@ describe("MediaBrowser Display Tests", () => {
     });
 
     it("should display items after loading completes", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, {
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
         wrapper: MediaBrowserTestWrapper,
       });
 
@@ -92,23 +90,10 @@ describe("MediaBrowser Display Tests", () => {
       expect(screen.getByText("video1.mp4")).toBeInTheDocument();
     });
 
-    it("should show error state when auth fails", async () => {
-      vi.mocked(fetchAuthSession).mockRejectedValue(new Error("Auth failed"));
-
-      render(<MediaBrowser onSignOut={onSignOut} />, {
-        wrapper: MediaBrowserTestWrapper,
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/エラーが発生しました/)).toBeInTheDocument();
-        expect(screen.getByText(/Auth failed/)).toBeInTheDocument();
-      });
-    });
-
     it("should show error state when list fails", async () => {
       vi.mocked(list).mockRejectedValue(new Error("Network error"));
 
-      render(<MediaBrowser onSignOut={onSignOut} />, {
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
         wrapper: MediaBrowserTestWrapper,
       });
 
@@ -127,7 +112,7 @@ describe("MediaBrowser Display Tests", () => {
         nextToken: undefined,
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, {
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
         wrapper: MediaBrowserTestWrapper,
       });
 
@@ -139,7 +124,7 @@ describe("MediaBrowser Display Tests", () => {
 
   describe("7. Sign Out", () => {
     it("should call onSignOut when sign out menu item is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, {
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
         wrapper: MediaBrowserTestWrapper,
       });
 

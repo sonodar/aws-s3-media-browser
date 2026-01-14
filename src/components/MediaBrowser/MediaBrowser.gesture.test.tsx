@@ -43,7 +43,11 @@ vi.mock("./Thumbnail", () => ({
   ),
 }));
 
-import { setupMediaBrowserTest, MediaBrowserTestWrapper } from "./MediaBrowser.test.helpers";
+import {
+  setupMediaBrowserTest,
+  MediaBrowserTestWrapper,
+  mockIdentityId,
+} from "./MediaBrowser.test.helpers";
 
 describe("MediaBrowser Gesture Tests", () => {
   const onSignOut = vi.fn();
@@ -59,7 +63,9 @@ describe("MediaBrowser Gesture Tests", () => {
 
   describe("10. ContextMenu Integration (Long Press)", () => {
     it("should render ContextMenu component (initially closed)", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -70,7 +76,9 @@ describe("MediaBrowser Gesture Tests", () => {
     });
 
     it("should pass onShowActionMenu to FileList", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -84,7 +92,9 @@ describe("MediaBrowser Gesture Tests", () => {
 
   describe("11. Swipe Navigation CSS", () => {
     it("should have touch-action style on content area", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -98,7 +108,9 @@ describe("MediaBrowser Gesture Tests", () => {
 
   describe("12. PreviewModal Multi-Slide Integration", () => {
     it("should filter previewable items for PreviewModal", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("photo1.jpg")).toBeInTheDocument();
@@ -116,7 +128,9 @@ describe("MediaBrowser Gesture Tests", () => {
     it("should pass items and currentIndex to PreviewModal when file is clicked", async () => {
       // This test verifies the MediaBrowser uses multi-slide mode
       // We can only verify indirectly through behavior
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("photo1.jpg")).toBeInTheDocument();

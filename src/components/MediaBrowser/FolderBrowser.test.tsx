@@ -222,13 +222,4 @@ describe("FolderBrowser", () => {
       });
     });
   });
-
-  describe("enabled option", () => {
-    it("should pass null identityId to useStorageItems when disabled", () => {
-      renderFolderBrowser({ enabled: false });
-
-      // When enabled=false, identityId should be null to disable the query
-      expect(mockUseStorageItemsV2).toHaveBeenCalledWith(null, "");
-    });
-  });
 });

@@ -16,7 +16,7 @@ export interface MoveDialogProps {
   /** ルートパス */
   rootPath: string;
   /** Identity ID（認証ユーザーのID） */
-  identityId: string | null;
+  identityId: string;
   /** ダイアログを閉じる */
   onClose: () => void;
   /** 移動実行 */
@@ -188,7 +188,6 @@ export function MoveDialog({
           rootPath={rootPath}
           disabledPaths={disabledPaths}
           onNavigate={handleNavigate}
-          enabled={isOpen}
         />
 
         {/* エラーメッセージ */}

@@ -88,6 +88,9 @@ WebAuthn（パスキー）によるパスワードレス認証をサポート。
 | 状態管理の二層構造           | サーバー状態（TanStack Query）/ クライアント状態（Jotai）              |
 | 機能別フックディレクトリ整理 | identity, passkey, path, storage, ui でドメイン分離                    |
 | useMutation 分割             | 書き込み操作を個別 mutation フックに分離（キャッシュ無効化の一元管理） |
+| subpathStrategy: exclude     | S3 リスト時にサブフォルダ内ファイルを除外し、重複リクエストを削減      |
+| 階層的キャッシュ無効化       | フォルダ操作時に影響を受けるサブパスのキャッシュも一括無効化           |
+| identityId 非 null 保証      | 認証済み前提でコンポーネントをレンダリング（Props drilling で伝播）    |
 
 ---
 

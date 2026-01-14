@@ -46,6 +46,7 @@ vi.mock("./Thumbnail", () => ({
 import {
   setupMediaBrowserTest,
   MediaBrowserTestWrapper,
+  mockIdentityId,
   mockRootItems,
   list,
   uploadData,
@@ -76,7 +77,9 @@ describe("MediaBrowser Upload Tests", () => {
         return { items: mockRootItems, nextToken: undefined };
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -97,7 +100,9 @@ describe("MediaBrowser Upload Tests", () => {
 
   describe("4. Upload Flow (useStorageOperations + useUploadTracker)", () => {
     it("should show upload button when authenticated", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -107,7 +112,9 @@ describe("MediaBrowser Upload Tests", () => {
     });
 
     it("should show uploader modal when upload button is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -129,7 +136,9 @@ describe("MediaBrowser Upload Tests", () => {
         return { items: mockRootItems, nextToken: undefined };
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -157,7 +166,9 @@ describe("MediaBrowser Upload Tests", () => {
 
   describe("5. Folder Creation Flow", () => {
     it("should show create folder button when authenticated", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -167,7 +178,9 @@ describe("MediaBrowser Upload Tests", () => {
     });
 
     it("should open create folder dialog when button is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -190,7 +203,9 @@ describe("MediaBrowser Upload Tests", () => {
         return { items: mockRootItems, nextToken: undefined };
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();

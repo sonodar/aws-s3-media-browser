@@ -21,17 +21,7 @@ describe("useStorageItems", () => {
   });
 
   describe("initialization", () => {
-    it("should not fetch when identityId is null", () => {
-      const { result } = renderHook(() => useStorageItems(null, ""), {
-        wrapper: TestProvider,
-      });
-
-      expect(result.current.data).toEqual([]);
-      expect(result.current.isLoading).toBe(false);
-      expect(list).not.toHaveBeenCalled();
-    });
-
-    it("should start loading when identityId is provided", () => {
+    it("should start loading when called with identityId", () => {
       vi.mocked(list).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useStorageItems("test-identity-id", ""), {

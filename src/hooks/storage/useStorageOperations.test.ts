@@ -27,7 +27,7 @@ describe("useStorageOperations", () => {
   });
 
   describe("initialization", () => {
-    it("should start with loading true when identityId is provided", () => {
+    it("should start with loading true when called", () => {
       vi.mocked(list).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useStorageOperations({ identityId, currentPath }), {
@@ -37,16 +37,6 @@ describe("useStorageOperations", () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.items).toEqual([]);
       expect(result.current.error).toBeNull();
-    });
-
-    it("should not fetch when identityId is null", () => {
-      const { result } = renderHook(() => useStorageOperations({ identityId: null, currentPath }), {
-        wrapper: TestProvider,
-      });
-
-      expect(result.current.loading).toBe(false);
-      expect(result.current.items).toEqual([]);
-      expect(list).not.toHaveBeenCalled();
     });
   });
 
