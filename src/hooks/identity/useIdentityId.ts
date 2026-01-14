@@ -3,9 +3,14 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import { queryKeys } from "../../stores/queryKeys";
 import type { QueryReturn } from "../types";
 
+export interface UseIdentityIdOptions {
+  shouldFetch?: boolean;
+}
+
 export interface UseIdentityIdReturn extends Omit<QueryReturn<string | null>, "data"> {
   identityId: string | null;
   loading: boolean;
+  refetch: () => void;
 }
 
 /**
@@ -15,8 +20,12 @@ export interface UseIdentityIdReturn extends Omit<QueryReturn<string | null>, "d
  * - staleTime: Infinity でセッション中は再取得しない
  * - gcTime: Infinity でログアウトまでキャッシュ保持
  * - retry: false で認証エラーはリトライしない
+ *
+ * @param options.shouldFetch - identityId を取得するかどうか（デフォルト: true）
  */
-export function useIdentityId(): UseIdentityIdReturn {
+export function useIdentityId(options?: UseIdentityIdOptions): UseIdentityIdReturn {
+  const { shouldFetch = true } = options ?? {};
+
   const query = useQuery({
     queryKey: queryKeys.identityId(),
     queryFn: async () => {
@@ -26,6 +35,7 @@ export function useIdentityId(): UseIdentityIdReturn {
     staleTime: Number.POSITIVE_INFINITY, // セッション中は変わらない
     gcTime: Number.POSITIVE_INFINITY, // ログアウトまでキャッシュ保持
     retry: false, // 認証エラーはリトライしない
+    enabled: shouldFetch,
   });
 
   return {
@@ -34,5 +44,6 @@ export function useIdentityId(): UseIdentityIdReturn {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error as Error | null,
+    refetch: () => query.refetch(),
   };
 }

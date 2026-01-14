@@ -46,6 +46,7 @@ vi.mock("./Thumbnail", () => ({
 import {
   setupMediaBrowserTest,
   MediaBrowserTestWrapper,
+  mockIdentityId,
   mockRootItems,
   mockFolder1Items,
   list,
@@ -77,7 +78,9 @@ describe("MediaBrowser Navigation Tests", () => {
         return { items: mockRootItems, nextToken: undefined };
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -117,7 +120,9 @@ describe("MediaBrowser Navigation Tests", () => {
         return { items: mockRootItems, nextToken: undefined };
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("nested-photo.jpg")).toBeInTheDocument();
@@ -138,7 +143,9 @@ describe("MediaBrowser Navigation Tests", () => {
     });
 
     it("should hide back button at root path", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -159,7 +166,9 @@ describe("MediaBrowser Navigation Tests", () => {
         return { items: mockRootItems, nextToken: undefined };
       });
 
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();

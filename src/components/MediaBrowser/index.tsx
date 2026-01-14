@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from "react";
-import { useIdentityId } from "../../hooks/identity";
 import { useStoragePath } from "../../hooks/path";
 import { useStorageOperations, sortStorageItems } from "../../hooks/storage";
 import {
@@ -23,21 +22,19 @@ import { ContextMenu } from "./ContextMenu";
 import { isPreviewable } from "../../utils/fileTypes";
 import "./MediaBrowser.css";
 
-interface MediaBrowserProps {
+export interface MediaBrowserProps {
+  identityId: string;
   onSignOut: () => void;
   onOpenSettings?: () => void;
 }
 
-export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
-  // Individual hooks
-  const { identityId, loading: identityLoading, error: identityError } = useIdentityId();
-
+export function MediaBrowser({ identityId, onSignOut, onOpenSettings }: MediaBrowserProps) {
   const { currentPath, navigate, goBack } = useStoragePath();
 
   const {
     items,
-    loading: storageLoading,
-    error: storageError,
+    loading,
+    error,
     removeItems,
     createFolder,
     refresh,
@@ -73,10 +70,6 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
 
   // Apply sort order to items
   const sortedItems = useMemo(() => sortStorageItems(items, sortOrder), [items, sortOrder]);
-
-  // Aggregate loading and error states
-  const loading = identityLoading || storageLoading;
-  const error = identityError || storageError;
 
   // Swipe navigation for back gesture
   const {
@@ -240,7 +233,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
   }, [closeMoveDialog, refresh, exitSelectionMode]);
 
   // MoveDialog用のrootPath
-  const rootPath = identityId ? `media/${identityId}/` : "";
+  const rootPath = `media/${identityId}/`;
   const fullCurrentPath = currentPath ? `${rootPath}${currentPath}/` : rootPath;
 
   if (error) {

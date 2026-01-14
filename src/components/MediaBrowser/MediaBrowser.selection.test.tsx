@@ -47,6 +47,7 @@ import {
   setupMediaBrowserTest,
   remove,
   MediaBrowserTestWrapper,
+  mockIdentityId,
 } from "./MediaBrowser.test.helpers";
 
 describe("MediaBrowser Selection Tests", () => {
@@ -63,7 +64,9 @@ describe("MediaBrowser Selection Tests", () => {
 
   describe("8. Selection Mode and Batch Delete", () => {
     it("should show selection mode button when items are loaded", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -73,7 +76,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should enter selection mode when selection button is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -90,7 +95,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should show checkboxes in selection mode", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -106,7 +113,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should toggle selection when item is clicked in selection mode", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -128,7 +137,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should exit selection mode when cancel is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -151,7 +162,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should show delete confirmation dialog when delete is clicked", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -180,7 +193,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should delete selected items when confirmed", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();
@@ -214,7 +229,9 @@ describe("MediaBrowser Selection Tests", () => {
     });
 
     it("should toggle select all", async () => {
-      render(<MediaBrowser onSignOut={onSignOut} />, { wrapper: MediaBrowserTestWrapper });
+      render(<MediaBrowser identityId={mockIdentityId} onSignOut={onSignOut} />, {
+        wrapper: MediaBrowserTestWrapper,
+      });
 
       await waitFor(() => {
         expect(screen.getByText("folder1")).toBeInTheDocument();

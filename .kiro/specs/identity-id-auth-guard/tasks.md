@@ -8,25 +8,25 @@
 
 ## Tasks
 
-- [ ] 1. useIdentityId フックに enabled オプションを追加
+- [x] 1. useIdentityId フックに enabled オプションを追加
   - フックのオプション引数として `enabled` を受け取れるようにする
   - TanStack Query の `enabled` オプションに渡し、認証状態に応じたクエリ制御を可能にする
   - 既存のキャッシュ戦略（staleTime: Infinity, gcTime: Infinity, retry: false）を維持
   - _Requirements: 2.3_
 
-- [ ] 2. HybridAuthApp で identityId を取得し Props で伝播
-- [ ] 2.1 identityId 取得ロジックの実装
+- [x] 2. HybridAuthApp で identityId を取得し Props で伝播
+- [x] 2.1 identityId 取得ロジックの実装
   - 認証状態（isPasskeyAuthenticated または authStatus === "authenticated"）を判定
   - useIdentityId を enabled オプション付きで呼び出し
   - 認証済みかつ identityId 取得完了後に AuthenticatedApp をレンダリング
   - _Requirements: 1.1, 1.4_
 
-- [ ] 2.2 ローディング状態とエラー状態の UI 実装
+- [x] 2.2 ローディング状態とエラー状態の UI 実装
   - identityId 取得中はローディング UI を表示
   - 取得失敗時はエラーメッセージと再試行・サインアウトボタンを表示
   - _Requirements: 1.2, 1.3_
 
-- [ ] 2.3 AuthenticatedApp の Props 変更
+- [x] 2.3 AuthenticatedApp の Props 変更
   - identityId を Props として受け取るように変更
   - MediaBrowser に identityId を Props で渡す
   - _Requirements: 1.4_
@@ -46,7 +46,7 @@
   - _Requirements: 3.1_
 
 - [ ] 4. UI コンポーネントの型変更
-- [ ] 4.1 MediaBrowser の型変更
+- [x] 4.1 MediaBrowser の型変更
   - Props に `identityId: string` を追加
   - `useIdentityId()` 呼び出しを削除
   - identityLoading, identityError の aggregation を削除
@@ -67,7 +67,7 @@
   - `enabled ? identityId : null` のロジックを簡素化
   - _Requirements: 3.2_
 
-- [ ] 5. テストファイルの修正
+- [x] 5. テストファイルの修正
   - 既存の MediaBrowser テストで identityId を Props として渡すように修正
   - TestProvider から identityId モック機能を削除（不要になった場合）
   - 新しい Props インターフェースに合わせてテストを更新
