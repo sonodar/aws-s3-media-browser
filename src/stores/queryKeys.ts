@@ -13,18 +13,6 @@ export const queryKeys = {
   identityId: () => ["identityId"] as const,
 
   /**
-   * ファイル/フォルダ一覧の queryKey（パス依存）
-   * @example queryKeys.items("user-123", "/photos") // ["items", "user-123", "/photos"]
-   */
-  items: (identityId: string, path: string) => ["items", identityId, path] as const,
-
-  /**
-   * フォルダ一覧の queryKey（移動先選択用）
-   * @example queryKeys.folders("user-123", "/photos") // ["folders", "user-123", "/photos"]
-   */
-  folders: (identityId: string, path: string) => ["folders", identityId, path] as const,
-
-  /**
    * プレビュー URL の queryKey
    * @example queryKeys.previewUrls(["photo1.jpg", "photo2.jpg"]) // ["previewUrls", "photo1.jpg", "photo2.jpg"]
    */
@@ -43,9 +31,8 @@ export const queryKeys = {
   thumbnail: (originalKey: string) => ["thumbnail", originalKey] as const,
 
   /**
-   * 新しいストレージアイテム一覧の queryKey（subpathStrategy: 'exclude' 用）
-   * - ファイルとフォルダを統合して返す新実装用
-   * - 移行完了後は items, folders を置き換え予定
+   * ストレージアイテム一覧の queryKey（subpathStrategy: 'exclude' 使用）
+   * - ファイルとフォルダを統合して返す
    * @example queryKeys.storageItems("user-123", "/photos") // ["storageItems", "user-123", "/photos"]
    */
   storageItems: (identityId: string, path: string) => ["storageItems", identityId, path] as const,

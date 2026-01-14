@@ -6,16 +6,16 @@ import { MoveDialog } from "./MoveDialog";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/storage";
 
-// Mock useStorageItemsV2 hook (FolderBrowser uses this internally)
+// Mock useStorageItems hook (FolderBrowser uses this internally)
 vi.mock("../../hooks/storage", async () => {
   const actual = await vi.importActual("../../hooks/storage");
   return {
     ...actual,
-    useStorageItemsV2: vi.fn(),
+    useStorageItems: vi.fn(),
   };
 });
 
-import { useStorageItemsV2 } from "../../hooks/storage";
+import { useStorageItems } from "../../hooks/storage";
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -40,7 +40,7 @@ describe("MoveDialog", () => {
     [StorageItem[], string, ((p: MoveProgress) => void)?],
     Promise<MoveResult>
   >();
-  const mockUseStorageItemsV2 = vi.mocked(useStorageItemsV2);
+  const mockUseStorageItemsV2 = vi.mocked(useStorageItems);
 
   const basePath = "media/user123/";
   const sampleItems: StorageItem[] = [
@@ -55,7 +55,7 @@ describe("MoveDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mock: useStorageItemsV2 returns folders (FolderBrowser filters for folders internally)
+    // Default mock: useStorageItems returns folders (FolderBrowser filters for folders internally)
     mockUseStorageItemsV2.mockReturnValue({
       data: sampleFolders,
       isLoading: false,
@@ -129,7 +129,7 @@ describe("MoveDialog", () => {
       // 初期表示は currentPath のフォルダ名（photos）であるべき
       expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
 
-      // useStorageItemsV2 が正しいパスで呼ばれているか確認（extractRelativePath で末尾スラッシュが削除される）
+      // useStorageItems が正しいパスで呼ばれているか確認（extractRelativePath で末尾スラッシュが削除される）
       await waitFor(() => {
         expect(mockUseStorageItemsV2).toHaveBeenCalledWith("user123", "photos");
       });

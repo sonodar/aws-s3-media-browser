@@ -140,31 +140,15 @@ export function useMoveMutation(context: MutationContext) {
     },
     onSuccess: async (_data, variables) => {
       // 移動元のクエリを無効化
-      // 新キャッシュキー（storageItems）を無効化
       await queryClient.invalidateQueries({
         queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
-      });
-      // 旧キャッシュキー（items, folders）も無効化（Strangler Fig: 並行運用期間）
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.items(context.identityId, context.currentPath),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.folders(context.identityId, context.currentPath),
       });
 
       // 移動先のクエリを無効化
       const destRelativePath = extractRelativePath(variables.destinationPath, context.identityId);
       if (destRelativePath !== null) {
-        // 新キャッシュキー（storageItems）を無効化
         await queryClient.invalidateQueries({
           queryKey: queryKeys.storageItems(context.identityId, destRelativePath),
-        });
-        // 旧キャッシュキー（items, folders）も無効化（Strangler Fig: 並行運用期間）
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.items(context.identityId, destRelativePath),
-        });
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.folders(context.identityId, destRelativePath),
         });
       }
     },

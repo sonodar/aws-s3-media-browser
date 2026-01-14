@@ -4,20 +4,20 @@ import { FolderBrowser } from "./FolderBrowser";
 import { TestProvider } from "../../stores/TestProvider";
 import type { StorageItem } from "../../types/storage";
 
-// Mock useStorageItemsV2 hook
+// Mock useStorageItems hook
 vi.mock("../../hooks/storage", async () => {
   const actual = await vi.importActual("../../hooks/storage");
   return {
     ...actual,
-    useStorageItemsV2: vi.fn(),
+    useStorageItems: vi.fn(),
   };
 });
 
-import { useStorageItemsV2 } from "../../hooks/storage";
+import { useStorageItems } from "../../hooks/storage";
 
 describe("FolderBrowser", () => {
   const mockOnNavigate = vi.fn();
-  const mockUseStorageItemsV2 = vi.mocked(useStorageItemsV2);
+  const mockUseStorageItemsV2 = vi.mocked(useStorageItems);
 
   const basePath = "media/user123/";
   const sampleFolders: StorageItem[] = [
@@ -56,7 +56,7 @@ describe("FolderBrowser", () => {
   };
 
   describe("folder list display", () => {
-    it("should display folders from useStorageItemsV2 (files are filtered out)", async () => {
+    it("should display folders from useStorageItems (files are filtered out)", async () => {
       renderFolderBrowser();
 
       await waitFor(() => {
@@ -69,7 +69,7 @@ describe("FolderBrowser", () => {
       expect(screen.queryByText("readme.txt")).not.toBeInTheDocument();
     });
 
-    it("should call useStorageItemsV2 with correct parameters", () => {
+    it("should call useStorageItems with correct parameters", () => {
       renderFolderBrowser({ currentPath: basePath });
 
       // FolderBrowser normalizes the path using extractRelativePath
@@ -224,7 +224,7 @@ describe("FolderBrowser", () => {
   });
 
   describe("enabled option", () => {
-    it("should pass null identityId to useStorageItemsV2 when disabled", () => {
+    it("should pass null identityId to useStorageItems when disabled", () => {
       renderFolderBrowser({ enabled: false });
 
       // When enabled=false, identityId should be null to disable the query

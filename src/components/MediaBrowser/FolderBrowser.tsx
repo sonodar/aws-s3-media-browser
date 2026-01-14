@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { Folder, ArrowUp, Home } from "lucide-react";
-import { useStorageItemsV2 } from "../../hooks/storage";
+import { useStorageItems } from "../../hooks/storage";
 import { extractRelativePath } from "../../utils/storagePathUtils";
 import type { StorageItem } from "../../types/storage";
 import "./FolderBrowser.css";
@@ -43,8 +43,8 @@ export function FolderBrowser({
     }
   }
 
-  // TanStack Query でアイテム一覧を取得（useStorageItemsV2でキャッシュ共有）
-  const { data: allItems, isLoading } = useStorageItemsV2(
+  // TanStack Query でアイテム一覧を取得（useStorageItemsでキャッシュ共有）
+  const { data: allItems, isLoading } = useStorageItems(
     enabled ? identityId : null,
     normalizedPath,
   );
