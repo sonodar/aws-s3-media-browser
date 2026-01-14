@@ -6,6 +6,7 @@ import { list, copy, remove } from "aws-amplify/storage";
 import { queryKeys } from "../../../stores/queryKeys";
 import { normalizePathWithSlash, extractRelativePath } from "../../../utils/storagePathUtils";
 import { encodePathForCopy } from "../../../utils/pathUtils";
+import { invalidateWithDescendants } from "./invalidationUtils";
 import type { MutationContext, MoveVariables, MoveResult } from "./types";
 
 /**
@@ -143,6 +144,16 @@ export function useMoveMutation(context: MutationContext) {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
       });
+
+      // フォルダ移動の場合、そのフォルダ配下のキャッシュも無効化
+      for (const item of variables.items) {
+        if (item.type === "folder") {
+          const folderPath = context.currentPath
+            ? `${context.currentPath}/${item.name}`
+            : item.name;
+          await invalidateWithDescendants(queryClient, context.identityId, folderPath);
+        }
+      }
 
       // 移動先のクエリを無効化
       const destRelativePath = extractRelativePath(variables.destinationPath, context.identityId);

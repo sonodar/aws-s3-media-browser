@@ -1,17 +1,37 @@
 /**
  * useRenameMutation フックのテスト
  */
+import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider } from "jotai";
+import { MantineProvider } from "@mantine/core";
 import { list, copy, remove } from "aws-amplify/storage";
 import { TestProvider } from "../../../stores/TestProvider";
 import { useRenameMutation } from "./useRenameMutation";
+import { queryKeys } from "../../../stores/queryKeys";
 
 vi.mock("aws-amplify/storage", () => ({
   list: vi.fn(),
   copy: vi.fn(),
   remove: vi.fn(),
 }));
+
+/**
+ * QueryClient を外部から制御可能な TestProvider
+ */
+function createTestProviderWithQueryClient(queryClient: QueryClient) {
+  return function TestProviderWithQueryClient({ children }: { children: ReactNode }) {
+    return (
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <Provider>{children}</Provider>
+        </QueryClientProvider>
+      </MantineProvider>
+    );
+  };
+}
 
 describe("useRenameMutation", () => {
   const mockContext = {
@@ -173,6 +193,106 @@ describe("useRenameMutation", () => {
 
     await waitFor(() => {
       expect(result.current.isPending).toBe(false);
+    });
+  });
+
+  describe("cache invalidation", () => {
+    it("should invalidate descendant path caches when renaming folder", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] } as never) // target check
+        .mockResolvedValueOnce({
+          items: [{ path: "media/test-identity-id/photos/folder/file1.jpg" }],
+        } as never); // source contents
+      vi.mocked(copy).mockResolvedValue({ path: "test-path" } as never);
+      vi.mocked(remove).mockResolvedValue({ path: "test-path" });
+
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+        },
+      });
+
+      // リネーム対象フォルダとその配下のキャッシュを設定
+      queryClient.setQueryData(queryKeys.storageItems(mockContext.identityId, "photos"), []);
+      queryClient.setQueryData(queryKeys.storageItems(mockContext.identityId, "photos/folder"), [
+        { key: "photos/folder/file1.jpg", name: "file1.jpg", type: "file" },
+      ]);
+      queryClient.setQueryData(
+        queryKeys.storageItems(mockContext.identityId, "photos/folder/subfolder"),
+        [],
+      );
+
+      const { result } = renderHook(() => useRenameMutation(mockContext), {
+        wrapper: createTestProviderWithQueryClient(queryClient),
+      });
+
+      // photos/folder を photos/new-folder にリネーム
+      await result.current.mutateAsync({
+        currentKey: "media/test-identity-id/photos/folder/",
+        newName: "new-folder",
+        isFolder: true,
+      });
+
+      // リネーム前フォルダ配下のキャッシュも無効化されていること
+      await waitFor(() => {
+        expect(
+          queryClient.getQueryState(queryKeys.storageItems(mockContext.identityId, "photos"))
+            ?.isInvalidated,
+        ).toBe(true);
+        expect(
+          queryClient.getQueryState(queryKeys.storageItems(mockContext.identityId, "photos/folder"))
+            ?.isInvalidated,
+        ).toBe(true);
+        expect(
+          queryClient.getQueryState(
+            queryKeys.storageItems(mockContext.identityId, "photos/folder/subfolder"),
+          )?.isInvalidated,
+        ).toBe(true);
+      });
+    });
+
+    it("should not invalidate unrelated path caches", async () => {
+      vi.mocked(list)
+        .mockResolvedValueOnce({ items: [] } as never) // target check
+        .mockResolvedValueOnce({
+          items: [{ path: "media/test-identity-id/photos/folder/file1.jpg" }],
+        } as never); // source contents
+      vi.mocked(copy).mockResolvedValue({ path: "test-path" } as never);
+      vi.mocked(remove).mockResolvedValue({ path: "test-path" });
+
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+        },
+      });
+
+      // 関係ないパスのキャッシュも設定
+      queryClient.setQueryData(queryKeys.storageItems(mockContext.identityId, "photos"), []);
+      queryClient.setQueryData(queryKeys.storageItems(mockContext.identityId, "photos/folder"), []);
+      queryClient.setQueryData(queryKeys.storageItems(mockContext.identityId, "videos"), []);
+
+      const { result } = renderHook(() => useRenameMutation(mockContext), {
+        wrapper: createTestProviderWithQueryClient(queryClient),
+      });
+
+      // photos/folder を photos/new-folder にリネーム
+      await result.current.mutateAsync({
+        currentKey: "media/test-identity-id/photos/folder/",
+        newName: "new-folder",
+        isFolder: true,
+      });
+
+      // videos キャッシュは無効化されていないこと
+      await waitFor(() => {
+        expect(
+          queryClient.getQueryState(queryKeys.storageItems(mockContext.identityId, "photos/folder"))
+            ?.isInvalidated,
+        ).toBe(true);
+        expect(
+          queryClient.getQueryState(queryKeys.storageItems(mockContext.identityId, "videos"))
+            ?.isInvalidated,
+        ).toBeFalsy();
+      });
     });
   });
 });

@@ -100,24 +100,24 @@
 - useMoveMutation - 移動したフォルダ配下のキャッシュが残る
 - useRenameMutation - 旧パス配下のキャッシュが無効なまま残る
 
-- [ ] 5.1 (P) invalidationUtils.ts を新規作成
+- [x] 5.1 (P) invalidationUtils.ts を新規作成
   - prefix-based invalidation ユーティリティを src/hooks/storaget/mutations 配下に実装
   - 指定パスとその配下すべてのキャッシュを無効化する関数
   - TanStack Query の `predicate` を使用
 
-- [ ] 5.2 useDeleteMutation を修正
+- [x] 5.2 useDeleteMutation を修正
   - フォルダ削除時に配下キャッシュも無効化
   - invalidateStorageItemsWithDescendants を使用
 
-- [ ] 5.3 useMoveMutation を修正
+- [x] 5.3 useMoveMutation を修正
   - 移動元・移動先フォルダの配下キャッシュも無効化
   - invalidateStorageItemsWithDescendants を使用
 
-- [ ] 5.4 useRenameMutation を修正
+- [x] 5.4 useRenameMutation を修正
   - リネーム前パスの配下キャッシュを無効化
   - invalidateStorageItemsWithDescendants を使用
 
-- [ ] 5.5 テストを追加・更新
+- [x] 5.5 テストを追加・更新
   - 各 mutation で配下キャッシュ無効化を検証
 
 ---
