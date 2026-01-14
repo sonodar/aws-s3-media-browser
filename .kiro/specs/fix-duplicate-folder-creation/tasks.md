@@ -4,20 +4,20 @@
 
 validateRename.ts から共通バリデーションロジックを抽出し、validateItemName.ts にリネーム。
 
-- [x] 1.1 validateRename.ts を validateItemName.ts にリネーム
+- [ ] 1.1 validateRename.ts を validateItemName.ts にリネーム
   - `src/utils/validateRename.ts` → `src/utils/validateItemName.ts`
   - `src/utils/validateRename.test.ts` → `src/utils/validateItemName.test.ts`
   - git mv コマンドで履歴を保持
   - リネームのみでコミット（内容変更前にコミットしないと履歴が消える）
   - _Requirements: 3.1_
 
-- [x] 1.2 validateItemName 関数の実装
+- [ ] 1.2 validateItemName 関数の実装
   - 基本バリデーション（空文字、スラッシュ、長さ）のみを残す
   - validateRename 関数と ValidateRenameOptions は削除
   - ValidationResult インターフェースは維持
   - _Requirements: 1.1, 2.3, 3.1_
 
-- [x] 1.3 validateItemName.test.ts の更新
+- [ ] 1.3 validateItemName.test.ts の更新
   - 基本バリデーションのテストのみを残す
   - validateRename 固有のテスト（同一名チェック、重複チェック）は削除
   - _Requirements: 3.1_

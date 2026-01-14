@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Modal, Stack, Group, Button, TextInput, Text, List, Alert } from "@mantine/core";
 import { AlertCircle } from "lucide-react";
-import { validateRename } from "../../utils/validateRename";
+import { validateRename } from "../../utils/validateItemName";
 import type { StorageItem } from "../../types/storage";
 import type { RenameItemResult, RenameFolderResult, RenameProgress } from "../../hooks/storage";
 
