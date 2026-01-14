@@ -1,9 +1,10 @@
 import { useState, useCallback, useMemo } from "react";
-import { Modal, Stack, Group, Button, Text, List, Alert, Notification } from "@mantine/core";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { Modal, Stack, Group, Button, Text, List, Notification } from "@mantine/core";
+import { CheckCircle } from "lucide-react";
 import { FolderBrowser } from "./FolderBrowser";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/storage";
+import { ErrorMessage } from "./ErrorMessage";
 
 export interface MoveDialogProps {
   /** ダイアログ表示状態 */
@@ -192,18 +193,15 @@ export function MoveDialog({
 
         {/* エラーメッセージ */}
         {errorMessage && !successMessage && (
-          <Alert color="red" icon={<AlertCircle size={16} />}>
-            <Stack gap="xs">
-              <Text size="sm">{errorMessage}</Text>
-              {failedItems.length > 0 && (
-                <List size="sm">
-                  {failedItems.map((item) => (
-                    <List.Item key={item}>{item}</List.Item>
-                  ))}
-                </List>
-              )}
-            </Stack>
-          </Alert>
+          <ErrorMessage message={errorMessage}>
+            {failedItems.length > 0 && (
+              <List size="sm">
+                {failedItems.map((item) => (
+                  <List.Item key={item}>{item}</List.Item>
+                ))}
+              </List>
+            )}
+          </ErrorMessage>
         )}
 
         {/* 成功メッセージ */}

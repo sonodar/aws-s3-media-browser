@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import { CreateFolderDialog } from "./CreateFolderDialog";
+import type { StorageItem } from "../../types/storage";
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <MantineProvider>{children}</MantineProvider>
@@ -12,6 +13,7 @@ describe("CreateFolderDialog", () => {
     isOpen: true,
     onClose: vi.fn(),
     onCreate: vi.fn().mockResolvedValue(undefined),
+    existingItems: [] as StorageItem[],
   };
 
   beforeEach(() => {
@@ -61,7 +63,7 @@ describe("CreateFolderDialog", () => {
       fireEvent.submit(form!);
 
       await waitFor(() => {
-        expect(screen.getByText("フォルダ名を入力してください")).toBeInTheDocument();
+        expect(screen.getByText("名前を入力してください")).toBeInTheDocument();
       });
     });
 
@@ -75,7 +77,7 @@ describe("CreateFolderDialog", () => {
       fireEvent.submit(form!);
 
       await waitFor(() => {
-        expect(screen.getByText("フォルダ名にスラッシュは使用できません")).toBeInTheDocument();
+        expect(screen.getByText("名前にスラッシュは使用できません")).toBeInTheDocument();
       });
     });
 
@@ -89,7 +91,62 @@ describe("CreateFolderDialog", () => {
       fireEvent.submit(form!);
 
       await waitFor(() => {
-        expect(screen.getByText("フォルダ名は100文字以内にしてください")).toBeInTheDocument();
+        expect(screen.getByText("名前は100文字以内にしてください")).toBeInTheDocument();
+      });
+    });
+
+    it("同じ名前のフォルダが存在する場合エラーが表示される", async () => {
+      const existingItems: StorageItem[] = [
+        { key: "path/existing/", name: "existing", type: "folder" },
+      ];
+      render(<CreateFolderDialog {...defaultProps} existingItems={existingItems} />, { wrapper });
+
+      const input = screen.getByPlaceholderText("フォルダ名");
+      fireEvent.change(input, { target: { value: "existing" } });
+
+      const form = input.closest("form");
+      fireEvent.submit(form!);
+
+      await waitFor(() => {
+        expect(screen.getByText("同じ名前のフォルダが既に存在します")).toBeInTheDocument();
+      });
+    });
+
+    it("同じ名前のファイルが存在してもフォルダは作成可能", async () => {
+      const onCreate = vi.fn().mockResolvedValue(undefined);
+      const existingItems: StorageItem[] = [{ key: "path/photos", name: "photos", type: "file" }];
+      render(
+        <CreateFolderDialog {...defaultProps} onCreate={onCreate} existingItems={existingItems} />,
+        { wrapper },
+      );
+
+      const input = screen.getByPlaceholderText("フォルダ名");
+      fireEvent.change(input, { target: { value: "photos" } });
+
+      fireEvent.click(screen.getByRole("button", { name: /作成/ }));
+
+      await waitFor(() => {
+        expect(onCreate).toHaveBeenCalledWith("photos");
+      });
+    });
+
+    it("大文字・小文字は区別される（Photos vs photos）", async () => {
+      const onCreate = vi.fn().mockResolvedValue(undefined);
+      const existingItems: StorageItem[] = [
+        { key: "path/photos/", name: "photos", type: "folder" },
+      ];
+      render(
+        <CreateFolderDialog {...defaultProps} onCreate={onCreate} existingItems={existingItems} />,
+        { wrapper },
+      );
+
+      const input = screen.getByPlaceholderText("フォルダ名");
+      fireEvent.change(input, { target: { value: "Photos" } });
+
+      fireEvent.click(screen.getByRole("button", { name: /作成/ }));
+
+      await waitFor(() => {
+        expect(onCreate).toHaveBeenCalledWith("Photos");
       });
     });
   });
