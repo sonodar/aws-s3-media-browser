@@ -3,6 +3,7 @@ import {
   getThumbnailPath,
   getOriginalPath,
   isThumbnailTarget,
+  toRelativePath,
   getParentPath,
   buildRenamedKey,
   buildRenamedPrefix,
@@ -103,6 +104,32 @@ describe("pathUtils", () => {
       it("should return false for files without extension", () => {
         expect(isThumbnailTarget("README")).toBe(false);
       });
+    });
+  });
+
+  describe("toRelativePath", () => {
+    it("should remove prefix and return relative path", () => {
+      expect(toRelativePath("media/user-123/photos/", "media/user-123/")).toBe("photos");
+    });
+
+    it("should return path as is when prefix does not match", () => {
+      expect(toRelativePath("photos/", "media/user-123/")).toBe("photos/");
+    });
+
+    it("should return empty string as is when prefix does not match", () => {
+      expect(toRelativePath("", "media/user-123/")).toBe("");
+    });
+
+    it("should handle nested paths", () => {
+      expect(toRelativePath("prefix/a/b/c/", "prefix/")).toBe("a/b/c");
+    });
+
+    it("should return empty string when path equals prefix", () => {
+      expect(toRelativePath("media/user-123/", "media/user-123/")).toBe("");
+    });
+
+    it("should remove trailing slash from result", () => {
+      expect(toRelativePath("base/sub/", "base/")).toBe("sub");
     });
   });
 

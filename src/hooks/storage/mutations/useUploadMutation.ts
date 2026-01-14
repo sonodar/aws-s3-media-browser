@@ -32,7 +32,7 @@ export function useUploadMutation(context: MutationContext) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.items(context.identityId, context.currentPath),
+        queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
       });
     },
   });

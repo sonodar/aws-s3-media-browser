@@ -6,16 +6,16 @@ import { MoveDialog } from "./MoveDialog";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/storage";
 
-// Mock useFolderList hook
+// Mock useStorageItems hook (FolderBrowser uses this internally)
 vi.mock("../../hooks/storage", async () => {
   const actual = await vi.importActual("../../hooks/storage");
   return {
     ...actual,
-    useFolderList: vi.fn(),
+    useStorageItems: vi.fn(),
   };
 });
 
-import { useFolderList } from "../../hooks/storage";
+import { useStorageItems } from "../../hooks/storage";
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -40,7 +40,7 @@ describe("MoveDialog", () => {
     [StorageItem[], string, ((p: MoveProgress) => void)?],
     Promise<MoveResult>
   >();
-  const mockUseFolderList = vi.mocked(useFolderList);
+  const mockUseStorageItemsV2 = vi.mocked(useStorageItems);
 
   const basePath = "media/user123/";
   const sampleItems: StorageItem[] = [
@@ -55,8 +55,8 @@ describe("MoveDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mock: loaded folders
-    mockUseFolderList.mockReturnValue({
+    // Default mock: useStorageItems returns folders (FolderBrowser filters for folders internally)
+    mockUseStorageItemsV2.mockReturnValue({
       data: sampleFolders,
       isLoading: false,
       isError: false,
@@ -129,9 +129,9 @@ describe("MoveDialog", () => {
       // 初期表示は currentPath のフォルダ名（photos）であるべき
       expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
 
-      // useFolderList が正しいパスで呼ばれているか確認
+      // useStorageItems が正しいパスで呼ばれているか確認（toRelativePath で末尾スラッシュが削除される）
       await waitFor(() => {
-        expect(mockUseFolderList).toHaveBeenCalledWith("user123", currentPath, { enabled: true });
+        expect(mockUseStorageItemsV2).toHaveBeenCalledWith("user123", "photos");
       });
     });
 
@@ -329,8 +329,8 @@ describe("MoveDialog", () => {
         { key: `${basePath}photos/2024/`, name: "2024", type: "folder" },
       ];
 
-      mockUseFolderList.mockImplementation((identityId, path) => {
-        if (path === `${basePath}photos/`) {
+      mockUseStorageItemsV2.mockImplementation((_identityId, path) => {
+        if (path === "photos/") {
           return {
             data: subfolders,
             isLoading: false,

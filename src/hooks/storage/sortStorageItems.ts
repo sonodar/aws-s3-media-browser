@@ -1,4 +1,5 @@
 import type { StorageItem } from "../../types/storage";
+import { compareByName } from "../../utils/sortUtils";
 
 /**
  * ソート順を表す型
@@ -25,12 +26,6 @@ export const SORT_ORDER_LABELS: Record<SortOrder, string> = {
 export const DEFAULT_SORT_ORDER: SortOrder = "newest";
 
 /**
- * 自然順ソート用の Collator
- * 数字を正しく扱う（例: file1, file2, file10 の順になる）
- */
-const collator = new Intl.Collator("ja", { numeric: true, sensitivity: "base" });
-
-/**
  * StorageItem 配列を指定されたソート順でソートする
  *
  * - フォルダを常にファイルより先に配置
@@ -55,8 +50,8 @@ export function sortStorageItems(items: StorageItem[], sortOrder: SortOrder): St
   const compareFn = getCompareFn(sortOrder);
 
   // それぞれをソート
-  const sortedFolders = [...folders].sort(compareFn);
-  const sortedFiles = [...files].sort(compareFn);
+  const sortedFolders = [...folders].toSorted(compareFn);
+  const sortedFiles = [...files].toSorted(compareFn);
 
   // フォルダを先に結合
   return [...sortedFolders, ...sortedFiles];
@@ -82,7 +77,7 @@ function getCompareFn(sortOrder: SortOrder): (a: StorageItem, b: StorageItem) =>
       };
 
     case "name":
-      return (a, b) => collator.compare(a.name, b.name);
+      return compareByName;
 
     case "size":
       return (a, b) => {

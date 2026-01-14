@@ -106,7 +106,7 @@ export function useStorageOperations({
 }: UseStorageOperationsProps): UseStorageOperationsReturn {
   const queryClient = useQueryClient();
 
-  // TanStack Query を使用したストレージアイテム取得
+  // TanStack Query を使用したストレージアイテム取得（subpathStrategy対応版）
   const { data: items, isLoading: loading, error } = useStorageItems(identityId, currentPath);
 
   // Mutation コンテキスト
@@ -133,7 +133,7 @@ export function useStorageOperations({
   const invalidateItems = useCallback(async () => {
     if (!identityId) return;
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.items(identityId, currentPath),
+      queryKey: queryKeys.storageItems(identityId, currentPath),
     });
   }, [queryClient, identityId, currentPath]);
 

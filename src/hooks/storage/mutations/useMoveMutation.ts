@@ -6,6 +6,7 @@ import { list, copy, remove } from "aws-amplify/storage";
 import { queryKeys } from "../../../stores/queryKeys";
 import { normalizePathWithSlash, extractRelativePath } from "../../../utils/storagePathUtils";
 import { encodePathForCopy } from "../../../utils/pathUtils";
+import { invalidateWithDescendants } from "./invalidationUtils";
 import type { MutationContext, MoveVariables, MoveResult } from "./types";
 
 /**
@@ -139,22 +140,26 @@ export function useMoveMutation(context: MutationContext) {
       return { success: true, succeeded, failed: 0 };
     },
     onSuccess: async (_data, variables) => {
-      // 移動元のクエリを無効化（items と folders 両方）
+      // 移動元のクエリを無効化
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.items(context.identityId, context.currentPath),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.folders(context.identityId, context.currentPath),
+        queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
       });
 
-      // 移動先のクエリを無効化（items と folders 両方）
+      // フォルダ移動の場合、そのフォルダ配下のキャッシュも無効化
+      for (const item of variables.items) {
+        if (item.type === "folder") {
+          const folderPath = context.currentPath
+            ? `${context.currentPath}/${item.name}`
+            : item.name;
+          await invalidateWithDescendants(queryClient, context.identityId, folderPath);
+        }
+      }
+
+      // 移動先のクエリを無効化
       const destRelativePath = extractRelativePath(variables.destinationPath, context.identityId);
       if (destRelativePath !== null) {
         await queryClient.invalidateQueries({
-          queryKey: queryKeys.items(context.identityId, destRelativePath),
-        });
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.folders(context.identityId, destRelativePath),
+          queryKey: queryKeys.storageItems(context.identityId, destRelativePath),
         });
       }
     },

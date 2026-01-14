@@ -4,6 +4,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { list, remove } from "aws-amplify/storage";
 import { queryKeys } from "../../../stores/queryKeys";
+import { invalidateWithDescendants } from "./invalidationUtils";
 import type { MutationContext, DeleteVariables, DeleteResult } from "./types";
 
 /**
@@ -77,10 +78,22 @@ export function useDeleteMutation(context: MutationContext) {
 
       return { succeeded, failed };
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
+      // 現在のパスを無効化
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.items(context.identityId, context.currentPath),
+        queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
       });
+
+      // フォルダ削除の場合、そのフォルダ配下のキャッシュも無効化
+      for (const item of variables.items) {
+        if (item.type === "folder") {
+          // フォルダ名から currentPath 配下の相対パスを構築
+          const folderPath = context.currentPath
+            ? `${context.currentPath}/${item.name}`
+            : item.name;
+          await invalidateWithDescendants(queryClient, context.identityId, folderPath);
+        }
+      }
     },
   });
 }

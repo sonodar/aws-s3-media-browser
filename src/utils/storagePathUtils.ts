@@ -2,6 +2,11 @@
  * ストレージパス関連のユーティリティ
  */
 
+import { toRelativePath } from "./pathUtils";
+
+// 汎用的な toRelativePath は pathUtils から再エクスポート
+export { toRelativePath } from "./pathUtils";
+
 /**
  * パスの末尾スラッシュを正規化する
  * 空文字列またはすでにスラッシュで終わる場合はそのまま、それ以外はスラッシュを追加
@@ -42,4 +47,27 @@ export function extractRelativePath(fullPath: string, identityId: string): strin
     relativePath = relativePath.slice(0, -1);
   }
   return relativePath;
+}
+
+/**
+ * パスがストレージのフルパス（media/{identityId}/で始まる）かどうかを判定
+ * @param path 判定対象のパス
+ * @param identityId ユーザーの Identity ID
+ * @returns フルパスの場合 true
+ */
+export function isFullStoragePath(path: string, identityId: string): boolean {
+  const prefix = `media/${identityId}/`;
+  return path.startsWith(prefix);
+}
+
+/**
+ * ストレージパスを相対パスに正規化する
+ * フルパス（media/{identityId}/...）の場合は相対パスに変換し、相対パスの場合はそのまま返す
+ * @param path 変換対象のパス
+ * @param identityId ユーザーの Identity ID
+ * @returns 相対パス
+ */
+export function toRelativeStoragePath(path: string, identityId: string): string {
+  const prefix = `media/${identityId}/`;
+  return toRelativePath(path, prefix);
 }

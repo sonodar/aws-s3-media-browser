@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { list, copy, remove } from "aws-amplify/storage";
 import { queryKeys } from "../../../stores/queryKeys";
 import { buildRenamedKey, buildRenamedPrefix, encodePathForCopy } from "../../../utils/pathUtils";
+import { invalidateWithDescendants } from "./invalidationUtils";
 import { OPERATION_LIMITS } from "./types";
 import type { MutationContext, RenameVariables, RenameResult } from "./types";
 
@@ -165,10 +166,20 @@ export function useRenameMutation(context: MutationContext) {
       }
       return renameFile(currentKey, newName);
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.items(context.identityId, context.currentPath),
+        queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
       });
+
+      // フォルダリネームの場合、リネーム前パス配下のキャッシュも無効化
+      if (variables.isFolder) {
+        // currentKey から相対パスを取得（フォルダ名を除く）
+        // 例: "media/{identityId}/photos/folder/" → "photos/folder"
+        const folderPath = context.currentPath
+          ? `${context.currentPath}/${variables.currentKey.split("/").slice(-2, -1)[0]}`
+          : variables.currentKey.split("/").slice(-2, -1)[0];
+        await invalidateWithDescendants(queryClient, context.identityId, folderPath);
+      }
     },
   });
 }

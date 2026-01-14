@@ -4,20 +4,20 @@ import { FolderBrowser } from "./FolderBrowser";
 import { TestProvider } from "../../stores/TestProvider";
 import type { StorageItem } from "../../types/storage";
 
-// Mock useFolderList hook
+// Mock useStorageItems hook
 vi.mock("../../hooks/storage", async () => {
   const actual = await vi.importActual("../../hooks/storage");
   return {
     ...actual,
-    useFolderList: vi.fn(),
+    useStorageItems: vi.fn(),
   };
 });
 
-import { useFolderList } from "../../hooks/storage";
+import { useStorageItems } from "../../hooks/storage";
 
 describe("FolderBrowser", () => {
   const mockOnNavigate = vi.fn();
-  const mockUseFolderList = vi.mocked(useFolderList);
+  const mockUseStorageItemsV2 = vi.mocked(useStorageItems);
 
   const basePath = "media/user123/";
   const sampleFolders: StorageItem[] = [
@@ -25,12 +25,17 @@ describe("FolderBrowser", () => {
     { key: `${basePath}documents/`, name: "documents", type: "folder" },
     { key: `${basePath}archive/`, name: "archive", type: "folder" },
   ];
+  // Include some files to test filtering
+  const sampleItems: StorageItem[] = [
+    ...sampleFolders,
+    { key: `${basePath}readme.txt`, name: "readme.txt", type: "file", size: 100 },
+  ];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mock: loaded folders
-    mockUseFolderList.mockReturnValue({
-      data: sampleFolders,
+    // Default mock: loaded items (includes folders and files)
+    mockUseStorageItemsV2.mockReturnValue({
+      data: sampleItems,
       isLoading: false,
       isError: false,
       error: null,
@@ -51,7 +56,7 @@ describe("FolderBrowser", () => {
   };
 
   describe("folder list display", () => {
-    it("should display folders from useFolderList", async () => {
+    it("should display folders from useStorageItems (files are filtered out)", async () => {
       renderFolderBrowser();
 
       await waitFor(() => {
@@ -59,16 +64,20 @@ describe("FolderBrowser", () => {
         expect(screen.getByText("documents")).toBeInTheDocument();
         expect(screen.getByText("archive")).toBeInTheDocument();
       });
+
+      // ファイルは表示されない
+      expect(screen.queryByText("readme.txt")).not.toBeInTheDocument();
     });
 
-    it("should call useFolderList with correct parameters", () => {
+    it("should call useStorageItems with correct parameters", () => {
       renderFolderBrowser({ currentPath: basePath });
 
-      expect(mockUseFolderList).toHaveBeenCalledWith("user123", basePath, { enabled: true });
+      // FolderBrowser normalizes the path using toRelativeStoragePath
+      expect(mockUseStorageItemsV2).toHaveBeenCalledWith("user123", "");
     });
 
     it("should show loading state while fetching", () => {
-      mockUseFolderList.mockReturnValue({
+      mockUseStorageItemsV2.mockReturnValue({
         data: [],
         isLoading: true,
         isError: false,
@@ -198,8 +207,9 @@ describe("FolderBrowser", () => {
 
   describe("empty state", () => {
     it("should show empty message when no folders exist", async () => {
-      mockUseFolderList.mockReturnValue({
-        data: [],
+      // Return only files - no folders
+      mockUseStorageItemsV2.mockReturnValue({
+        data: [{ key: `${basePath}readme.txt`, name: "readme.txt", type: "file", size: 100 }],
         isLoading: false,
         isError: false,
         error: null,
@@ -214,10 +224,11 @@ describe("FolderBrowser", () => {
   });
 
   describe("enabled option", () => {
-    it("should pass enabled option to useFolderList", () => {
+    it("should pass null identityId to useStorageItems when disabled", () => {
       renderFolderBrowser({ enabled: false });
 
-      expect(mockUseFolderList).toHaveBeenCalledWith("user123", basePath, { enabled: false });
+      // When enabled=false, identityId should be null to disable the query
+      expect(mockUseStorageItemsV2).toHaveBeenCalledWith(null, "");
     });
   });
 });
