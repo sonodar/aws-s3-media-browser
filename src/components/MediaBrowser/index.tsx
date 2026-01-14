@@ -320,6 +320,7 @@ export function MediaBrowser({ onSignOut, onOpenSettings }: MediaBrowserProps) {
           // refresh を await することで確実に最新の状態を取得する。
           await refresh();
         }}
+        existingItems={items}
       />
 
       <PreviewModal
@@ -391,3 +392,4 @@ export { CreateFolderDialog } from "./CreateFolderDialog";
 export { PreviewModal } from "./PreviewModal";
 export { Thumbnail } from "./Thumbnail";
 export type { ThumbnailProps } from "./Thumbnail";
+export { ErrorMessage } from "./ErrorMessage";

@@ -1,9 +1,54 @@
 import { useState, useCallback } from "react";
-import { Modal, Stack, Group, Button, TextInput, Text, List, Alert } from "@mantine/core";
-import { AlertCircle } from "lucide-react";
-import { validateRename } from "../../utils/validateItemName";
+import { Modal, Stack, Group, Button, TextInput, Text, List } from "@mantine/core";
+import { validateItemName, type ValidationResult } from "../../utils/validateItemName";
 import type { StorageItem } from "../../types/storage";
 import type { RenameItemResult, RenameFolderResult, RenameProgress } from "../../hooks/storage";
+import { ErrorMessage } from "./ErrorMessage";
+
+interface ValidateRenameOptions {
+  newName: string;
+  item: StorageItem;
+  existingItems: StorageItem[];
+}
+
+/**
+ * リネーム名のバリデーションを行う（UI層バリデーション）
+ *
+ * バリデーションルール（優先度順）:
+ * 1. 基本バリデーション（空文字、スラッシュ、長さ）
+ * 2. 同一名チェック
+ * 3. 重複チェック（UI）
+ */
+function validateRename(options: ValidateRenameOptions): ValidationResult {
+  const { newName, item, existingItems } = options;
+
+  // 1. 基本バリデーション
+  const baseResult = validateItemName(newName);
+  if (!baseResult.valid) {
+    return baseResult;
+  }
+
+  const normalizedName = baseResult.normalizedName!;
+
+  // 2. 同一名チェック
+  if (normalizedName === item.name) {
+    return { valid: false, error: "名前が変更されていません" };
+  }
+
+  // 3. 重複チェック（UI）
+  // 同タイプのアイテムで、現在のアイテム以外に同名のものがあるか
+  const isDuplicate = existingItems.some(
+    (existing) =>
+      existing.type === item.type && existing.key !== item.key && existing.name === normalizedName,
+  );
+
+  if (isDuplicate) {
+    const itemType = item.type === "folder" ? "フォルダ" : "ファイル";
+    return { valid: false, error: `同じ名前の${itemType}が既に存在します` };
+  }
+
+  return { valid: true, normalizedName };
+}
 
 export interface RenameDialogProps {
   isOpen: boolean;
@@ -155,36 +200,33 @@ export function RenameDialog({
             onKeyDown={handleKeyDown}
           />
           {error && (
-            <Alert color="red" icon={<AlertCircle size={16} />}>
-              <Stack gap="xs">
-                <Text size="sm">{error}</Text>
-                {folderErrorDetails &&
-                  (folderErrorDetails.succeeded !== undefined ||
-                    folderErrorDetails.failed !== undefined) && (
-                    <>
-                      <Text size="sm">
-                        成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
-                        {folderErrorDetails.failed ?? 0}件
-                      </Text>
-                      {folderErrorDetails.failedFiles &&
-                        folderErrorDetails.failedFiles.length > 0 && (
-                          <List size="sm">
-                            {folderErrorDetails.failedFiles.map((file) => (
-                              <List.Item key={file}>{file}</List.Item>
-                            ))}
-                          </List>
-                        )}
-                    </>
-                  )}
-                {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
-                  <List size="sm">
-                    {folderErrorDetails.duplicates.map((file) => (
-                      <List.Item key={file}>{file}</List.Item>
-                    ))}
-                  </List>
+            <ErrorMessage message={error}>
+              {folderErrorDetails &&
+                (folderErrorDetails.succeeded !== undefined ||
+                  folderErrorDetails.failed !== undefined) && (
+                  <>
+                    <Text size="sm">
+                      成功: {folderErrorDetails.succeeded ?? 0}件 / 失敗:{" "}
+                      {folderErrorDetails.failed ?? 0}件
+                    </Text>
+                    {folderErrorDetails.failedFiles &&
+                      folderErrorDetails.failedFiles.length > 0 && (
+                        <List size="sm">
+                          {folderErrorDetails.failedFiles.map((file) => (
+                            <List.Item key={file}>{file}</List.Item>
+                          ))}
+                        </List>
+                      )}
+                  </>
                 )}
-              </Stack>
-            </Alert>
+              {folderErrorDetails?.duplicates && folderErrorDetails.duplicates.length > 0 && (
+                <List size="sm">
+                  {folderErrorDetails.duplicates.map((file) => (
+                    <List.Item key={file}>{file}</List.Item>
+                  ))}
+                </List>
+              )}
+            </ErrorMessage>
           )}
           {progress && (
             <Text
