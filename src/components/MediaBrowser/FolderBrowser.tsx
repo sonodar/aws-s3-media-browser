@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { Folder, ArrowUp, Home } from "lucide-react";
 import { useStorageItems } from "../../hooks/storage";
-import { extractRelativePath } from "../../utils/storagePathUtils";
+import { toRelativeStoragePath } from "../../utils/storagePathUtils";
 import type { StorageItem } from "../../types/storage";
 import "./FolderBrowser.css";
 
@@ -35,13 +35,7 @@ export function FolderBrowser({
 }: FolderBrowserProps) {
   // path がフルパスの場合は相対パスに変換
   // （MoveDialog や FolderBrowser からフルパスが渡される場合がある）
-  let normalizedPath = currentPath;
-  if (identityId) {
-    const extracted = extractRelativePath(currentPath, identityId);
-    if (extracted !== null) {
-      normalizedPath = extracted;
-    }
-  }
+  const normalizedPath = identityId ? toRelativeStoragePath(currentPath, identityId) : currentPath;
 
   // TanStack Query でアイテム一覧を取得（useStorageItemsでキャッシュ共有）
   const { data: allItems, isLoading } = useStorageItems(

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { list } from "aws-amplify/storage";
 import { queryKeys } from "../../stores/queryKeys";
 import { parseExcludedSubpaths, mergeAndDeduplicateFolders } from "./storageItemParser";
+import { toRelativePath } from "../../utils/pathUtils";
 import { buildMediaBasePath } from "../../utils/storagePathUtils";
 import type { StorageItem } from "../../types/storage";
 import type { QueryReturn } from "../types";
@@ -43,8 +44,8 @@ export function useStorageItems(
         // 現在のパスマーカーを除外
         if (item.path === basePath) continue;
 
-        const relativePath = item.path.replace(basePath, "");
-        const name = relativePath.replace(/\/$/, "");
+        // basePath からの相対パスを取得（末尾スラッシュも除去される）
+        const name = toRelativePath(item.path, basePath);
 
         if (item.path.endsWith("/")) {
           // 明示的フォルダ（0バイトのスラッシュオブジェクト）
@@ -57,7 +58,7 @@ export function useStorageItems(
           // ファイル
           files.push({
             key: item.path,
-            name: relativePath,
+            name,
             type: "file" as const,
             size: item.size,
             lastModified: item.lastModified,

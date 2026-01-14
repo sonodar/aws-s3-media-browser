@@ -66,6 +66,27 @@ export function isThumbnailTarget(filename: string): boolean {
 }
 
 /**
+ * パスから指定されたプレフィックスを除去して相対パスを取得する
+ * プレフィックスが一致しない場合はそのまま返す
+ * @param path 変換対象のパス
+ * @param prefix 除去するプレフィックス
+ * @returns プレフィックスを除去した相対パス（末尾スラッシュも除去）
+ * @example
+ * toRelativePath('media/user-123/photos/', 'media/user-123/') // => 'photos'
+ * toRelativePath('photos/', 'media/user-123/') // => 'photos/' (不一致時はそのまま)
+ */
+export function toRelativePath(path: string, prefix: string): string {
+  if (!path.startsWith(prefix)) {
+    return path;
+  }
+  let relativePath = path.slice(prefix.length);
+  if (relativePath.endsWith("/")) {
+    relativePath = relativePath.slice(0, -1);
+  }
+  return relativePath;
+}
+
+/**
  * Get parent directory path from a key or path
  * @example
  * getParentPath('photos/2024/image.jpg') // => 'photos/2024/'

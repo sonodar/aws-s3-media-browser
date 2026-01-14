@@ -129,7 +129,7 @@ describe("MoveDialog", () => {
       // 初期表示は currentPath のフォルダ名（photos）であるべき
       expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
 
-      // useStorageItems が正しいパスで呼ばれているか確認（extractRelativePath で末尾スラッシュが削除される）
+      // useStorageItems が正しいパスで呼ばれているか確認（toRelativePath で末尾スラッシュが削除される）
       await waitFor(() => {
         expect(mockUseStorageItemsV2).toHaveBeenCalledWith("user123", "photos");
       });

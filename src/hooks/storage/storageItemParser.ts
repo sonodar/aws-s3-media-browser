@@ -1,4 +1,5 @@
 import type { StorageItem } from "../../types/storage";
+import { toRelativePath } from "../../utils/pathUtils";
 
 /**
  * excludedSubpaths 配列を StorageItem[] に変換する
@@ -12,9 +13,8 @@ import type { StorageItem } from "../../types/storage";
  */
 export function parseExcludedSubpaths(excludedSubpaths: string[], basePath: string): StorageItem[] {
   return excludedSubpaths.map((subpath) => {
-    // basePath を除去して相対パスを取得し、末尾のスラッシュを除去してフォルダ名を抽出
-    const relativePath = subpath.replace(basePath, "");
-    const name = relativePath.replace(/\/$/, "");
+    // basePath を除去して相対パスを取得（toRelativePath は末尾スラッシュも除去する）
+    const name = toRelativePath(subpath, basePath);
 
     return {
       key: subpath,

@@ -72,7 +72,7 @@ describe("FolderBrowser", () => {
     it("should call useStorageItems with correct parameters", () => {
       renderFolderBrowser({ currentPath: basePath });
 
-      // FolderBrowser normalizes the path using extractRelativePath
+      // FolderBrowser normalizes the path using toRelativeStoragePath
       expect(mockUseStorageItemsV2).toHaveBeenCalledWith("user123", "");
     });
 

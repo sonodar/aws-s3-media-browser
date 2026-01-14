@@ -1,4 +1,5 @@
 import type { StorageItem } from "../../types/storage";
+import { toRelativePath } from "../../utils/pathUtils";
 
 export interface S3ListItem {
   path: string;
@@ -19,7 +20,7 @@ export function parseStorageItems(items: S3ListItem[], basePath: string): Storag
   const parsed: StorageItem[] = items
     .filter((item) => item.path !== basePath) // Exclude current folder marker
     .map((item) => {
-      const relativePath = item.path.replace(basePath, "");
+      const relativePath = toRelativePath(item.path, basePath);
       // Check if this is a direct child or nested
       const parts = relativePath.split("/").filter(Boolean);
 
