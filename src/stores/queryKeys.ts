@@ -41,4 +41,12 @@ export const queryKeys = {
    * @example queryKeys.thumbnail("media/user-123/photos/image.jpg") // ["thumbnail", "media/user-123/photos/image.jpg"]
    */
   thumbnail: (originalKey: string) => ["thumbnail", originalKey] as const,
+
+  /**
+   * 新しいストレージアイテム一覧の queryKey（subpathStrategy: 'exclude' 用）
+   * - ファイルとフォルダを統合して返す新実装用
+   * - 移行完了後は items, folders を置き換え予定
+   * @example queryKeys.storageItems("user-123", "/photos") // ["storageItems", "user-123", "/photos"]
+   */
+  storageItems: (identityId: string, path: string) => ["storageItems", identityId, path] as const,
 } as const;

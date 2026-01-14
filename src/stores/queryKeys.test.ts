@@ -80,6 +80,18 @@ describe("queryKeys", () => {
     });
   });
 
+  describe("storageItems", () => {
+    it("should return correct queryKey for storageItems with identityId and path", () => {
+      const key = queryKeys.storageItems("user-123", "/photos");
+      expect(key).toEqual(["storageItems", "user-123", "/photos"] as const);
+    });
+
+    it("should return correct queryKey for storageItems with root path", () => {
+      const key = queryKeys.storageItems("user-123", "");
+      expect(key).toEqual(["storageItems", "user-123", ""] as const);
+    });
+  });
+
   describe("invalidateQueries prefix matching", () => {
     it("items queryKey should start with 'items' prefix for invalidation", () => {
       const key = queryKeys.items("user-123", "/photos");
@@ -94,6 +106,11 @@ describe("queryKeys", () => {
     it("previewUrls queryKey should start with 'previewUrls' prefix for invalidation", () => {
       const key = queryKeys.previewUrls(["photo.jpg"]);
       expect(key[0]).toBe("previewUrls");
+    });
+
+    it("storageItems queryKey should start with 'storageItems' prefix for invalidation", () => {
+      const key = queryKeys.storageItems("user-123", "/photos");
+      expect(key[0]).toBe("storageItems");
     });
   });
 });
