@@ -7,7 +7,8 @@ import "./FileActions.css";
 
 interface FileActionsProps {
   currentPath: string;
-  identityId: string | null;
+  /** Identity ID（認証ユーザーのID） */
+  identityId: string;
   onUploadComplete: () => void;
   onCreateFolder: () => void;
   /** 現在のフォルダ内の既存アイテム（重複チェック用） */
@@ -74,9 +75,6 @@ export function FileActions({
     onUploadComplete();
     setShowUploader(false);
   }, [onUploadComplete]);
-
-  // すべてのフックが呼び出された後に早期リターン
-  if (!identityId) return null;
 
   const getUploadPath = () => {
     const base = `media/${identityId}/`;

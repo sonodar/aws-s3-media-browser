@@ -8,7 +8,7 @@ import "./FolderBrowser.css";
 
 export interface FolderBrowserProps {
   /** Identity ID（認証ユーザーのID） */
-  identityId: string | null;
+  identityId: string;
   /** 現在表示中のパス（media/{identityId}/を除いた相対パス） */
   currentPath: string;
   /** ルートパス（これ以上遡れない） */
@@ -17,8 +17,6 @@ export interface FolderBrowserProps {
   disabledPaths: string[];
   /** フォルダナビゲーションコールバック */
   onNavigate: (path: string) => void;
-  /** クエリを有効化するかどうか（default: true） */
-  enabled?: boolean;
 }
 
 /**
@@ -32,17 +30,13 @@ export function FolderBrowser({
   rootPath = "",
   disabledPaths,
   onNavigate,
-  enabled = true,
 }: FolderBrowserProps) {
   // path がフルパスの場合は相対パスに変換
   // （MoveDialog や FolderBrowser からフルパスが渡される場合がある）
-  const normalizedPath = identityId ? toRelativeStoragePath(currentPath, identityId) : currentPath;
+  const normalizedPath = toRelativeStoragePath(currentPath, identityId);
 
   // TanStack Query でアイテム一覧を取得（useStorageItemsでキャッシュ共有）
-  const { data: allItems, isLoading } = useStorageItems(
-    enabled ? identityId : null,
-    normalizedPath,
-  );
+  const { data: allItems, isLoading } = useStorageItems(identityId, normalizedPath);
 
   // フォルダのみをフィルタリングし、名前順にソート
   const folders = useMemo(

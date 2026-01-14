@@ -31,21 +31,22 @@
   - MediaBrowser に identityId を Props で渡す
   - _Requirements: 1.4_
 
-- [ ] 3. ストレージフックの型変更
-- [ ] 3.1 (P) useStorageItems の型変更と null ガード削除
+- [x] 3. ストレージフックの型変更
+- [x] 3.1 (P) useStorageItems の型変更と null ガード削除
   - パラメータ型を `identityId: string | null` から `identityId: string` に変更
   - `enabled: !!identityId` を削除（常に有効）
   - queryKey の `identityId ?? ""` フォールバックを削除
   - queryFn 内の `if (!identityId) return []` ガードを削除
+  - **注**: FolderBrowser の `enabled ? identityId : null` ハックは不要（キャッシュ共有のため）
   - _Requirements: 3.1_
 
-- [ ] 3.2 (P) useStorageOperations の型変更と null ガード削除
+- [x] 3.2 (P) useStorageOperations の型変更と null ガード削除
   - Props 型の `identityId: string | null` を `identityId: string` に変更
   - 内部の `identityId ?? ""` ガードを削除
   - `!identityId` チェックを削除
   - _Requirements: 3.1_
 
-- [ ] 4. UI コンポーネントの型変更
+- [x] 4. UI コンポーネントの型変更
 - [x] 4.1 MediaBrowser の型変更
   - Props に `identityId: string` を追加
   - `useIdentityId()` 呼び出しを削除
@@ -53,18 +54,20 @@
   - `if (!identityId) return null` ガードを削除
   - _Requirements: 3.2_
 
-- [ ] 4.2 (P) FileActions の型変更
+- [x] 4.2 (P) FileActions の型変更
   - Props の `identityId: string | null` を `identityId: string` に変更
   - `if (!identityId) return null` ガードを削除
   - _Requirements: 3.2_
 
-- [ ] 4.3 (P) MoveDialog の型変更
+- [x] 4.3 (P) MoveDialog の型変更
   - Props の `identityId: string | null` を `identityId: string` に変更
   - _Requirements: 3.2_
 
-- [ ] 4.4 (P) FolderBrowser の型変更
+- [x] 4.4 (P) FolderBrowser の型変更と enabled プロパティ削除
   - Props の `identityId: string | null` を `identityId: string` に変更
-  - `enabled ? identityId : null` のロジックを簡素化
+  - `enabled ? identityId : null` ハックを削除し、`identityId` を直接渡す
+  - `enabled` プロパティを削除（MoveDialog が閉じている時はコンポーネント自体がレンダリングされないため不要）
+  - MoveDialog から `enabled` の渡し込みを削除
   - _Requirements: 3.2_
 
 - [x] 5. テストファイルの修正

@@ -21,7 +21,7 @@ import type {
 } from "./mutations";
 
 export interface UseStorageOperationsProps {
-  identityId: string | null;
+  identityId: string;
   currentPath: string;
 }
 
@@ -111,7 +111,7 @@ export function useStorageOperations({
 
   // Mutation コンテキスト
   const mutationContext = {
-    identityId: identityId ?? "",
+    identityId,
     currentPath,
   };
 
@@ -123,7 +123,6 @@ export function useStorageOperations({
   const createFolderMutation = useCreateFolderMutation(mutationContext);
 
   const getBasePath = useCallback(() => {
-    if (!identityId) return null;
     return buildMediaBasePath(identityId, currentPath);
   }, [identityId, currentPath]);
 
@@ -131,7 +130,6 @@ export function useStorageOperations({
    * キャッシュを無効化してアイテム一覧を再取得
    */
   const invalidateItems = useCallback(async () => {
-    if (!identityId) return;
     await queryClient.invalidateQueries({
       queryKey: queryKeys.storageItems(identityId, currentPath),
     });
@@ -140,8 +138,6 @@ export function useStorageOperations({
   const uploadFiles = useCallback(
     async (files: File[]): Promise<string[]> => {
       const basePath = getBasePath();
-      if (!basePath) return [];
-
       return uploadMutation.mutateAsync({ files, basePath });
     },
     [getBasePath, uploadMutation],
@@ -169,8 +165,6 @@ export function useStorageOperations({
   const createFolder = useCallback(
     async (name: string) => {
       const basePath = getBasePath();
-      if (!basePath) return;
-
       await createFolderMutation.mutateAsync({ name, basePath });
     },
     [getBasePath, createFolderMutation],

@@ -380,7 +380,9 @@ export function MediaBrowser({ identityId }: MediaBrowserProps) {
 
 **変更内容**: Props の `identityId: string | null` → `identityId: string`
 
-- `enabled ? identityId : null` のロジックを簡素化
+- `enabled ? identityId : null` ハックを削除し、`identityId` を直接渡す
+- `enabled` プロパティを削除（MoveDialog が閉じている時は `if (!isOpen) return null` によりコンポーネント自体がレンダリングされないため、クエリ無効化の制御は不要）
+- TanStack Query のキャッシュ共有により、MediaBrowser で取得済みのデータは即座に表示される
 
 ## Data Models
 

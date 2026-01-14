@@ -126,11 +126,6 @@ describe("FileActions", () => {
   });
 
   describe("既存の動作の維持", () => {
-    it("identityId が null の場合は何も表示しない", () => {
-      render(<FileActions {...defaultProps} identityId={null} />);
-      expect(screen.queryByLabelText("ファイルをアップロード")).not.toBeInTheDocument();
-    });
-
     it("アップロードボタンが表示される", () => {
       render(<FileActions {...defaultProps} />);
       expect(screen.getByLabelText("ファイルをアップロード")).toBeInTheDocument();
