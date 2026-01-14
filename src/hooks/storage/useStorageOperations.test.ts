@@ -269,7 +269,7 @@ describe("useStorageOperations", () => {
 
   describe("basePath construction", () => {
     it("should construct correct basePath for root", async () => {
-      vi.mocked(list).mockResolvedValue({ items: [] });
+      vi.mocked(list).mockResolvedValue({ items: [], excludedSubpaths: [] });
 
       renderHook(() => useStorageOperations({ identityId, currentPath: "" }), {
         wrapper: TestProvider,
@@ -278,13 +278,13 @@ describe("useStorageOperations", () => {
       await waitFor(() => {
         expect(list).toHaveBeenCalledWith({
           path: `media/${identityId}/`,
-          options: { listAll: true },
+          options: { subpathStrategy: { strategy: "exclude" } },
         });
       });
     });
 
     it("should construct correct basePath for nested path", async () => {
-      vi.mocked(list).mockResolvedValue({ items: [] });
+      vi.mocked(list).mockResolvedValue({ items: [], excludedSubpaths: [] });
 
       renderHook(() => useStorageOperations({ identityId, currentPath: "photos/vacation" }), {
         wrapper: TestProvider,
@@ -293,7 +293,7 @@ describe("useStorageOperations", () => {
       await waitFor(() => {
         expect(list).toHaveBeenCalledWith({
           path: `media/${identityId}/photos/vacation/`,
-          options: { listAll: true },
+          options: { subpathStrategy: { strategy: "exclude" } },
         });
       });
     });

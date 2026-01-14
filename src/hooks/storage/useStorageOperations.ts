@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { remove } from "aws-amplify/storage";
 import { buildMediaBasePath } from "../../utils/storagePathUtils";
-import { useStorageItems } from "./useStorageItems";
+import { useStorageItemsV2 } from "./useStorageItemsV2";
 import { queryKeys } from "../../stores/queryKeys";
 import {
   useUploadMutation,
@@ -106,8 +106,8 @@ export function useStorageOperations({
 }: UseStorageOperationsProps): UseStorageOperationsReturn {
   const queryClient = useQueryClient();
 
-  // TanStack Query を使用したストレージアイテム取得
-  const { data: items, isLoading: loading, error } = useStorageItems(identityId, currentPath);
+  // TanStack Query を使用したストレージアイテム取得（subpathStrategy対応版）
+  const { data: items, isLoading: loading, error } = useStorageItemsV2(identityId, currentPath);
 
   // Mutation コンテキスト
   const mutationContext = {
@@ -133,7 +133,7 @@ export function useStorageOperations({
   const invalidateItems = useCallback(async () => {
     if (!identityId) return;
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.items(identityId, currentPath),
+      queryKey: queryKeys.storageItems(identityId, currentPath),
     });
   }, [queryClient, identityId, currentPath]);
 

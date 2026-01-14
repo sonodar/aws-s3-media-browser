@@ -1,6 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Folder, ArrowUp, Home } from "lucide-react";
-import { useFolderList } from "../../hooks/storage";
+import { useStorageItemsV2 } from "../../hooks/storage";
+import { extractRelativePath } from "../../utils/storagePathUtils";
 import type { StorageItem } from "../../types/storage";
 import "./FolderBrowser.css";
 
@@ -32,8 +33,24 @@ export function FolderBrowser({
   onNavigate,
   enabled = true,
 }: FolderBrowserProps) {
-  // TanStack Query でフォルダ一覧を取得
-  const { data: folders, isLoading } = useFolderList(identityId, currentPath, { enabled });
+  // path がフルパスの場合は相対パスに変換
+  // （MoveDialog や FolderBrowser からフルパスが渡される場合がある）
+  let normalizedPath = currentPath;
+  if (identityId) {
+    const extracted = extractRelativePath(currentPath, identityId);
+    if (extracted !== null) {
+      normalizedPath = extracted;
+    }
+  }
+
+  // TanStack Query でアイテム一覧を取得（useStorageItemsV2でキャッシュ共有）
+  const { data: allItems, isLoading } = useStorageItemsV2(
+    enabled ? identityId : null,
+    normalizedPath,
+  );
+
+  // フォルダのみをフィルタリング
+  const folders = useMemo(() => allItems.filter((item) => item.type === "folder"), [allItems]);
 
   // パスが無効化されているか判定
   const isDisabled = useCallback((path: string) => disabledPaths.includes(path), [disabledPaths]);

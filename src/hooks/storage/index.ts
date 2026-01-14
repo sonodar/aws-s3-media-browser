@@ -10,6 +10,8 @@ export type {
 } from "./useStorageOperations";
 export { useStorageItems } from "./useStorageItems";
 export type { UseStorageItemsReturn } from "./useStorageItems";
+export { useStorageItemsV2 } from "./useStorageItemsV2";
+export type { UseStorageItemsV2Return } from "./useStorageItemsV2";
 export { parseStorageItems } from "./parseStorageItems";
 export type { S3ListItem } from "./parseStorageItems";
 export { sortStorageItems, SORT_ORDER_LABELS, DEFAULT_SORT_ORDER } from "./sortStorageItems";

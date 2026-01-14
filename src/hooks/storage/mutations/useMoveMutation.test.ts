@@ -176,19 +176,27 @@ describe("useMoveMutation", () => {
     });
 
     await waitFor(() => {
-      // 移動元の items クエリが無効化される
+      // 移動元の storageItems クエリが無効化される（新キャッシュキー）
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: queryKeys.storageItems(mockContext.identityId, mockContext.currentPath),
+      });
+      // 移動元の items クエリが無効化される（旧キャッシュキー）
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: queryKeys.items(mockContext.identityId, mockContext.currentPath),
       });
-      // 移動元の folders クエリが無効化される
+      // 移動元の folders クエリが無効化される（旧キャッシュキー）
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: queryKeys.folders(mockContext.identityId, mockContext.currentPath),
       });
-      // 移動先の items クエリが無効化される
+      // 移動先の storageItems クエリが無効化される（新キャッシュキー）
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: queryKeys.storageItems(mockContext.identityId, "documents"),
+      });
+      // 移動先の items クエリが無効化される（旧キャッシュキー）
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: queryKeys.items(mockContext.identityId, "documents"),
       });
-      // 移動先の folders クエリが無効化される
+      // 移動先の folders クエリが無効化される（旧キャッシュキー）
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: queryKeys.folders(mockContext.identityId, "documents"),
       });

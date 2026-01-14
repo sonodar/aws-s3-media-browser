@@ -26,6 +26,11 @@ export function useCreateFolderMutation(context: MutationContext) {
       return folderPath;
     },
     onSuccess: async () => {
+      // 新キャッシュキー（storageItems）を無効化
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.storageItems(context.identityId, context.currentPath),
+      });
+      // 旧キャッシュキー（items）も無効化（Strangler Fig: 並行運用期間）
       await queryClient.invalidateQueries({
         queryKey: queryKeys.items(context.identityId, context.currentPath),
       });
