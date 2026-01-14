@@ -90,8 +90,16 @@ describe("useStorageItems", () => {
       const basePath = "media/test-identity-id/";
       vi.mocked(list).mockResolvedValue({
         items: [
-          { path: `${basePath}photo.jpg`, size: 1024, lastModified: new Date() },
-          { path: `${basePath}document.pdf`, size: 2048, lastModified: new Date() },
+          {
+            path: `${basePath}photo.jpg`,
+            size: 1024,
+            lastModified: new Date(),
+          },
+          {
+            path: `${basePath}document.pdf`,
+            size: 2048,
+            lastModified: new Date(),
+          },
         ],
         excludedSubpaths: [`${basePath}photos/`, `${basePath}documents/`],
       });
@@ -115,16 +123,20 @@ describe("useStorageItems", () => {
       expect(files).toHaveLength(2);
 
       // フォルダ名
-      expect(folders.map((f) => f.name).sort()).toEqual(["documents", "photos"]);
+      expect(folders.map((f) => f.name).toSorted()).toEqual(["documents", "photos"]);
       // ファイル名
-      expect(files.map((f) => f.name).sort()).toEqual(["document.pdf", "photo.jpg"]);
+      expect(files.map((f) => f.name).toSorted()).toEqual(["document.pdf", "photo.jpg"]);
     });
 
     it("should handle explicit folder in items and merge with excludedSubpaths", async () => {
       const basePath = "media/test-identity-id/";
       vi.mocked(list).mockResolvedValue({
         items: [
-          { path: `${basePath}photo.jpg`, size: 1024, lastModified: new Date() },
+          {
+            path: `${basePath}photo.jpg`,
+            size: 1024,
+            lastModified: new Date(),
+          },
           // 明示的フォルダ（0バイトオブジェクト）
           { path: `${basePath}photos/`, size: 0, lastModified: new Date() },
         ],
@@ -153,7 +165,13 @@ describe("useStorageItems", () => {
     it("should handle empty excludedSubpaths", async () => {
       const basePath = "media/test-identity-id/";
       vi.mocked(list).mockResolvedValue({
-        items: [{ path: `${basePath}photo.jpg`, size: 1024, lastModified: new Date() }],
+        items: [
+          {
+            path: `${basePath}photo.jpg`,
+            size: 1024,
+            lastModified: new Date(),
+          },
+        ],
         excludedSubpaths: [],
       });
 

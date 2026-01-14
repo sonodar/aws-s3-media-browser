@@ -77,7 +77,11 @@ describe("mergeAndDeduplicateFolders", () => {
 
   it("should return implicit folders when explicit folders are empty", () => {
     const implicitFolders: StorageItem[] = [
-      { key: "media/identity123/documents/", name: "documents", type: "folder" },
+      {
+        key: "media/identity123/documents/",
+        name: "documents",
+        type: "folder",
+      },
     ];
     const result = mergeAndDeduplicateFolders([], implicitFolders);
 
@@ -103,12 +107,16 @@ describe("mergeAndDeduplicateFolders", () => {
       { key: "media/identity123/photos/", name: "photos", type: "folder" },
     ];
     const implicitFolders: StorageItem[] = [
-      { key: "media/identity123/documents/", name: "documents", type: "folder" },
+      {
+        key: "media/identity123/documents/",
+        name: "documents",
+        type: "folder",
+      },
     ];
     const result = mergeAndDeduplicateFolders(explicitFolders, implicitFolders);
 
     expect(result).toHaveLength(2);
-    expect(result.map((item) => item.name).sort()).toEqual(["documents", "photos"]);
+    expect(result.map((item) => item.name).toSorted()).toEqual(["documents", "photos"]);
   });
 
   it("should handle multiple duplicates correctly", () => {
@@ -125,6 +133,6 @@ describe("mergeAndDeduplicateFolders", () => {
     const result = mergeAndDeduplicateFolders(explicitFolders, implicitFolders);
 
     expect(result).toHaveLength(4);
-    expect(result.map((item) => item.name).sort()).toEqual(["a", "b", "c", "d"]);
+    expect(result.map((item) => item.name).toSorted()).toEqual(["a", "b", "c", "d"]);
   });
 });

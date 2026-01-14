@@ -72,14 +72,8 @@ export function useStorageItems(
       // 明示的フォルダと暗黙的フォルダを統合（重複排除）
       const allFolders = mergeAndDeduplicateFolders(explicitFolders, implicitFolders);
 
-      // フォルダとファイルを結合してソート（フォルダ優先、アルファベット順）
-      const combined = [...allFolders, ...files];
-      combined.sort((a, b) => {
-        if (a.type === b.type) return a.name.localeCompare(b.name);
-        return a.type === "folder" ? -1 : 1;
-      });
-
-      return combined;
+      // フォルダとファイルを結合して返す（ソートは呼び出し側で行う）
+      return [...allFolders, ...files];
     },
     enabled: !!identityId,
   });

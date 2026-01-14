@@ -1,5 +1,6 @@
 import type { StorageItem } from "../../types/storage";
 import { toRelativePath } from "../../utils/pathUtils";
+import { compareByName } from "../../utils/sortUtils";
 
 export interface S3ListItem {
   path: string;
@@ -55,10 +56,8 @@ export function parseStorageItems(items: S3ListItem[], basePath: string): Storag
   }, [] as StorageItem[]);
 
   // Sort: folders first, then files, alphabetically within each type
-  uniqueItems.sort((a, b) => {
-    if (a.type === b.type) return a.name.localeCompare(b.name);
+  return uniqueItems.toSorted((a, b) => {
+    if (a.type === b.type) return compareByName(a, b);
     return a.type === "folder" ? -1 : 1;
   });
-
-  return uniqueItems;
 }

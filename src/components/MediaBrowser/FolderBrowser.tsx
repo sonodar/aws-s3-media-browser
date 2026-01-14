@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { Folder, ArrowUp, Home } from "lucide-react";
 import { useStorageItems } from "../../hooks/storage";
 import { toRelativeStoragePath } from "../../utils/storagePathUtils";
+import { compareByName } from "../../utils/sortUtils";
 import type { StorageItem } from "../../types/storage";
 import "./FolderBrowser.css";
 
@@ -43,8 +44,11 @@ export function FolderBrowser({
     normalizedPath,
   );
 
-  // フォルダのみをフィルタリング
-  const folders = useMemo(() => allItems.filter((item) => item.type === "folder"), [allItems]);
+  // フォルダのみをフィルタリングし、名前順にソート
+  const folders = useMemo(
+    () => allItems.filter((item) => item.type === "folder").toSorted(compareByName),
+    [allItems],
+  );
 
   // パスが無効化されているか判定
   const isDisabled = useCallback((path: string) => disabledPaths.includes(path), [disabledPaths]);
