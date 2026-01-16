@@ -648,11 +648,16 @@ describe("MoveDialog", () => {
         fireEvent.click(overlay);
       }
 
+      // イベント処理が完了するまで少し待つ（非同期イベントハンドラの完了を待つ）
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       // 移動中はクローズが呼ばれない
       expect(mockOnClose).not.toHaveBeenCalled();
 
       // テスト終了前に移動を完了させる
-      act(() => {
+      await act(async () => {
         resolveMove!({ success: true, succeeded: 2, failed: 0 });
       });
     });
