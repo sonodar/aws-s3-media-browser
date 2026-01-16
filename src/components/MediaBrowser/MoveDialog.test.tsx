@@ -6,7 +6,7 @@ import { MoveDialog } from "./MoveDialog";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/storage";
 
-// Mock useStorageItems hook (FolderBrowser uses this internally)
+// Mock useStorageItems hook (FolderTree uses this internally)
 vi.mock("../../hooks/storage", async () => {
   const actual = await vi.importActual("../../hooks/storage");
   return {
@@ -55,7 +55,7 @@ describe("MoveDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mock: useStorageItems returns folders (FolderBrowser filters for folders internally)
+    // Default mock: useStorageItems returns folders (FolderTree uses this internally)
     mockUseStorageItemsV2.mockReturnValue({
       data: sampleFolders,
       isLoading: false,
@@ -86,7 +86,7 @@ describe("MoveDialog", () => {
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
 
-      // FolderBrowser の表示を待つ
+      // FolderTree の表示を待つ
       await waitFor(() => {
         expect(screen.getByText("archive")).toBeInTheDocument();
       });
@@ -109,7 +109,7 @@ describe("MoveDialog", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it("should start from currentPath, not rootPath", async () => {
+    it("should start from currentPath as initial selection", async () => {
       const rootPath = "media/";
       const currentPath = "media/user123/photos/";
 
@@ -129,9 +129,10 @@ describe("MoveDialog", () => {
       // 初期表示は currentPath のフォルダ名（photos）であるべき
       expect(screen.getByTestId("selected-path")).toHaveTextContent("photos");
 
-      // useStorageItems が正しいパスで呼ばれているか確認（toRelativePath で末尾スラッシュが削除される）
+      // FolderTree は rootPath からツリーを構築する
       await waitFor(() => {
-        expect(mockUseStorageItemsV2).toHaveBeenCalledWith("user123", "photos");
+        // ルートノード「ホーム」が表示される
+        expect(screen.getByText("ホーム")).toBeInTheDocument();
       });
     });
 
@@ -155,8 +156,8 @@ describe("MoveDialog", () => {
     });
   });
 
-  describe("folder browser integration", () => {
-    it("should contain FolderBrowser component", async () => {
+  describe("folder tree integration", () => {
+    it("should contain FolderTree component", async () => {
       render(
         <MoveDialog
           isOpen={true}
@@ -607,10 +608,14 @@ describe("MoveDialog", () => {
     });
 
     it("should not close when moving is in progress and overlay is clicked", async () => {
-      mockOnMove.mockImplementation(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        return { success: true, succeeded: 2, failed: 0 };
-      });
+      // 移動処理を手動で制御するための Promise
+      let resolveMove: (value: { success: boolean; succeeded: number; failed: number }) => void;
+      const movePromise = new Promise<{ success: boolean; succeeded: number; failed: number }>(
+        (resolve) => {
+          resolveMove = resolve;
+        },
+      );
+      mockOnMove.mockReturnValue(movePromise);
 
       render(
         <MoveDialog
@@ -645,6 +650,11 @@ describe("MoveDialog", () => {
 
       // 移動中はクローズが呼ばれない
       expect(mockOnClose).not.toHaveBeenCalled();
+
+      // テスト終了前に移動を完了させる
+      act(() => {
+        resolveMove!({ success: true, succeeded: 2, failed: 0 });
+      });
     });
   });
 });

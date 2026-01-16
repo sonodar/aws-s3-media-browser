@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { Modal, Stack, Group, Button, Text, List, Notification } from "@mantine/core";
 import { CheckCircle } from "lucide-react";
-import { FolderBrowser } from "./FolderBrowser";
+import { FolderTree } from "./FolderTree";
 import type { StorageItem } from "../../types/storage";
 import type { MoveResult, MoveProgress } from "../../hooks/storage";
 import { ErrorMessage } from "./ErrorMessage";
@@ -181,13 +181,13 @@ export function MoveDialog({
           </Text>
         </Group>
 
-        {/* フォルダブラウザ */}
-        <FolderBrowser
+        {/* フォルダツリー */}
+        <FolderTree
           identityId={identityId}
-          currentPath={browsePath}
           rootPath={rootPath}
           disabledPaths={disabledPaths}
-          onNavigate={handleNavigate}
+          currentPath={currentPath}
+          onSelect={handleNavigate}
         />
 
         {/* エラーメッセージ */}
