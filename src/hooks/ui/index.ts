@@ -8,3 +8,5 @@ export { useDeleteConfirm } from "./useDeleteConfirm";
 export type { UseDeleteConfirmReturn } from "./useDeleteConfirm";
 export { useSwipeNavigation } from "./useSwipeNavigation";
 export type { UseSwipeNavigationOptions, UseSwipeNavigationReturn } from "./useSwipeNavigation";
+export { useFolderTree, toTreeNodeData } from "./useFolderTree";
+export type { UseFolderTreeOptions, UseFolderTreeReturn } from "./useFolderTree";
