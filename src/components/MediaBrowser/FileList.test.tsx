@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import { FileList } from "./FileList";
 import type { StorageItem } from "../../types/storage";
@@ -511,7 +511,9 @@ describe("FileList", () => {
       fireEvent.mouseDown(folderItem);
 
       // 400ms 経過をシミュレート（長押し完了）
-      vi.advanceTimersByTime(400);
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
 
       // マウスアップでクリックイベントが発生
       fireEvent.mouseUp(folderItem);
@@ -543,7 +545,9 @@ describe("FileList", () => {
 
       // 短いタップ（100ms）
       fireEvent.mouseDown(folderItem);
-      vi.advanceTimersByTime(100);
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
       fireEvent.mouseUp(folderItem);
       fireEvent.click(folderItem);
 
@@ -576,7 +580,9 @@ describe("FileList", () => {
 
       // 長押し（400ms）
       fireEvent.mouseDown(folderItem);
-      vi.advanceTimersByTime(400);
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
       fireEvent.mouseUp(folderItem);
       fireEvent.click(folderItem);
 

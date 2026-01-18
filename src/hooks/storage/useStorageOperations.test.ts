@@ -480,13 +480,10 @@ describe("useStorageOperations", () => {
         deletePromise = result.current.removeItems(items);
       });
 
-      // Wait a tick for mutation to start
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
       // isDeleting should be true while deletion is in progress
-      expect(result.current.isDeleting).toBe(true);
+      await waitFor(() => {
+        expect(result.current.isDeleting).toBe(true);
+      });
 
       await act(async () => {
         resolveRemove!();
@@ -693,12 +690,10 @@ describe("useStorageOperations", () => {
         renamePromise = result.current.renameItem(`${basePath}old.jpg`, "new.jpg");
       });
 
-      // Wait for mutation to start
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      // isRenaming should be true while rename is in progress
+      await waitFor(() => {
+        expect(result.current.isRenaming).toBe(true);
       });
-
-      expect(result.current.isRenaming).toBe(true);
 
       await act(async () => {
         resolveCopy!({ path: `${basePath}new.jpg` });
@@ -980,12 +975,10 @@ describe("useStorageOperations", () => {
         renamePromise = result.current.renameFolder(`${basePath}old/`, "new");
       });
 
-      // Wait a tick for the async operation to start
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      // isRenaming should be true while folder rename is in progress
+      await waitFor(() => {
+        expect(result.current.isRenaming).toBe(true);
       });
-
-      expect(result.current.isRenaming).toBe(true);
 
       await act(async () => {
         resolveCopy!({ path: "test" });
@@ -1250,12 +1243,10 @@ describe("useStorageOperations", () => {
         movePromise = result.current.moveItems(items, `${basePath}archive`);
       });
 
-      // Wait a tick for the async operation to start
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      // isMoving should be true while move is in progress
+      await waitFor(() => {
+        expect(result.current.isMoving).toBe(true);
       });
-
-      expect(result.current.isMoving).toBe(true);
 
       await act(async () => {
         resolveCopy!({ path: "test" });

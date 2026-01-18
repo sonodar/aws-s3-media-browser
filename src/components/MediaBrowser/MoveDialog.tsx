@@ -53,6 +53,13 @@ export function MoveDialog({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [failedItems, setFailedItems] = useState<string[]>([]);
 
+  // ガード付きの onClose ハンドラ
+  // closeOnClickOutside の反映タイミングに依存せず、確実に移動中のクローズを防ぐ
+  const handleClose = useCallback(() => {
+    if (isMoving) return;
+    onClose();
+  }, [isMoving, onClose]);
+
   // 無効化するパス（循環移動防止）
   const disabledPaths = useMemo(() => {
     const paths: string[] = [];
@@ -162,7 +169,7 @@ export function MoveDialog({
   return (
     <Modal
       opened={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={`${itemCount}件のアイテムを移動`}
       size="lg"
       centered
@@ -219,7 +226,7 @@ export function MoveDialog({
 
         {/* アクションボタン */}
         <Group justify="flex-end" gap="sm">
-          <Button variant="default" onClick={onClose} disabled={isMoving}>
+          <Button variant="default" onClick={handleClose} disabled={isMoving}>
             キャンセル
           </Button>
           <Button onClick={handleMove} loading={isMoving} disabled={!canMove && !isMoving}>
