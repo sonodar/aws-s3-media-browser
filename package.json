@@ -15,7 +15,7 @@
   "main": "index.js",
   "scripts": {
     "prepare": "husky",
-    "dev": "vite",
+    "dev": "VITE_ALLOW_SIGNUP=true vite",
     "build": "run-s typecheck build:app",
     "build:app": "vite build",
     "preview": "vite preview",
@@ -27,7 +27,8 @@
     "typecheck:app": "tsc --noEmit",
     "typecheck:amplify": "tsc -p amplify --noEmit",
     "check": "run-p typecheck lint test",
-    "check-all": "run-s format check build:app"
+    "check-all": "run-s format check build:app",
+    "sandbox": "VITE_ALLOW_SIGNUP=true ampx sandbox"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.13.2",

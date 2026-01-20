@@ -12,5 +12,5 @@ const backend = defineBackend({
 // セルフサインアップを無効化（管理者のみがユーザーを作成可能）
 const { cfnUserPool } = backend.auth.resources.cfnResources;
 cfnUserPool.adminCreateUserConfig = {
-  allowAdminCreateUserOnly: true,
+  allowAdminCreateUserOnly: process.env.VITE_ALLOW_SIGNUP !== "true", // ローカルのみ許可
 };
