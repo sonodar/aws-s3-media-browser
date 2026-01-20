@@ -263,6 +263,23 @@ export function MediaBrowser({ identityId, onSignOut, onOpenSettings }: MediaBro
         onOpenSettings={onOpenSettings}
       />
 
+      {!loading && !isSelectionMode && (
+        <div className="media-browser-toolbar">
+          <div className="media-browser-toolbar-left">
+            <FileActions
+              currentPath={currentPath}
+              identityId={identityId}
+              onUploadComplete={refresh}
+              onCreateFolder={() => setShowCreateFolder(true)}
+              items={items}
+            />
+          </div>
+          <div className="media-browser-toolbar-right">
+            <SortSelector currentOrder={sortOrder} onChange={setSortOrder} />
+          </div>
+        </div>
+      )}
+
       <main
         className={`media-browser-content${isSwiping ? " media-browser-content--swiping" : ""}`}
         {...swipeBind()}
@@ -270,22 +287,6 @@ export function MediaBrowser({ identityId, onSignOut, onOpenSettings }: MediaBro
           transform: isSwiping && offsetX > 0 ? `translateX(${offsetX}px)` : undefined,
         }}
       >
-        {!loading && !isSelectionMode && (
-          <div className="media-browser-toolbar">
-            <div className="media-browser-toolbar-left">
-              <FileActions
-                currentPath={currentPath}
-                identityId={identityId}
-                onUploadComplete={refresh}
-                onCreateFolder={() => setShowCreateFolder(true)}
-                items={items}
-              />
-            </div>
-            <div className="media-browser-toolbar-right">
-              <SortSelector currentOrder={sortOrder} onChange={setSortOrder} />
-            </div>
-          </div>
-        )}
         {loading ? (
           <div className="media-browser-loading">
             <p>読み込み中...</p>

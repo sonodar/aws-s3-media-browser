@@ -117,7 +117,7 @@ function HybridAuthApp() {
   // 上の if (isAuthenticated) 分岐で処理されるため、children は呼び出されない
   return (
     <div className="password-auth-container">
-      <Authenticator hideSignUp />
+      <Authenticator hideSignUp={import.meta.env.VITE_ALLOW_SIGNUP !== "true"} />
       {isWebAuthnSupported && (
         <div className="auth-switch-container">
           <button className="switch-auth-button" onClick={handleSwitchToPasskey}>
