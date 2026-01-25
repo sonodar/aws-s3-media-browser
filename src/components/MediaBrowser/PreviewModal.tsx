@@ -58,7 +58,12 @@ export function PreviewModal(props: PreviewModalProps) {
   const currentItem = items[currentIndex] ?? null;
 
   // usePreviewUrls フックで署名付き URL を取得
-  const { data: slides, isLoading: loading } = usePreviewUrls(items, { enabled: isOpen });
+  // Lightbox 表示時のみ署名付き URL を取得（現スライドの前後1枚を先読み）
+  const { data: slides, isLoading: loading } = usePreviewUrls(items, {
+    enabled: isOpen,
+    currentIndex,
+    preload: 1,
+  });
 
   // 削除ボタンクリック時: Jotai atoms を通じて DeleteConfirmDialog を表示させる
   const handleDeleteClick = () => {
@@ -107,6 +112,8 @@ export function PreviewModal(props: PreviewModalProps) {
           autoPlay: true,
           controls: true,
           playsInline: true,
+          // 動画は開いた瞬間に読み込ませない（必要になったタイミングで取得）
+          preload: "none",
         }}
         zoom={{
           maxZoomPixelRatio: 3,
@@ -114,6 +121,8 @@ export function PreviewModal(props: PreviewModalProps) {
         }}
         carousel={{
           finite: true,
+          // Lightbox 内のスライド先読み枚数（hooks と合わせる）
+          preload: 1,
         }}
         styles={{
           container: {

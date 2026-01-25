@@ -117,7 +117,7 @@ export function FileActions({
             <FileUploader
               acceptedFileTypes={["image/*", "video/*"]}
               path={getUploadPath()}
-              maxFileCount={10}
+              maxFileCount={100}
               isResumable
               processFile={processFile}
               onUploadSuccess={handleUploadSuccess}
