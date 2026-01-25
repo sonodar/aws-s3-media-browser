@@ -34,7 +34,7 @@ let capturedProps: {
   index?: number;
   slides?: unknown[];
   controller?: { closeOnPullDown?: boolean };
-  carousel?: { finite?: boolean };
+  carousel?: { finite?: boolean; preload?: number };
   on?: { view?: (data: { index: number }) => void };
 } = {};
 
@@ -47,7 +47,7 @@ vi.mock("yet-another-react-lightbox", () => ({
     index?: number;
     slides?: unknown[];
     controller?: { closeOnPullDown?: boolean };
-    carousel?: { finite?: boolean };
+    carousel?: { finite?: boolean; preload?: number };
     on?: { view?: (data: { index: number }) => void };
   }) => {
     capturedProps = {
@@ -364,7 +364,11 @@ describe("PreviewModal", () => {
         { wrapper: TestProvider },
       );
 
-      expect(mockUsePreviewUrls).toHaveBeenCalledWith(items, { enabled: true });
+      expect(mockUsePreviewUrls).toHaveBeenCalledWith(items, {
+        enabled: true,
+        currentIndex: 0,
+        preload: 1,
+      });
     });
 
     it("should call usePreviewUrls with enabled: false when isOpen is false", () => {
@@ -381,7 +385,11 @@ describe("PreviewModal", () => {
         { wrapper: TestProvider },
       );
 
-      expect(mockUsePreviewUrls).toHaveBeenCalledWith(items, { enabled: false });
+      expect(mockUsePreviewUrls).toHaveBeenCalledWith(items, {
+        enabled: false,
+        currentIndex: 0,
+        preload: 1,
+      });
     });
 
     it("should show loading state when isLoading is true", () => {

@@ -13,6 +13,12 @@ export const queryKeys = {
   identityId: () => ["identityId"] as const,
 
   /**
+   * プレビュー URL の queryKey（単一）
+   * @example queryKeys.previewUrl("photo1.jpg") // ["previewUrl", "photo1.jpg"]
+   */
+  previewUrl: (itemKey: string) => ["previewUrl", itemKey] as const,
+
+  /**
    * プレビュー URL の queryKey
    * @example queryKeys.previewUrls(["photo1.jpg", "photo2.jpg"]) // ["previewUrls", "photo1.jpg", "photo2.jpg"]
    */
