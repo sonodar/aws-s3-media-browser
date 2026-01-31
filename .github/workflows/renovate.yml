@@ -1,15 +1,17 @@
 name: Renovate
 
 on:
-  # 毎週月曜 9:00 JST (0:00 UTC) に実行
   schedule:
-    - cron: "0 0 * * 1"
-  # 手動実行
+    - cron: "0 0 * * 1" # 毎週月曜 9:00 JST (0:00 UTC)
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "renovate.json5"
 
 jobs:
   renovate:
     runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
@@ -19,3 +21,17 @@ jobs:
         env:
           LOG_LEVEL: info
           RENOVATE_REPOSITORIES: ${{ github.repository }}
+
+  validate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate Renovate config
+        # renovatebot/github-action@v44.2.4 が使用するバージョンと一致させる
+        run: npx --yes --package renovate@42.78.2 -- renovate-config-validator --strict
