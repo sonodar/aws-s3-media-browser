@@ -637,10 +637,19 @@ describe("MoveDialog", () => {
       fireEvent.click(screen.getByText("archive"));
       fireEvent.click(screen.getByRole("button", { name: /ここに移動/i }));
 
-      // 移動中になるのを待つ
+      // 移動中になるのを待つ（キャンセルボタンが disabled になる）
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /キャンセル/i })).toBeDisabled();
       });
+
+      // closeOnClickOutside={false} が Modal に反映されるまで追加で待機
+      // React の状態更新と Mantine Modal の内部更新を同期させる
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // この時点での呼び出し回数を記録
+      const callCountBeforeClick = mockOnClose.mock.calls.length;
 
       // オーバーレイをクリック
       const overlay = document.querySelector(".mantine-Modal-overlay");
@@ -649,7 +658,8 @@ describe("MoveDialog", () => {
       }
 
       // 移動中はクローズが呼ばれない（handleClose 内でガードされる）
-      expect(mockOnClose).not.toHaveBeenCalled();
+      // クリック後に新たな呼び出しがないことを確認
+      expect(mockOnClose.mock.calls.length).toBe(callCountBeforeClick);
 
       // テスト終了前に移動を完了させる
       await act(async () => {
