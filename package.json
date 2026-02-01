@@ -75,8 +75,14 @@
     "vitest": "^4.0.16"
   },
   "overrides": {
-    "@mantine/core": "^8.0.0",
-    "@mantine/hooks": "^8.0.0"
+    "jotai-devtools": {
+      "@mantine/core": "$@mantine/core",
+      "@mantine/hooks": "$@mantine/hooks",
+      "@mantine/code-highlight": {
+        "@mantine/core": "$@mantine/core",
+        "@mantine/hooks": "$@mantine/hooks"
+      }
+    }
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
