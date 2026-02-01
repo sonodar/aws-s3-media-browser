@@ -1,69 +1,69 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
 
   // ベース設定: 推奨設定を継承、Dependency Dashboardは無効化
-  "extends": ["config:recommended", ":disableDependencyDashboard"],
+  extends: ["config:recommended", ":disableDependencyDashboard"],
 
   // PR制限: 過剰なPR作成を防止
-  "prHourlyLimit": 5, // 時間あたり最大5件
-  "prConcurrentLimit": 10, // 同時オープン最大10件
+  prHourlyLimit: 5, // 時間あたり最大5件
+  prConcurrentLimit: 10, // 同時オープン最大10件
 
   // 対象マネージャー: npmのみ
-  "enabledManagers": ["npm"],
+  enabledManagers: ["npm"],
 
   // サプライチェーン攻撃対策: 新規リリースから7日間の猶予期間を設ける
   // internalChecksFilter: strict により、猶予期間中はPR/ブランチを作成しない
-  "minimumReleaseAge": "7 days",
-  "internalChecksFilter": "strict",
+  minimumReleaseAge: "7 days",
+  internalChecksFilter: "strict",
 
   // lockFileMaintenance無効化: 間接依存の更新はメリットが少ないため無効化
-  "lockFileMaintenance": {
-    "enabled": false
+  lockFileMaintenance: {
+    enabled: false,
   },
 
   // prCreation: "status-success" は無効化
   // 理由: Renovate実行中にCIが完了せず常にpendingと評価されPRが作成されないため
 
-  "packageRules": [
+  packageRules: [
     // dependencies (patch/minor): 自動マージ
     {
-      "description": "Group all dependencies patch/minor updates",
-      "matchDepTypes": ["dependencies"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "groupName": "dependencies",
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash",
-      "labels": ["renovate", "automerge"]
+      description: "Group all dependencies patch/minor updates",
+      matchDepTypes: ["dependencies"],
+      matchUpdateTypes: ["patch", "minor"],
+      groupName: "dependencies",
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
+      labels: ["renovate", "automerge"],
     },
     // devDependencies (patch/minor): 自動マージ
     {
-      "description": "Group all devDependencies patch/minor updates",
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "groupName": "devDependencies",
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash",
-      "labels": ["renovate", "automerge"]
+      description: "Group all devDependencies patch/minor updates",
+      matchDepTypes: ["devDependencies"],
+      matchUpdateTypes: ["patch", "minor"],
+      groupName: "devDependencies",
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
+      labels: ["renovate", "automerge"],
     },
     // メジャー更新: 破壊的変更のためレビュー必須
     {
-      "description": "Major updates require review",
-      "matchUpdateTypes": ["major"],
-      "automerge": false,
-      "reviewers": ["sonodar"],
-      "labels": ["renovate"]
-    }
+      description: "Major updates require review",
+      matchUpdateTypes: ["major"],
+      automerge: false,
+      reviewers: ["sonodar"],
+      labels: ["renovate"],
+    },
   ],
 
   // 脆弱性対応: 猶予期間をバイパスして即時自動マージ
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "schedule": ["at any time"],
-    "automerge": true,
-    "automergeType": "pr",
-    "automergeStrategy": "squash",
-    "labels": ["renovate", "security"]
-  }
+  vulnerabilityAlerts: {
+    enabled: true,
+    schedule: ["at any time"],
+    automerge: true,
+    automergeType: "pr",
+    automergeStrategy: "squash",
+    labels: ["renovate", "security"],
+  },
 }
