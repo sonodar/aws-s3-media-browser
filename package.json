@@ -41,7 +41,7 @@
     "aws-amplify": "^6.15.9",
     "jotai": "^2.16.1",
     "jotai-devtools": "^0.13.0",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^0.563.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-player": "^3.4.0",
@@ -57,7 +57,7 @@
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^4.0.16",
     "aws-cdk-lib": "^2.216.0",
     "constructs": "^10.4.4",
@@ -71,12 +71,18 @@
     "sharp": "^0.34.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^6.4.1",
+    "vite": "^7.0.0",
     "vitest": "^4.0.16"
   },
   "overrides": {
-    "@mantine/core": "^8.0.0",
-    "@mantine/hooks": "^8.0.0"
+    "jotai-devtools": {
+      "@mantine/core": "$@mantine/core",
+      "@mantine/hooks": "$@mantine/hooks",
+      "@mantine/code-highlight": {
+        "@mantine/core": "$@mantine/core",
+        "@mantine/hooks": "$@mantine/hooks"
+      }
+    }
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
