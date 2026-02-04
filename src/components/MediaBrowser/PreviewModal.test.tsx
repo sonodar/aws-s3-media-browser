@@ -98,6 +98,10 @@ vi.mock("yet-another-react-lightbox/plugins/zoom", () => ({
   default: vi.fn(),
 }));
 
+vi.mock("yet-another-react-lightbox/plugins/download", () => ({
+  default: vi.fn(),
+}));
+
 describe("PreviewModal", () => {
   const mockOnClose = vi.fn();
   const mockOnRename = vi.fn();
@@ -175,6 +179,33 @@ describe("PreviewModal", () => {
 
       expect(mockOnRename).toHaveBeenCalledWith(mockFileItem);
       expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
+
+  describe("Download Button", () => {
+    it("should display download button in toolbar", async () => {
+      render(<PreviewModal isOpen={true} onClose={mockOnClose} item={mockFileItem} />, {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId("lightbox")).toBeInTheDocument();
+      });
+
+      const toolbar = screen.getByTestId("toolbar");
+      expect(toolbar.textContent).toContain("download");
+    });
+
+    it("should include download property in slides", () => {
+      render(<PreviewModal isOpen={true} onClose={mockOnClose} item={mockFileItem} />, {
+        wrapper: TestProvider,
+      });
+
+      expect(mockUsePreviewUrls).toHaveBeenCalledWith([mockFileItem], {
+        enabled: true,
+        currentIndex: 0,
+        preload: 1,
+      });
     });
   });
 
