@@ -98,6 +98,10 @@ vi.mock("yet-another-react-lightbox/plugins/zoom", () => ({
   default: vi.fn(),
 }));
 
+vi.mock("yet-another-react-lightbox/plugins/download", () => ({
+  default: vi.fn(),
+}));
+
 describe("PreviewModal", () => {
   const mockOnClose = vi.fn();
   const mockOnRename = vi.fn();
@@ -115,7 +119,12 @@ describe("PreviewModal", () => {
     vi.clearAllMocks();
     // Default mock: slides loaded
     mockUsePreviewUrls.mockReturnValue({
-      data: [{ src: "https://example.com/test-image.jpg" }],
+      data: [
+        {
+          src: "https://example.com/test-image.jpg",
+          download: { url: "https://example.com/test-image.jpg", filename: "test-image.jpg" },
+        },
+      ],
       isLoading: false,
       isError: false,
       error: null,
@@ -178,6 +187,55 @@ describe("PreviewModal", () => {
     });
   });
 
+  describe("Download Button", () => {
+    it("should display download button in toolbar", async () => {
+      render(<PreviewModal isOpen={true} onClose={mockOnClose} item={mockFileItem} />, {
+        wrapper: TestProvider,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId("lightbox")).toBeInTheDocument();
+      });
+
+      const toolbar = screen.getByTestId("toolbar");
+      expect(toolbar.textContent).toContain("download");
+    });
+
+    it("should include download property in slides", () => {
+      const mockSlidesWithDownload = [
+        {
+          src: "https://example.com/test-image.jpg",
+          download: { url: "https://example.com/test-image.jpg", filename: "test-image.jpg" },
+        },
+      ];
+      mockUsePreviewUrls.mockReturnValue({
+        data: mockSlidesWithDownload,
+        isLoading: false,
+        isError: false,
+        error: null,
+      });
+
+      render(<PreviewModal isOpen={true} onClose={mockOnClose} item={mockFileItem} />, {
+        wrapper: TestProvider,
+      });
+
+      expect(mockUsePreviewUrls).toHaveBeenCalledWith([mockFileItem], {
+        enabled: true,
+        currentIndex: 0,
+        preload: 1,
+      });
+
+      // Verify that the returned slides have download property
+      const slides = mockUsePreviewUrls.mock.results[0]?.value?.data;
+      expect(slides).toBeDefined();
+      expect(slides[0]).toHaveProperty("download");
+      expect(slides[0].download).toEqual({
+        url: "https://example.com/test-image.jpg",
+        filename: "test-image.jpg",
+      });
+    });
+  });
+
   describe("Multiple Slides Mode", () => {
     const mockItems: StorageItem[] = [
       { key: "photos/image1.jpg", name: "image1.jpg", type: "file", size: 1024 },
@@ -191,13 +249,20 @@ describe("PreviewModal", () => {
       // Mock slides for multiple items
       mockUsePreviewUrls.mockReturnValue({
         data: [
-          { src: "https://example.com/image1.jpg" },
-          { src: "https://example.com/image2.jpg" },
+          {
+            src: "https://example.com/image1.jpg",
+            download: { url: "https://example.com/image1.jpg", filename: "image1.jpg" },
+          },
+          {
+            src: "https://example.com/image2.jpg",
+            download: { url: "https://example.com/image2.jpg", filename: "image2.jpg" },
+          },
           {
             type: "video",
             width: 1280,
             height: 720,
             sources: [{ src: "https://example.com/video.mp4", type: "video/mp4" }],
+            download: { url: "https://example.com/video.mp4", filename: "video.mp4" },
           },
         ],
         isLoading: false,

@@ -86,9 +86,17 @@ describe("usePreviewUrls", () => {
       expect(result.current.data).toHaveLength(2);
       expect(result.current.data[0]).toEqual({
         src: "https://s3.example.com/media/user123/photo1.jpg",
+        download: {
+          url: "https://s3.example.com/media/user123/photo1.jpg",
+          filename: "photo1.jpg",
+        },
       });
       expect(result.current.data[1]).toEqual({
         src: "https://s3.example.com/media/user123/photo2.png",
+        download: {
+          url: "https://s3.example.com/media/user123/photo2.png",
+          filename: "photo2.png",
+        },
       });
     });
 
@@ -110,12 +118,20 @@ describe("usePreviewUrls", () => {
         width: 1280,
         height: 720,
         sources: [{ src: "https://s3.example.com/media/user123/video1.mp4", type: "video/mp4" }],
+        download: {
+          url: "https://s3.example.com/media/user123/video1.mp4",
+          filename: "video1.mp4",
+        },
       });
       expect(result.current.data[1]).toEqual({
         type: "video",
         width: 1280,
         height: 720,
         sources: [{ src: "https://s3.example.com/media/user123/video2.webm", type: "video/webm" }],
+        download: {
+          url: "https://s3.example.com/media/user123/video2.webm",
+          filename: "video2.webm",
+        },
       });
     });
 
@@ -130,6 +146,10 @@ describe("usePreviewUrls", () => {
       // First item: image
       expect(result.current.data[0]).toEqual({
         src: "https://s3.example.com/media/user123/photo1.jpg",
+        download: {
+          url: "https://s3.example.com/media/user123/photo1.jpg",
+          filename: "photo1.jpg",
+        },
       });
       // Second item: video
       expect(result.current.data[1]).toEqual({
@@ -137,10 +157,18 @@ describe("usePreviewUrls", () => {
         width: 1280,
         height: 720,
         sources: [{ src: "https://s3.example.com/media/user123/video1.mp4", type: "video/mp4" }],
+        download: {
+          url: "https://s3.example.com/media/user123/video1.mp4",
+          filename: "video1.mp4",
+        },
       });
       // Third item: image
       expect(result.current.data[2]).toEqual({
         src: "https://s3.example.com/media/user123/photo2.png",
+        download: {
+          url: "https://s3.example.com/media/user123/photo2.png",
+          filename: "photo2.png",
+        },
       });
     });
 
