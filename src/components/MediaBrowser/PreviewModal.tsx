@@ -1,4 +1,5 @@
 import Lightbox from "yet-another-react-lightbox";
+import Download from "yet-another-react-lightbox/plugins/download";
 import Video from "yet-another-react-lightbox/plugins/video";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import { Pencil, Trash2, FolderInput } from "lucide-react";
@@ -101,7 +102,7 @@ export function PreviewModal(props: PreviewModalProps) {
         close={onClose}
         slides={slides}
         index={currentIndex}
-        plugins={[Video, Zoom]}
+        plugins={[Download, Video, Zoom]}
         on={{
           view: handleViewChange,
         }}
@@ -153,6 +154,7 @@ export function PreviewModal(props: PreviewModalProps) {
                 <FolderInput size={20} aria-hidden="true" />
               </button>
             ),
+            "download",
             <button
               key="delete"
               type="button"
