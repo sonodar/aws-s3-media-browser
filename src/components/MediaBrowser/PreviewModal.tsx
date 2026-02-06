@@ -5,7 +5,6 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import { Pencil, Trash2, FolderInput } from "lucide-react";
 import "yet-another-react-lightbox/styles.css";
 import type { StorageItem } from "../../types/storage";
-import type { Slide } from "yet-another-react-lightbox";
 import { useDeleteConfirm } from "../../hooks/ui";
 import { usePreviewUrls } from "../../hooks/storage";
 import "./PreviewModal.css";
@@ -93,44 +92,6 @@ export function PreviewModal(props: PreviewModalProps) {
     onIndexChange?.(index);
   };
 
-  // カスタムダウンロード関数: fetch して Blob として保存することで強制ダウンロードを実現
-  const handleDownload = ({
-    slide,
-    saveAs,
-  }: {
-    slide: Slide;
-    saveAs: (source: string | Blob, name?: string) => void;
-  }) => {
-    // download プロパティから URL とファイル名を取得
-    const downloadInfo = slide.download;
-    if (!downloadInfo || typeof downloadInfo === "boolean") return;
-
-    // download が string の場合は URL として扱う
-    const url = typeof downloadInfo === "string" ? downloadInfo : downloadInfo.url;
-    const filename = typeof downloadInfo === "string" ? undefined : downloadInfo.filename;
-
-    // XHR を使って Blob として取得し、ダウンロードを強制する
-    // fetch + async/await だとポップアップブロッカーに引っかかる可能性があるため XHR を使用
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", url);
-    xhr.responseType = "blob";
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        saveAs(xhr.response, filename);
-      } else {
-        console.error("Download failed:", xhr.statusText);
-        // フォールバック: 新しいタブで開く
-        window.open(url, "_blank");
-      }
-    };
-    xhr.onerror = () => {
-      console.error("Download failed");
-      // フォールバック: 新しいタブで開く
-      window.open(url, "_blank");
-    };
-    xhr.send();
-  };
-
   if (!isOpen || !currentItem) return null;
 
   return (
@@ -163,9 +124,6 @@ export function PreviewModal(props: PreviewModalProps) {
           finite: true,
           // Lightbox 内のスライド先読み枚数（hooks と合わせる）
           preload: 1,
-        }}
-        download={{
-          download: handleDownload,
         }}
         styles={{
           container: {

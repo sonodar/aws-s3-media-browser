@@ -23,15 +23,18 @@ function getVideoMimeType(filename: string): string {
 
 /**
  * StorageItem から Slide を生成する
+ * @param item - StorageItem
+ * @param previewUrl - プレビュー用 URL（表示用）
+ * @param downloadUrl - ダウンロード用 URL（Content-Disposition: attachment 付き）
  */
 // 未取得のスライド用に使う 1px 透明画像（ネットワーク負荷なし）
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
-function createSlide(item: StorageItem, urlString?: string): Slide | null {
+function createSlide(item: StorageItem, previewUrl?: string, downloadUrl?: string): Slide | null {
   if (isImageFile(item.name)) {
     return {
-      src: urlString ?? TRANSPARENT_PIXEL,
-      download: urlString ? { url: urlString, filename: item.name } : false,
+      src: previewUrl ?? TRANSPARENT_PIXEL,
+      download: downloadUrl ? { url: downloadUrl, filename: item.name } : false,
     };
   }
 
@@ -40,8 +43,8 @@ function createSlide(item: StorageItem, urlString?: string): Slide | null {
       type: "video" as const,
       width: 1280,
       height: 720,
-      sources: urlString ? [{ src: urlString, type: getVideoMimeType(item.name) }] : [],
-      download: urlString ? { url: urlString, filename: item.name } : false,
+      sources: previewUrl ? [{ src: previewUrl, type: getVideoMimeType(item.name) }] : [],
+      download: downloadUrl ? { url: downloadUrl, filename: item.name } : false,
     };
   }
 
@@ -90,8 +93,16 @@ export function usePreviewUrls(
       return {
         queryKey: queryKeys.previewUrl(item.key),
         queryFn: async () => {
-          const { url } = await getUrl({ path: item.key });
-          return createSlide(item, url.toString());
+          // プレビュー用 URL（通常表示用）
+          const { url: previewUrl } = await getUrl({ path: item.key });
+          // ダウンロード用 URL（Content-Disposition: attachment 付き）
+          const { url: downloadUrl } = await getUrl({
+            path: item.key,
+            options: {
+              contentDisposition: { type: "attachment", filename: item.name },
+            },
+          });
+          return createSlide(item, previewUrl.toString(), downloadUrl.toString());
         },
         enabled: shouldFetch,
         staleTime: 10 * 60 * 1000, // 10分（署名付き URL の有効期限を考慮）
