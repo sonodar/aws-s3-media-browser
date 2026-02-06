@@ -31,7 +31,7 @@ function createSlide(item: StorageItem, urlString?: string): Slide | null {
   if (isImageFile(item.name)) {
     return {
       src: urlString ?? TRANSPARENT_PIXEL,
-      download: urlString ? { url: urlString, filename: item.name } : undefined,
+      download: urlString ? { url: urlString, filename: item.name } : false,
     };
   }
 
@@ -41,7 +41,7 @@ function createSlide(item: StorageItem, urlString?: string): Slide | null {
       width: 1280,
       height: 720,
       sources: urlString ? [{ src: urlString, type: getVideoMimeType(item.name) }] : [],
-      download: urlString ? { url: urlString, filename: item.name } : undefined,
+      download: urlString ? { url: urlString, filename: item.name } : false,
     };
   }
 
