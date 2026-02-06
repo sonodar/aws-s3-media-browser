@@ -94,7 +94,7 @@ export function PreviewModal(props: PreviewModalProps) {
   };
 
   // カスタムダウンロード関数: fetch して Blob として保存することで強制ダウンロードを実現
-  const handleDownload = async ({
+  const handleDownload = ({
     slide,
     saveAs,
   }: {
@@ -109,18 +109,26 @@ export function PreviewModal(props: PreviewModalProps) {
     const url = typeof downloadInfo === "string" ? downloadInfo : downloadInfo.url;
     const filename = typeof downloadInfo === "string" ? undefined : downloadInfo.filename;
 
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.statusText}`);
+    // XHR を使って Blob として取得し、ダウンロードを強制する
+    // fetch + async/await だとポップアップブロッカーに引っかかる可能性があるため XHR を使用
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.responseType = "blob";
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        saveAs(xhr.response, filename);
+      } else {
+        console.error("Download failed:", xhr.statusText);
+        // フォールバック: 新しいタブで開く
+        window.open(url, "_blank");
       }
-      const blob = await response.blob();
-      saveAs(blob, filename);
-    } catch (error) {
-      console.error("Download failed:", error);
+    };
+    xhr.onerror = () => {
+      console.error("Download failed");
       // フォールバック: 新しいタブで開く
       window.open(url, "_blank");
-    }
+    };
+    xhr.send();
   };
 
   if (!isOpen || !currentItem) return null;
