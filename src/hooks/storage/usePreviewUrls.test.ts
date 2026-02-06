@@ -41,10 +41,22 @@ describe("usePreviewUrls", () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockGetUrl).toHaveBeenCalledTimes(3);
+      expect(mockGetUrl).toHaveBeenCalledTimes(6); // 3 items × 2 calls (preview + download)
       expect(mockGetUrl).toHaveBeenCalledWith({ path: "media/user123/photo1.jpg" });
+      expect(mockGetUrl).toHaveBeenCalledWith({
+        path: "media/user123/photo1.jpg",
+        options: { contentDisposition: { type: "attachment", filename: "photo1.jpg" } },
+      });
       expect(mockGetUrl).toHaveBeenCalledWith({ path: "media/user123/video1.mp4" });
+      expect(mockGetUrl).toHaveBeenCalledWith({
+        path: "media/user123/video1.mp4",
+        options: { contentDisposition: { type: "attachment", filename: "video1.mp4" } },
+      });
       expect(mockGetUrl).toHaveBeenCalledWith({ path: "media/user123/photo2.png" });
+      expect(mockGetUrl).toHaveBeenCalledWith({
+        path: "media/user123/photo2.png",
+        options: { contentDisposition: { type: "attachment", filename: "photo2.png" } },
+      });
     });
 
     it("should not fetch URLs when disabled", async () => {
