@@ -2,7 +2,7 @@ name: Renovate
 
 on:
   schedule:
-    - cron: "0 0 * * 1" # 毎週月曜 9:00 JST (0:00 UTC)
+    - cron: "0 0 * * *" # 毎日 9:00 JST (0:00 UTC)
   workflow_dispatch:
   pull_request:
     paths:
