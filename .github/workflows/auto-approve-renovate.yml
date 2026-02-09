@@ -1,0 +1,17 @@
+name: Auto Approve Renovate PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  auto-approve:
+    # Renovate Bot によるPRのみ対象
+    # RENOVATE_TOKEN (PAT) の所有者とは別のアイデンティティ (github-actions[bot]) で
+    # 承認することで "Require approval from someone other than the last pusher" を満たす
+    if: startsWith(github.head_ref, 'renovate/')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: hmarr/auto-approve-action@v4
