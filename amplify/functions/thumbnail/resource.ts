@@ -1,4 +1,5 @@
 import { defineFunction } from "@aws-amplify/backend";
+import { TMP_STORAGE_MB } from "./limits";
 
 /**
  * Environment variables for Lambda Layer ARNs
@@ -33,13 +34,21 @@ if (FFMPEG_LAYER_ARN) {
 /**
  * Thumbnail generation Lambda function
  * Triggered by S3 upload and delete events
+ *
+ * The limits are set by the largest video, not the common case. Videos of
+ * several hundred MB exist, and for those the function has to download the
+ * file, decode frames until it finds one that is not black, and hand the frame
+ * to Sharp. FFmpeg runs as a child process, so its memory counts against the
+ * same limit. The previous 30s / 1024MB / 512MB of /tmp could not finish a
+ * 464MB video at all.
  */
 export const thumbnailFunction = defineFunction({
   name: "thumbnail",
   entry: "./handler.ts",
   runtime: 22,
-  timeoutSeconds: 30,
-  memoryMB: 1024,
+  timeoutSeconds: 300,
+  memoryMB: 2048,
+  ephemeralStorageSizeMB: TMP_STORAGE_MB,
   architecture: "arm64",
   layers,
 });
