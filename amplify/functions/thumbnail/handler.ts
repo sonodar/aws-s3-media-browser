@@ -1,4 +1,3 @@
-import type { S3Handler, S3Event } from "aws-lambda";
 import {
   S3Client,
   GetObjectCommand,
@@ -11,6 +10,7 @@ import { writeFile, readFile, unlink, access, stat } from "fs/promises";
 import { constants } from "fs";
 import { join } from "path";
 import { type Command, type CommandOutput, extractFrame, type FrameTools } from "./frame";
+import { isRegenerate, requestsOf, type ThumbnailEvent } from "./requests";
 import { isImageFile, isVideoFile, getThumbnailPath } from "./utils";
 
 /**
@@ -46,12 +46,12 @@ const THUMBNAIL_CONFIG = {
 /**
  * S3 Event Handler for thumbnail generation and deletion
  */
-export const handler: S3Handler = async (event: S3Event): Promise<void> => {
-  for (const record of event.Records) {
-    const eventName = record.eventName;
-    const bucket = record.s3.bucket.name;
-    const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
+export const handler = async (event: ThumbnailEvent): Promise<void> => {
+  // A direct invocation is a manual operation on a single object, so its
+  // failure has to reach the caller instead of ending up in the log only
+  const direct = isRegenerate(event);
 
+  for (const { eventName, bucket, key } of requestsOf(event)) {
     console.log(`Processing event: ${eventName} for ${key}`);
 
     // Only process files in media/ prefix
@@ -69,6 +69,9 @@ export const handler: S3Handler = async (event: S3Event): Promise<void> => {
     } catch (error) {
       // Log error but don't throw - allow other records to process
       console.error(`Error processing ${key}:`, error);
+      if (direct) {
+        throw error;
+      }
     }
   }
 };
