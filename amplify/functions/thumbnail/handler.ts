@@ -6,10 +6,13 @@ import {
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { spawn } from "child_process";
-import { writeFile, readFile, unlink, access, stat } from "fs/promises";
-import { constants } from "fs";
+import { readFile, unlink, access, stat } from "fs/promises";
+import { constants, createWriteStream } from "fs";
 import { join } from "path";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import { type Command, type CommandOutput, extractFrame, type FrameTools } from "./frame";
+import { describeSize, fitsInTmp, TMP_STORAGE_MB } from "./limits";
 import { isRegenerate, requestsOf, type ThumbnailEvent } from "./requests";
 import { isImageFile, isVideoFile, getThumbnailPath } from "./utils";
 
@@ -207,9 +210,22 @@ async function generateVideoThumbnail(bucket: string, key: string): Promise<void
     // Get upload time from object metadata
     const uploadTime = response.LastModified;
 
-    // Write video to temp file
-    const videoBuffer = Buffer.from(await response.Body.transformToByteArray());
-    await writeFile(videoPath, videoBuffer);
+    // Refuse before downloading. Without this the function dies with an out of
+    // memory or a full disk, and neither says which object caused it
+    const byteSize = response.ContentLength ?? 0;
+    if (!fitsInTmp(byteSize)) {
+      throw new Error(
+        `Video is ${describeSize(byteSize)}, which does not fit in ${TMP_STORAGE_MB}MB of /tmp: ${key}`,
+      );
+    }
+
+    // Stream to the temp file. Reading the whole video into a Buffer made the
+    // memory use scale with the file size (and the SDK holds the chunks twice
+    // while concatenating), which is what used to kill this function
+    if (!(response.Body instanceof Readable)) {
+      throw new Error(`Body of ${key} is not readable as a stream`);
+    }
+    await pipeline(response.Body, createWriteStream(videoPath));
 
     // Pick the frame: skip the container delay, then avoid recorded black
     // pixels by looking for the first scene change (see frame.ts)

@@ -127,20 +127,29 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const response = await lambda.send(
-      new InvokeCommand({
-        FunctionName: functionName,
-        Payload: JSON.stringify({ bucket, key }),
-      }),
-    );
-    // A direct invocation rethrows its failure, so this is set when the
-    // thumbnail could not be rebuilt
-    if (response.FunctionError) {
+    // One object must not end the run. Nothing about the next video depends on
+    // this one, and stopping halfway leaves the rest with no way to tell
+    // whether they were reached
+    try {
+      const response = await lambda.send(
+        new InvokeCommand({
+          FunctionName: functionName,
+          Payload: JSON.stringify({ bucket, key }),
+        }),
+      );
+      // A direct invocation rethrows its failure, so this is set when the
+      // thumbnail could not be rebuilt
+      if (response.FunctionError) {
+        failures += 1;
+        const payload = response.Payload ? Buffer.from(response.Payload).toString("utf8") : "";
+        console.error(`${key}: ${response.FunctionError} ${payload}`);
+      } else {
+        console.log(`${key}: rebuilt`);
+      }
+    } catch (error) {
+      // The call itself did not go through (throttling, timeout, credentials)
       failures += 1;
-      const payload = response.Payload ? Buffer.from(response.Payload).toString("utf8") : "";
-      console.error(`${key}: ${response.FunctionError} ${payload}`);
-    } else {
-      console.log(`${key}: rebuilt`);
+      console.error(`${key}: not invoked`, error);
     }
   }
 
@@ -152,4 +161,9 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+main().catch((error) => {
+  // Only the setup can end up here (bucket, function name, listing). Report it
+  // as a failed run instead of an unhandled rejection
+  console.error(error);
+  process.exitCode = 1;
+});
