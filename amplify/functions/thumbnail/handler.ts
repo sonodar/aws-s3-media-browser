@@ -7,15 +7,17 @@ import {
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { spawn } from "child_process";
-import { writeFile, readFile, unlink, access } from "fs/promises";
+import { writeFile, readFile, unlink, access, stat } from "fs/promises";
 import { constants } from "fs";
 import { join } from "path";
+import { type Command, type CommandOutput, extractFrame, type FrameTools } from "./frame";
 import { isImageFile, isVideoFile, getThumbnailPath } from "./utils";
 
 /**
- * FFmpeg binary path (from Lambda Layer)
+ * FFmpeg binary paths (from Lambda Layer)
  */
 const FFMPEG_PATH = "/opt/bin/ffmpeg";
+const FFPROBE_PATH = "/opt/bin/ffprobe";
 
 /**
  * Check if FFmpeg is available
@@ -206,32 +208,10 @@ async function generateVideoThumbnail(bucket: string, key: string): Promise<void
     const videoBuffer = Buffer.from(await response.Body.transformToByteArray());
     await writeFile(videoPath, videoBuffer);
 
-    // Extract frame using blackframe filter to skip black frames
-    // blackframe detects black frames, metadata=select filters them out
-    try {
-      await runFFmpeg([
-        "-i",
-        videoPath,
-        "-vf",
-        "blackframe=0,metadata=select:key=lavfi.blackframe.pblack:value=50:function=less",
-        "-frames:v",
-        "1",
-        "-y",
-        framePath,
-      ]);
-    } catch {
-      // If blackframe filter failed, fallback to simple frame at 1 second
-      console.log("Blackframe filter failed, falling back to simple frame extraction");
-      await runFFmpeg(["-ss", "1", "-i", videoPath, "-frames:v", "1", "-y", framePath]);
-    }
-
-    // Check if frame was extracted, if not try fallback
-    try {
-      await access(framePath, constants.R_OK);
-    } catch {
-      console.log("No frame extracted, trying fallback at 0 seconds");
-      await runFFmpeg(["-i", videoPath, "-frames:v", "1", "-y", framePath]);
-    }
+    // Pick the frame: skip the container delay, then avoid recorded black
+    // pixels by looking for the first scene change (see frame.ts)
+    const source = await extractFrame(frameTools, { input: videoPath, output: framePath });
+    console.log(`Frame extracted for ${key} (${source})`);
 
     // Read extracted frame
     const frameBuffer = await readFile(framePath);
@@ -273,27 +253,51 @@ async function generateVideoThumbnail(bucket: string, key: string): Promise<void
 }
 
 /**
- * Run FFmpeg command and return promise
+ * Run FFmpeg or FFprobe and return both streams.
+ *
+ * Both are needed by the frame selection: the start time comes from stdout, and
+ * the black frame detection prints to stderr.
  */
-function runFFmpeg(args: string[]): Promise<void> {
+function runCommand({ command, args }: Command): Promise<CommandOutput> {
   return new Promise((resolve, reject) => {
-    const process = spawn(FFMPEG_PATH, args);
+    const process = spawn(command, args);
 
+    let stdout = "";
     let stderr = "";
+    process.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
     process.stderr.on("data", (data) => {
       stderr += data.toString();
     });
 
     process.on("close", (code) => {
       if (code === 0) {
-        resolve();
+        resolve({ stdout, stderr });
       } else {
-        reject(new Error(`FFmpeg exited with code ${code}: ${stderr}`));
+        reject(new Error(`${command} exited with code ${code}: ${stderr}`));
       }
     });
 
     process.on("error", (err) => {
-      reject(new Error(`FFmpeg process error: ${err.message}`));
+      reject(new Error(`${command} process error: ${err.message}`));
     });
   });
 }
+
+/**
+ * Size of a written file, or 0 when FFmpeg wrote nothing.
+ */
+async function sizeOf(path: string): Promise<number> {
+  try {
+    return (await stat(path)).size;
+  } catch {
+    return 0;
+  }
+}
+
+const frameTools: FrameTools = {
+  binaries: { ffmpeg: FFMPEG_PATH, ffprobe: FFPROBE_PATH },
+  run: runCommand,
+  sizeOf,
+};
