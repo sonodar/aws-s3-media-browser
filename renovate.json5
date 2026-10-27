@@ -4,6 +4,9 @@
   // ベース設定: 推奨設定を継承、Dependency Dashboardは無効化
   extends: ["config:recommended", ":disableDependencyDashboard"],
 
+  // PRの宛先: staging用ブランチ
+  baseBranches: ["staging"],
+
   // PR制限: 過剰なPR作成を防止
   prHourlyLimit: 5, // 時間あたり最大5件
   prConcurrentLimit: 10, // 同時オープン最大10件
