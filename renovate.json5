@@ -11,8 +11,8 @@
   prHourlyLimit: 5, // 時間あたり最大5件
   prConcurrentLimit: 10, // 同時オープン最大10件
 
-  // 対象マネージャー: npmのみ
-  enabledManagers: ["npm"],
+  // 対象マネージャー: npmとGitHub Actions
+  enabledManagers: ["npm", "github-actions"],
 
   // サプライチェーン攻撃対策: 新規リリースから7日間の猶予期間を設ける
   // internalChecksFilter: strict により、猶予期間中はPR/ブランチを作成しない
